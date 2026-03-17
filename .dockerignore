@@ -1,0 +1,33 @@
+.env.local
+.env.*.local
+
+node_modules
+npm-debug.log*
+
+.next
+out
+build
+
+.git
+.gitignore
+
+coverage
+.nyc_output
+
+*.tsbuildinfo
+
+# Dev tools / docs
+.vscode
+docs
+*.md
+!README.md
+
+# Test
+tests
+__tests__
+vitest.config.ts
+vitest_results.txt
+
+# Scripts not needed in image
+scripts
+migrate_*.js

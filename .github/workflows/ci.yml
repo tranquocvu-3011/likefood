@@ -1,0 +1,62 @@
+name: LIKEFOOD CI
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: testpassword
+          MYSQL_DATABASE: likefood_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    
+    env:
+      DATABASE_URL: "mysql://root:testpassword@localhost:3306/likefood_test"
+      NEXTAUTH_SECRET: mock-secret-for-ci-build-at-least-32-chars
+      NEXTAUTH_URL: "http://localhost:3000"
+      ALLOWED_ORIGIN: "http://localhost:3000"
+      SKIP_ENV_VALIDATION: "true"
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Use Node.js 20.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci || npm install
+      
+    - name: Generate Prisma Client
+      run: npm run db:generate || npx prisma generate
+      
+    - name: Push database schema
+      run: npx prisma db push --skip-generate
+      
+    - name: Type Check
+      run: npm run type-check
+
+    - name: Lint
+      run: npm run lint
+      
+    - name: Run Tests
+      run: npm test -- --run
+      
+    - name: Build Next.js
+      run: npm run build

@@ -1,0 +1,54 @@
+# LIKEFOOD — Docker Compose Staging
+# DEV-003: Separate staging environment
+#
+# Usage: docker compose -f docker-compose.staging.yml up -d
+#
+# This mirrors production but uses:
+# - Separate database (likefood_staging)
+# - Different port (3001)
+# - Staging-specific env vars
+
+services:
+  app-staging:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=mysql://root:${STAGING_DB_PASSWORD}@mysql-staging:3306/likefood_staging
+      - NEXTAUTH_URL=https://staging.likefood.us
+      - NEXTAUTH_SECRET=${STAGING_NEXTAUTH_SECRET}
+      - STRIPE_SECRET_KEY=${STAGING_STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STAGING_STRIPE_WEBHOOK_SECRET}
+      - UPSTASH_REDIS_REST_URL=${STAGING_REDIS_URL}
+      - UPSTASH_REDIS_REST_TOKEN=${STAGING_REDIS_TOKEN}
+    depends_on:
+      mysql-staging:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  mysql-staging:
+    image: mysql:8.0
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${STAGING_DB_PASSWORD}
+      MYSQL_DATABASE: likefood_staging
+    volumes:
+      - staging_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+volumes:
+  staging_mysql_data:

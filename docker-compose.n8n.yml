@@ -1,0 +1,59 @@
+# ============================================
+# n8n Automation Server cho LIKEFOOD
+# ============================================
+# Deploy: docker compose -f docker-compose.n8n.yml up -d
+# URL: http://localhost:5678 (hoặc https://n8n.likefood.vudev.io.vn)
+# ============================================
+
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: likefood-n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      # ── General ──
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://n8n.likefood.vudev.io.vn/
+      - N8N_EDITOR_BASE_URL=https://n8n.likefood.vudev.io.vn/
+      - GENERIC_TIMEZONE=Asia/Ho_Chi_Minh
+      - TZ=Asia/Ho_Chi_Minh
+
+      # ── Security ──
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_ADMIN_PASSWORD:-LikeFood_n8n_2026!}
+
+      # ── Database (SQLite mặc định, đủ dùng) ──
+      - DB_TYPE=sqlite
+      - DB_SQLITE_DATABASE=/home/node/.n8n/database.sqlite
+
+      # ── Encryption key (quan trọng để giữ credentials sau restart) ──
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY:-likefood-n8n-enc-key-change-me-in-prod}
+
+      # ── Execution settings ──
+      - EXECUTIONS_DATA_SAVE_ON_ERROR=all
+      - EXECUTIONS_DATA_SAVE_ON_SUCCESS=all
+      - EXECUTIONS_DATA_SAVE_MANUAL_EXECUTIONS=true
+      - EXECUTIONS_DATA_MAX_AGE=168
+
+      # ── LIKEFOOD API Connection ──
+      - LIKEFOOD_API_URL=${NEXT_PUBLIC_APP_URL:-https://likefood.vudev.io.vn}
+      - LIKEFOOD_WEBHOOK_SECRET=${N8N_WEBHOOK_SECRET:-n8n_webhook_secret_likefood_2026}
+
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - likefood-network
+
+volumes:
+  n8n_data:
+    driver: local
+
+networks:
+  likefood-network:
+    external: true
+    name: weblikefood_default  # Dùng chung network với LIKEFOOD docker stack

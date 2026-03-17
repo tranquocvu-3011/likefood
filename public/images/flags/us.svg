@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1235 650">
+  <!-- Stripes -->
+  <rect width="1235" height="650" fill="#B22234"/>
+  <rect y="50" width="1235" height="50" fill="#FFFFFF"/>
+  <rect y="150" width="1235" height="50" fill="#FFFFFF"/>
+  <rect y="250" width="1235" height="50" fill="#FFFFFF"/>
+  <rect y="350" width="1235" height="50" fill="#FFFFFF"/>
+  <rect y="450" width="1235" height="50" fill="#FFFFFF"/>
+  <rect y="550" width="1235" height="50" fill="#FFFFFF"/>
+  <!-- Canton (blue field) -->
+  <rect width="494" height="350" fill="#3C3B6E"/>
+  <!-- Stars 5x4 rows offset pattern -->
+  <!-- Row 1 (y=32): 6 stars at x=41,123,205,287,369,451 -->
+  <g fill="#FFFFFF">
+    <polygon points="41,20 45,32 58,32 48,39 52,52 41,44 30,52 34,39 24,32 37,32" transform="scale(0.85)"/>
+    <polygon points="41,20 45,32 58,32 48,39 52,52 41,44 30,52 34,39 24,32 37,32" transform="translate(82,0) scale(0.85)"/>
+    <polygon points="41,20 45,32 58,32 48,39 52,52 41,44 30,52 34,39 24,32 37,32" transform="translate(164,0) scale(0.85)"/>
+    <polygon points="41,20 45,32 58,32 48,39 52,52 41,44 30,52 34,39 24,32 37,32" transform="translate(246,0) scale(0.85)"/>
+    <polygon points="41,20 45,32 58,32 48,39 52,52 41,44 30,52 34,39 24,32 37,32" transform="translate(328,0) scale(0.85)"/>
+    <polygon points="41,20 45,32 58,32 48,39 52,52 41,44 30,52 34,39 24,32 37,32" transform="translate(410,0) scale(0.85)"/>
+    <!-- Row 2 (offset) -->
+    <polygon points="41,20 45,32 58,32 48,39 52,52 41,44 30,52 34,39 24,32 37,32" transform="translate(41,58) scale(0.85)"/>
+    <polygon points="41,20 45,32 58,32 48,39 52,52 41,44 30,52 34,39 24,32 37,32" transform="translate(123,58) scale(0.85)"/>
+    <polygon points="41,20 45,32 58,32 48,39 52,52 41,44 30,52 34,39 24,32 37,32" transform="translate(205,58) scale(0.85)"/>
+    <polygon points="41,20 45,32 58,32 48,39 52,52 41,44 30,52 34,39 24,32 37,32" transform="translate(287,58) scale(0.85)"/>
+    <polygon points="41,20 45,32 58,32 48,39 52,52 41,44 30,52 34,39 24,32 37,32" transform="translate(369,58) scale(0.85)"/>
+    <!-- Row 3 -->
+    <polygon points="41,20 45,32 58,32 48,39 52,52 41,44 30,52 34,39 24,32 37,32" transform="translate(0,116) scale(0.85)"/>
+    <polygon points="41,20 45,32 58,32 48,39 52,52 41,44 30,52 34,39 24,32 37,32" transform="translate(82,116) scale(0.85)"/>
+    <polygon points="41,20 45,32 58,32 48,39 52,52 41,44 30,52 34,39 24,32 37,32" transform="translate(164,116) scale(0.85)"/>
+    <polygon points="41,20 45,32 58,32 48,39 52,52 41,44 30,52 34,39 24,32 37,32" transform="translate(246,116) scale(0.85)"/>
+    <polygon points="41,20 45,32 58,32 48,39 52,52 41,44 30,52 34,39 24,32 37,32" transform="translate(328,116) scale(0.85)"/>
+    <polygon points="41,20 45,32 58,32 48,39 52,52 41,44 30,52 34,39 24,32 37,32" transform="translate(410,116) scale(0.85)"/>
+    <!-- Row 4 (offset) -->
+    <polygon points="41,20 45,32 58,32 48,39 52,52 41,44 30,52 34,39 24,32 37,32" transform="translate(41,174) scale(0.85)"/>
+    <polygon points="41,20 45,32 58,32 48,39 52,52 41,44 30,52 34,39 24,32 37,32" transform="translate(123,174) scale(0.85)"/>
+    <polygon points="41,20 45,32 58,32 48,39 52,52 41,44 30,52 34,39 24,32 37,32" transform="translate(205,174) scale(0.85)"/>
+    <polygon points="41,20 45,32 58,32 48,39 52,52 41,44 30,52 34,39 24,32 37,32" transform="translate(287,174) scale(0.85)"/>
+    <polygon points="41,20 45,32 58,32 48,39 52,52 41,44 30,52 34,39 24,32 37,32" transform="translate(369,174) scale(0.85)"/>
+    <!-- Row 5 -->
+    <polygon points="41,20 45,32 58,32 48,39 52,52 41,44 30,52 34,39 24,32 37,32" transform="translate(0,232) scale(0.85)"/>
+    <polygon points="41,20 45,32 58,32 48,39 52,52 41,44 30,52 34,39 24,32 37,32" transform="translate(82,232) scale(0.85)"/>
+    <polygon points="41,20 45,32 58,32 48,39 52,52 41,44 30,52 34,39 24,32 37,32" transform="translate(164,232) scale(0.85)"/>
+    <polygon points="41,20 45,32 58,32 48,39 52,52 41,44 30,52 34,39 24,32 37,32" transform="translate(246,232) scale(0.85)"/>
+    <polygon points="41,20 45,32 58,32 48,39 52,52 41,44 30,52 34,39 24,32 37,32" transform="translate(328,232) scale(0.85)"/>
+    <polygon points="41,20 45,32 58,32 48,39 52,52 41,44 30,52 34,39 24,32 37,32" transform="translate(410,232) scale(0.85)"/>
+  </g>
+</svg>

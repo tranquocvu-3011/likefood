@@ -1,0 +1,323 @@
+# LIKEFOOD — API Documentation (OpenAPI 3.0)
+# API-001: Public API Reference
+
+openapi: 3.0.3
+info:
+  title: LIKEFOOD API
+  description: |
+    Vietnamese Specialty Marketplace API.
+    All endpoints require proper authentication unless specified as public.
+  version: 1.0.0
+  contact:
+    name: LIKEFOOD Team
+    email: support@likefood.us
+
+servers:
+  - url: https://likefood.us
+    description: Production
+  - url: http://localhost:3000
+    description: Development
+
+tags:
+  - name: Products
+    description: Product catalog operations
+  - name: Auth
+    description: Authentication & session management
+  - name: Orders
+    description: Order management
+  - name: Cart
+    description: Shopping cart operations
+  - name: Coupons
+    description: Coupon validation
+  - name: Health
+    description: System health checks
+
+paths:
+  /api/health:
+    get:
+      tags: [Health]
+      summary: Health check
+      description: Returns system status including DB, Redis, and external services
+      responses:
+        '200':
+          description: System healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [healthy, degraded, unhealthy]
+                  timestamp:
+                    type: string
+                    format: date-time
+                  checks:
+                    type: object
+
+  /api/products:
+    get:
+      tags: [Products]
+      summary: List products
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1, minimum: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20, minimum: 1, maximum: 100 }
+        - name: category
+          in: query
+          schema: { type: string }
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [newest, price-asc, price-desc, popular, best-selling, top-rated]
+        - name: minPrice
+          in: query
+          schema: { type: number }
+        - name: maxPrice
+          in: query
+          schema: { type: number }
+        - name: inStock
+          in: query
+          schema: { type: boolean }
+        - name: isOnSale
+          in: query
+          schema: { type: boolean }
+      responses:
+        '200':
+          description: Product list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  products:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+
+  /api/products/{slug}:
+    get:
+      tags: [Products]
+      summary: Get product detail
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Product detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '404':
+          description: Product not found
+
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login with credentials
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                otp:
+                  type: string
+                  description: Required if 2FA is enabled
+      responses:
+        '200':
+          description: Login successful
+        '401':
+          description: Invalid credentials
+        '423':
+          description: Account locked (too many failed attempts)
+
+  /api/auth/sessions:
+    get:
+      tags: [Auth]
+      summary: List active sessions
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Active sessions list
+    delete:
+      tags: [Auth]
+      summary: Revoke session(s)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: query
+          description: Specific session ID to revoke (omit to revoke all)
+          schema: { type: string }
+      responses:
+        '200':
+          description: Session(s) revoked
+
+  /api/cart:
+    get:
+      tags: [Cart]
+      summary: Get cart items
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Cart contents
+    post:
+      tags: [Cart]
+      summary: Add item to cart
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [productId, quantity]
+              properties:
+                productId: { type: string }
+                quantity: { type: integer, minimum: 1 }
+                variantId: { type: string }
+      responses:
+        '200':
+          description: Item added
+        '400':
+          description: Validation error
+
+  /api/orders:
+    get:
+      tags: [Orders]
+      summary: List user orders
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [PENDING, CONFIRMED, PROCESSING, SHIPPING, DELIVERED, COMPLETED, CANCELLED, REFUNDED]
+      responses:
+        '200':
+          description: Orders list
+
+  /api/checkout/create-session:
+    post:
+      tags: [Orders]
+      summary: Create Stripe checkout session
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [items]
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      productId: { type: string }
+                      quantity: { type: integer }
+                shippingAddress: { type: string }
+                couponCode: { type: string }
+      responses:
+        '200':
+          description: Stripe session created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url: { type: string, format: uri }
+                  sessionId: { type: string }
+
+  /api/coupons/validate:
+    post:
+      tags: [Coupons]
+      summary: Validate a coupon code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code: { type: string }
+                subtotal: { type: number }
+      responses:
+        '200':
+          description: Coupon valid
+        '400':
+          description: Coupon invalid or expired
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Product:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        slug: { type: string }
+        description: { type: string }
+        price: { type: number }
+        salePrice: { type: number, nullable: true }
+        image: { type: string }
+        category: { type: string }
+        inventory: { type: integer }
+        isOnSale: { type: boolean }
+        ratingAvg: { type: number }
+        ratingCount: { type: integer }
+        createdAt: { type: string, format: date-time }
+
+    ApiError:
+      type: object
+      properties:
+        error: { type: string }
+        code:
+          type: string
+          enum: [VALIDATION_ERROR, UNAUTHORIZED, FORBIDDEN, NOT_FOUND, BAD_REQUEST, RATE_LIMITED, CONFLICT, INTERNAL_ERROR]
+        timestamp: { type: string, format: date-time }
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              message: { type: string }

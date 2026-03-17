@@ -1,0 +1,1275 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../src/generated/client"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model user {
+  id                      Int                @id @default(autoincrement())
+  email                   String             @unique
+  password                String?
+  name                    String?
+  role                    String             @default("USER")
+  emailVerified           DateTime?
+  image                   String?            @db.LongText
+  phone                   String?
+  createdAt               DateTime           @default(now())
+  updatedAt               DateTime           @default(now()) @updatedAt
+  avatarUrl               String?            @db.VarChar(512)
+  lastCheckIn             DateTime?
+  points                  Int                @default(0)
+  twoFactorEnabled        Boolean            @default(false)
+  failedLoginAttempts     Int                @default(0)
+  lockedUntil             DateTime?
+  notificationPreferences String?            @db.LongText
+  googleId                String?            @unique
+  activeSessions          activesession[]
+  addresses               address[]
+  cart                    cart?
+  loginHistory            loginhistory[]
+  notifications           notification[]
+  orders                  order[]
+  pointTransactions       pointtransaction[]
+  productQAs              productqa[]
+  refundRequests          refundrequest[]
+  reviews                 review[]
+  twoFactorTokens         twofactortoken[]
+  userVouchers            uservoucher[]
+  wishlists               wishlist[]
+  referralProfile              referralprofile?
+  referralRelationsAsReferrer  referralrelation[]       @relation("ReferralReferrer")
+  referralRelationsAsReferred  referralrelation?        @relation("ReferralReferred")
+  referralCommissionsEarned    referralcommission[]     @relation("CommissionReferrer")
+  referralCommissionsGenerated referralcommission[]     @relation("CommissionReferred")
+  referralMilestoneRewards     referralmilestonereward[]
+  referralCashouts             referralcashout[]
+  referralWalletTxs            referralwallettx[]
+  referralAuditLogsAsActor     referralauditlog[]       @relation("AuditActor")
+  referralAuditLogsAsTarget    referralauditlog[]       @relation("AuditTarget")
+  liveChatsAsUser              livechat[]               @relation("userLiveChats")
+  liveChatsAsAdmin             livechat[]               @relation("adminLiveChats")
+}
+
+model verificationtoken {
+  id         Int      @id @default(autoincrement())
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model loginhistory {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  ipAddress    String?  @db.VarChar(64)
+  userAgent    String?  @db.Text
+  country      String?  @db.VarChar(64)
+  city         String?  @db.VarChar(64)
+  isSuspicious Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  user         user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model activesession {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  sessionToken String   @unique @db.VarChar(512)
+  ipAddress    String?  @db.VarChar(64)
+  deviceInfo   String?  @db.VarChar(256)
+  browserName  String?  @db.VarChar(64)
+  lastSeen     DateTime @default(now())
+  createdAt    DateTime @default(now())
+  user         user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model twofactortoken {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  token     String   @db.VarChar(10)
+  expires   DateTime
+  createdAt DateTime @default(now())
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model address {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  fullName  String
+  phone     String
+  address   String
+  city      String
+  state     String?
+  zipCode   String
+  country   String   @default("USA")
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model brand {
+  id        Int       @id @default(autoincrement())
+  name      String
+  nameEn    String?
+  slug      String    @unique
+  logo      String?
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+  products  product[]
+}
+
+model product {
+  id                Int                    @id @default(autoincrement())
+  name              String
+  nameEn            String?
+  slug              String?                @unique
+  description       String                 @db.Text
+  descriptionEn     String?                @db.Text
+  price             Float
+  salePrice         Float?
+  saleStartAt       DateTime?
+  saleEndAt         DateTime?
+  isOnSale          Boolean                @default(false)
+  badgeText         String?
+  badgeTextEn       String?
+  image             String?
+  category          String
+  categoryId        Int?
+  inventory         Int                    @default(0)
+  featured          Boolean                @default(false)
+  isVisible         Boolean                @default(true)
+  brandId           Int?
+  originalPrice     Float?
+  tags              String?
+  ratingAvg         Float                  @default(0)
+  ratingCount       Int                    @default(0)
+  soldCount         Int                    @default(0)
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @default(now()) @updatedAt
+  code              String?                @unique
+  weight            String?
+  weightEn          String?
+  deletedAt         DateTime?
+  isDeleted         Boolean                @default(false)
+  searchKeywords    String?                @db.Text
+  cartItems         cartitem[]
+  flashSaleProducts flashsaleproduct[]
+  orderItems        orderitem[]
+  brand             brand?                 @relation(fields: [brandId], references: [id])
+  categoryRel       category?              @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  productImages     productimage[]
+  productMedia      productmedia[]
+  productQAs        productqa[]
+  shipping          productshipping?
+  specifications    productspecification[]
+  productVariants   productvariant[]
+  productViews      productview[]
+  reviews           review[]
+  productTags       producttag[]
+  wishlists         wishlist[]
+
+  @@index([brandId])
+  @@index([category])
+  @@index([categoryId])
+  @@index([isOnSale])
+  @@index([featured])
+  @@index([isVisible])
+  @@index([soldCount])
+  @@index([ratingAvg])
+  @@fulltext([name, description])
+}
+
+model category {
+  id          Int        @id @default(autoincrement())
+  name        String
+  nameEn      String?
+  slug        String     @unique
+  description String?    @db.Text
+  descriptionEn String?  @db.Text
+  imageUrl    String?    @db.VarChar(512)
+  parentId    Int?
+  position    Int        @default(0)
+  isVisible   Boolean    @default(true)
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  parent      category?  @relation("CategoryParent", fields: [parentId], references: [id], onDelete: SetNull)
+  children    category[] @relation("CategoryParent")
+  products    product[]
+
+  @@index([parentId])
+  @@index([position])
+  @@index([isVisible])
+  @@index([isActive])
+}
+
+model tag {
+  id        Int         @id @default(autoincrement())
+  name      String
+  nameEn    String?
+  slug      String      @unique
+  isActive  Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  products  producttag[]
+
+  @@index([isActive])
+}
+
+model producttag {
+  productId Int
+  tagId     Int
+  createdAt DateTime @default(now())
+
+  product   product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  tag       tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([productId, tagId])
+  @@index([tagId])
+}
+
+model productimage {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  imageUrl  String
+  altText   String?
+  order     Int      @default(0)
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  product   product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([isPrimary])
+}
+
+model productmedia {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  type      String
+  url       String
+  order     Int      @default(0)
+  isCover   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  product   product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([type])
+}
+
+model productvariant {
+  id              Int         @id @default(autoincrement())
+  productId       Int
+  weight          String?
+  weightEn        String?
+  flavor          String?
+  flavorEn        String?
+  priceAdjustment Float       @default(0)
+  stock           Int         @default(0)
+  sku             String?     @unique
+  isActive        Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @default(now()) @updatedAt
+  cartItems       cartitem[]
+  orderItems      orderitem[]
+  product         product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([isActive])
+}
+
+model productview {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  userId    Int?
+  createdAt DateTime @default(now())
+  product   product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model cart {
+  id         Int        @id @default(autoincrement())
+  userId     Int?       @unique
+  guestToken String?    @unique
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @default(now()) @updatedAt
+  user       user?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items      cartitem[]
+}
+
+model cartitem {
+  id        Int             @id @default(autoincrement())
+  cartId    Int
+  productId Int
+  variantId Int?
+  quantity  Int             @default(1)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @default(now()) @updatedAt
+  cart      cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant   productvariant? @relation(fields: [variantId], references: [id])
+
+  @@unique([cartId, productId, variantId])
+  @@index([cartId])
+  @@index([productId])
+  @@index([variantId], map: "cartitem_variantId_fkey")
+}
+
+model order {
+  id              Int             @id @default(autoincrement())
+  userId          Int
+  status          String          @default("PENDING")
+  subtotal        Float           @default(0)
+  shippingFee     Float           @default(0)
+  discount        Float           @default(0)
+  total           Float
+  couponId        Int?
+  couponCode      String?
+  shippingAddress String?
+  shippingCity    String?
+  shippingZipCode String?
+  shippingPhone   String?
+  shippingMethod  String?         @default("standard")
+  carrier         String?
+  trackingCode    String?
+  shippedAt       DateTime?
+  deliveredAt     DateTime?
+  paymentMethod   String?
+  paymentStatus   String          @default("UNPAID")
+  paymentIntentId String?
+  notes           String?         @db.Text
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @default(now()) @updatedAt
+  pointsDiscount  Float?
+  pointsUsed      Int?
+  user            user            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  events          orderevent[]
+  orderItems      orderitem[]
+  refundRequests  refundrequest[]
+  referralCommissions referralcommission[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([paymentIntentId])
+  @@index([userId, status])
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+  @@index([paymentStatus])
+}
+
+model orderitem {
+  id           Int             @id @default(autoincrement())
+  orderId      Int
+  productId    Int
+  variantId    Int?
+  quantity     Int
+  price        Float
+  nameSnapshot String?
+  skuSnapshot  String?
+  createdAt    DateTime        @default(now())
+  order        order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product      product         @relation(fields: [productId], references: [id])
+  variant      productvariant? @relation(fields: [variantId], references: [id])
+  reviews      review?
+
+  @@index([orderId])
+  @@index([productId])
+  @@index([variantId])
+  @@index([createdAt])
+}
+
+model orderevent {
+  id        Int      @id @default(autoincrement())
+  orderId   Int
+  status    String
+  note      String?  @db.Text
+  createdAt DateTime @default(now())
+  order     order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, createdAt])
+}
+
+model refundrequest {
+  id           Int       @id @default(autoincrement())
+  orderId      Int
+  userId       Int
+  orderItemId  Int?
+  reason       String    @db.Text
+  amount       Float
+  status       String    @default("PENDING")
+  adminNote    String?   @db.Text
+  refundMethod String?
+  bankAccount  String?
+  bankName     String?
+  processedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  order        order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user         user      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([userId])
+  @@index([status])
+}
+
+model review {
+  id          Int           @id @default(autoincrement())
+  productId   Int
+  userId      Int
+  orderItemId Int?          @unique
+  rating      Int
+  comment     String?       @db.Text
+  status      String        @default("PENDING")
+  adminReply  String?       @db.Text
+  repliedAt   DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @default(now()) @updatedAt
+  orderItem   orderitem?    @relation(fields: [orderItemId], references: [id])
+  product     product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user        user          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  media       reviewmedia[]
+
+  @@index([productId])
+  @@index([userId])
+  @@index([status, rating])
+  @@index([productId, status])
+}
+
+model reviewmedia {
+  id        Int      @id @default(autoincrement())
+  reviewId  Int
+  type      String
+  url       String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  review    review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId])
+}
+
+model Coupon {
+  id            Int           @id @default(autoincrement())
+  code          String        @unique
+  discountType  String
+  discountValue Float
+  minOrderValue Float?        @default(0)
+  maxDiscount   Float?
+  startDate     DateTime      @default(now())
+  endDate       DateTime
+  isActive      Boolean       @default(true)
+  usageLimit    Int?
+  usedCount     Int           @default(0)
+  category      String        @default("all")
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @default(now()) @updatedAt
+  userVouchers  uservoucher[]
+  referralMilestoneRewards referralmilestonereward[]
+
+  @@map("coupon")
+}
+
+model uservoucher {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  couponId  Int
+  status    String    @default("CLAIMED")
+  claimedAt DateTime  @default(now())
+  usedAt    DateTime?
+  coupon    Coupon    @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  user      user      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, couponId])
+  @@index([userId])
+  @@index([couponId])
+}
+
+model notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  type      String
+  title     String
+  message   String   @db.Text
+  link      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+}
+
+model banner {
+  id        Int       @id @default(autoincrement())
+  imageUrl  String
+  title     String
+  titleEn   String?
+  subtitle  String?
+  subtitleEn String?
+  ctaText   String?
+  ctaTextEn String?
+  ctaLink   String?
+  startAt   DateTime?
+  endAt     DateTime?
+  priority  Int       @default(0)
+  isActive  Boolean   @default(true)
+  placement String    @default("home")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+
+  @@index([placement, isActive, priority])
+}
+
+model contactmessage {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  phone     String?
+  subject   String
+  message   String   @db.Text
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model systemsetting {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([key])
+}
+
+model post {
+  id          Int         @id @default(autoincrement())
+  title       String
+  titleEn     String?
+  slug        String      @unique
+  summary     String?     @db.Text
+  summaryEn   String?     @db.Text
+  content     String      @db.LongText
+  contentEn   String?     @db.LongText
+  image       String?
+  authorName  String?     @default("LIKEFOOD")
+  category    String?     @default("Tin tức")
+  categoryEn  String?     @default("News")
+  isPublished Boolean     @default(true)
+  publishedAt DateTime    @default(now())
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  images      postimage[]
+
+  @@index([isPublished])
+  @@index([publishedAt])
+}
+
+model postimage {
+  id        Int      @id @default(autoincrement())
+  postId    Int
+  imageUrl  String
+  altText   String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  post      post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+}
+
+model wishlist {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  productId Int
+  createdAt DateTime @default(now())
+  product   product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@index([productId])
+}
+
+model productqa {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  userId    Int
+  question  String   @db.Text
+  answer    String?  @db.Text
+  isPublic  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  product   product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model productspecification {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  key       String
+  keyEn     String?
+  value     String   @db.Text
+  valueEn   String?  @db.Text
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product   product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([order])
+}
+
+model productshipping {
+  id            Int      @id @default(autoincrement())
+  productId     Int      @unique
+  weight        Float?
+  length        Float?
+  width         Float?
+  height        Float?
+  freeShipMin   Float?
+  shippingFee   Float?
+  estimatedDays Int      @default(3)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  product       product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model flashsalecampaign {
+  id        Int                @id @default(autoincrement())
+  name      String
+  startAt   DateTime
+  endAt     DateTime
+  isActive  Boolean            @default(true)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  products  flashsaleproduct[]
+
+  @@index([startAt, endAt])
+  @@index([isActive])
+}
+
+model flashsaleproduct {
+  id             Int               @id @default(autoincrement())
+  campaignId     Int
+  productId      Int
+  flashSalePrice Float
+  stockLimit     Int?
+  soldCount      Int               @default(0)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  campaign       flashsalecampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  product        product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, productId])
+  @@index([campaignId])
+  @@index([productId])
+}
+
+model pointtransaction {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  amount      Int
+  type        String
+  description String?
+  orderId     Int?
+  createdAt   DateTime @default(now())
+  user        user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model newslettersubscriber {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  subscribedAt DateTime @default(now())
+
+  @@index([subscribedAt])
+}
+
+model emailqueue {
+  id          Int       @id @default(autoincrement())
+  userId      Int?
+  email       String
+  subject     String
+  templateKey String
+  data        String?   @db.LongText
+  status      String    @default("PENDING")
+  priority    String    @default("NORMAL")
+  scheduledAt DateTime?
+  sentAt      DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([scheduledAt])
+}
+
+model AiKnowledge {
+  id        Int      @id @default(autoincrement())
+  category  String
+  question  String?  @db.Text
+  answer    String   @db.LongText
+  keywords  String?
+  language  String   @default("vi")
+  priority  Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category], map: "aiKnowledge_category_idx")
+  @@index([isActive], map: "aiKnowledge_isActive_idx")
+  @@index([language], map: "aiKnowledge_language_idx")
+  @@map("aiknowledge")
+}
+
+model BehaviorEvent {
+  id         Int      @id @default(autoincrement())
+  userId     Int?
+  sessionId  String
+  eventType  String
+  eventData  String?  @db.LongText
+  url        String?  @db.VarChar(500)
+  referrer   String?  @db.VarChar(500)
+  deviceType String   @default("desktop")
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt], map: "behaviorEvent_createdAt_idx")
+  @@index([eventType], map: "behaviorEvent_eventType_idx")
+  @@index([sessionId], map: "behaviorEvent_sessionId_idx")
+  @@index([userId], map: "behaviorEvent_userId_idx")
+  @@map("behaviorevent")
+}
+
+model ConversationHistory {
+  id         Int      @id @default(autoincrement())
+  userId     Int?
+  sessionId  String
+  role       String
+  message    String   @db.LongText
+  intent     String?
+  confidence Float?
+  feedback   String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt], map: "conversationHistory_createdAt_idx")
+  @@index([sessionId], map: "conversationHistory_sessionId_idx")
+  @@index([userId], map: "conversationHistory_userId_idx")
+  @@map("conversationhistory")
+}
+
+model DynamicPage {
+  id              Int      @id @default(autoincrement())
+  title           String
+  titleEn         String?
+  slug            String   @unique(map: "dynamicPage_slug_key")
+  content         String   @db.LongText
+  contentEn       String?  @db.LongText
+  excerpt         String?  @db.Text
+  excerptEn       String?  @db.Text
+  metaTitle       String?
+  metaDescription String?
+  image           String?
+  template        String   @default("default")
+  type            String
+  isPublished     Boolean  @default(true)
+  isDefault       Boolean  @default(false)
+  order           Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([isPublished], map: "dynamicPage_isPublished_idx")
+  @@index([slug], map: "dynamicPage_slug_idx")
+  @@index([type], map: "dynamicPage_type_idx")
+  @@map("dynamicpage")
+}
+
+model emailcampaign {
+  id            Int       @id @default(autoincrement())
+  name          String
+  triggerType   String
+  subject       String
+  body          String    @db.LongText
+  language      String    @default("vi")
+  segmentFilter String?   @db.LongText
+  scheduledAt   DateTime?
+  sentCount     Int       @default(0)
+  openCount     Int       @default(0)
+  clickCount    Int       @default(0)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([isActive], map: "emailCampaign_isActive_idx")
+  @@index([triggerType], map: "emailCampaign_triggerType_idx")
+}
+
+model HomepageSection {
+  id          Int       @id @default(autoincrement())
+  key         String    @unique(map: "homepageSection_key_key")
+  title       String?
+  titleEn     String?
+  subtitle    String?
+  subtitleEn  String?
+  description String?   @db.Text
+  descriptionEn String? @db.Text
+  config      String?   @db.LongText
+  type        String
+  isActive    Boolean   @default(true)
+  position    Int       @default(0)
+  limit       Int       @default(10)
+  startAt     DateTime?
+  endAt       DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([isActive], map: "homepageSection_isActive_idx")
+  @@index([position], map: "homepageSection_position_idx")
+  @@map("homepagesection")
+}
+
+model MenuItem {
+  id         Int       @id @default(autoincrement())
+  name       String
+  nameEn     String?
+  slug       String    @unique(map: "menuItem_slug_key")
+  type       String
+  url        String?
+  categoryId Int?
+  productId  Int?
+  pageId     Int?
+  icon       String?
+  parentId   Int?
+  position   Int       @default(0)
+  isVisible  Boolean   @default(true)
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  parent     MenuItem?  @relation("MenuItemParent", fields: [parentId], references: [id], onDelete: SetNull, map: "menuItem_parentId_fkey")
+  children   MenuItem[] @relation("MenuItemParent")
+
+  @@index([isVisible], map: "menuItem_isVisible_idx")
+  @@index([parentId], map: "menuItem_parentId_idx")
+  @@index([position], map: "menuItem_position_idx")
+  @@map("menuitem")
+}
+
+model PushNotification {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  type        String
+  title       String
+  body        String
+  data        String?   @db.LongText
+  sentAt      DateTime  @default(now())
+  readAt      DateTime?
+  deliveredAt DateTime?
+  clickedAt   DateTime?
+
+  @@index([sentAt], map: "pushNotification_sentAt_idx")
+  @@index([type], map: "pushNotification_type_idx")
+  @@index([userId], map: "pushNotification_userId_idx")
+  @@map("pushnotification")
+}
+
+model SiteConfig {
+  id          Int      @id @default(autoincrement())
+  key         String   @unique(map: "siteConfig_key_key")
+  value       String   @db.Text
+  type        String   @default("text")
+  category    String   @default("general")
+  description String?
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category], map: "siteConfig_category_idx")
+  @@index([key], map: "siteConfig_key_idx")
+  @@map("siteconfig")
+}
+
+model UserSegment {
+  id           Int       @id @default(autoincrement())
+  userId       Int
+  segment      String
+  score        Float     @default(1)
+  calculatedAt DateTime  @default(now())
+  expiresAt    DateTime?
+
+  @@unique([userId, segment], map: "userSegment_userId_segment_key")
+  @@index([segment], map: "userSegment_segment_idx")
+  @@map("usersegment")
+}
+
+// ============================================================================
+// REFERRAL & REWARDS SYSTEM
+// ============================================================================
+
+model referralprofile {
+  id                       Int      @id @default(autoincrement())
+  userId                   Int      @unique
+  customCode               String?  @unique @db.VarChar(10)
+  systemCode               String   @unique @db.VarChar(12)
+  verifiedPhoneCodeEnabled Boolean  @default(false)
+  customCodeChanges        Int      @default(0)
+  totalInvites             Int      @default(0)
+  qualifiedInvites         Int      @default(0)
+  pendingBalance           Decimal  @default(0) @db.Decimal(12, 2)
+  availableBalance         Decimal  @default(0) @db.Decimal(12, 2)
+  withdrawnBalance         Decimal  @default(0) @db.Decimal(12, 2)
+  convertedBalance         Decimal  @default(0) @db.Decimal(12, 2)
+  tier                     String   @default("MEMBER") @db.VarChar(20)
+  fraudScore               Int      @default(0)
+  isLocked                 Boolean  @default(false)
+  lockReason               String?  @db.Text
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+  user                     user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([customCode])
+  @@index([systemCode])
+  @@index([tier])
+  @@index([isLocked])
+}
+
+model referralrelation {
+  id                Int      @id @default(autoincrement())
+  referrerUserId    Int
+  referredUserId    Int      @unique
+  referralCodeUsed  String   @db.VarChar(20)
+  source            String   @default("LINK") @db.VarChar(10)
+  status            String   @default("SIGNED_UP") @db.VarChar(15)
+  ip                String?  @db.VarChar(64)
+  userAgent         String?  @db.Text
+  deviceFingerprint String?  @db.VarChar(128)
+  note              String?  @db.Text
+  qualifiedAt       DateTime?
+  lockedAt          DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  referrer          user     @relation("ReferralReferrer", fields: [referrerUserId], references: [id], onDelete: Cascade)
+  referred          user     @relation("ReferralReferred", fields: [referredUserId], references: [id], onDelete: Cascade)
+  fraudSignals      referralfraudsignal[]
+
+  @@index([referrerUserId])
+  @@index([referredUserId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model referralcommission {
+  id               Int       @id @default(autoincrement())
+  referrerUserId   Int
+  referredUserId   Int
+  orderId          Int
+  rate             Decimal   @db.Decimal(5, 4)
+  baseAmount       Decimal   @db.Decimal(12, 2)
+  commissionAmount Decimal   @db.Decimal(12, 2)
+  status           String    @default("PENDING") @db.VarChar(12)
+  holdUntil        DateTime?
+  availableAt      DateTime?
+  voidReason       String?   @db.Text
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  referrer         user      @relation("CommissionReferrer", fields: [referrerUserId], references: [id], onDelete: Cascade)
+  referred         user      @relation("CommissionReferred", fields: [referredUserId], references: [id], onDelete: Cascade)
+  order            order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@unique([orderId, referrerUserId])
+  @@index([referrerUserId])
+  @@index([referredUserId])
+  @@index([orderId])
+  @@index([status])
+  @@index([holdUntil])
+}
+
+model referralmilestone {
+  id          Int       @id @default(autoincrement())
+  milestone   Int       @unique
+  rewardType  String    @db.VarChar(20)
+  rewardValue Decimal   @db.Decimal(12, 2)
+  label       String?   @db.VarChar(100)
+  labelEn     String?   @db.VarChar(100)
+  description String?   @db.Text
+  descriptionEn String? @db.Text
+  voucherConfig String? @db.Text
+  isActive    Boolean   @default(true)
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  milestoneRewards referralmilestonereward[]
+
+  @@index([isActive])
+  @@index([sortOrder])
+}
+
+model referralmilestonereward {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  milestoneId Int
+  rewardType  String    @db.VarChar(20)
+  rewardValue Decimal   @db.Decimal(12, 2)
+  couponId    Int?
+  status      String    @default("GRANTED") @db.VarChar(12)
+  grantedAt   DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        user      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  milestone   referralmilestone @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+  coupon      Coupon?   @relation(fields: [couponId], references: [id])
+
+  @@unique([userId, milestoneId])
+  @@index([userId])
+  @@index([milestoneId])
+  @@index([status])
+}
+
+model referralcashout {
+  id              Int       @id @default(autoincrement())
+  userId          Int
+  amount          Decimal   @db.Decimal(12, 2)
+  method          String    @db.VarChar(20)
+  destinationData String?   @db.Text
+  status          String    @default("PENDING") @db.VarChar(12)
+  adminNote       String?   @db.Text
+  processedBy     Int?
+  processedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  user            user      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model referralauditlog {
+  id           Int      @id @default(autoincrement())
+  actorUserId  Int?
+  targetUserId Int?
+  action       String   @db.VarChar(50)
+  entityType   String?  @db.VarChar(30)
+  entityId     Int?
+  beforeData   String?  @db.LongText
+  afterData    String?  @db.LongText
+  metadata     String?  @db.Text
+  createdAt    DateTime @default(now())
+  actor        user?    @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  target       user?    @relation("AuditTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
+
+  @@index([actorUserId])
+  @@index([targetUserId])
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+model referralfraudsignal {
+  id           Int      @id @default(autoincrement())
+  relationId   Int
+  signalType   String   @db.VarChar(30)
+  severity     String   @default("MEDIUM") @db.VarChar(10)
+  score        Int      @default(10)
+  details      String?  @db.Text
+  createdAt    DateTime @default(now())
+  relation     referralrelation @relation(fields: [relationId], references: [id], onDelete: Cascade)
+
+  @@index([relationId])
+  @@index([signalType])
+  @@index([severity])
+  @@index([createdAt])
+}
+
+model referralwallettx {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  type         String   @db.VarChar(20)
+  sourceType   String?  @db.VarChar(20)
+  sourceId     Int?
+  direction    String   @db.VarChar(6)
+  amount       Decimal  @db.Decimal(12, 2)
+  balanceAfter Decimal  @db.Decimal(12, 2)
+  status       String   @default("COMPLETED") @db.VarChar(12)
+  description  String?  @db.Text
+  createdAt    DateTime @default(now())
+  user         user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+  @@index([direction])
+  @@index([createdAt])
+}
+
+// ─── Live Chat System ─────────────────────────────────────────
+
+model livechat {
+  id        Int               @id @default(autoincrement())
+  userId    Int
+  adminId   Int?
+  status    String            @default("OPEN") @db.VarChar(20) // OPEN, ASSIGNED, CLOSED
+  subject   String?
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  closedAt  DateTime?
+  user      user              @relation("userLiveChats", fields: [userId], references: [id], onDelete: Cascade)
+  admin     user?             @relation("adminLiveChats", fields: [adminId], references: [id], onDelete: SetNull)
+  messages  livechatmessage[]
+
+  @@index([userId])
+  @@index([adminId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model livechatmessage {
+  id         Int      @id @default(autoincrement())
+  chatId     Int
+  senderType String   @db.VarChar(10) // USER, ADMIN, AI
+  senderId   Int?
+  content    String   @db.Text
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  chat       livechat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@index([chatId])
+  @@index([chatId, createdAt])
+  @@index([isRead])
+}
+
+// ============================================================================
+// AI COMMERCE PLATFORM
+// ============================================================================
+
+model AiCombo {
+  id          Int           @id @default(autoincrement())
+  name        String
+  nameEn      String?
+  type        String        @db.VarChar(30) // snack, cooking, gift, savings, bestseller, behavioral, flashsale, frequently_bought
+  description String?       @db.Text
+  totalPrice  Float
+  discountPct Float         @default(0)
+  finalPrice  Float
+  reason      String?       @db.Text
+  isActive    Boolean       @default(true)
+  createdBy   String        @default("AI") @db.VarChar(10) // AI or ADMIN
+  usageCount  Int           @default(0)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  items       AiComboItem[]
+
+  @@index([type])
+  @@index([isActive])
+  @@index([createdAt])
+  @@map("aicombo")
+}
+
+model AiComboItem {
+  id        Int      @id @default(autoincrement())
+  comboId   Int
+  productId Int
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  combo     AiCombo  @relation(fields: [comboId], references: [id], onDelete: Cascade)
+
+  @@index([comboId])
+  @@index([productId])
+  @@map("aicomboitem")
+}
+
+model AiPromptTemplate {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  name      String
+  template  String   @db.LongText
+  variables String?  @db.Text
+  category  String   @default("general") @db.VarChar(30)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([isActive])
+  @@map("aiprompttemplate")
+}
+
+model AiUsageLog {
+  id               Int      @id @default(autoincrement())
+  task             String   @db.VarChar(50)
+  model            String   @db.VarChar(30)
+  promptTokens     Int      @default(0)
+  completionTokens Int      @default(0)
+  totalTokens      Int      @default(0)
+  latencyMs        Int      @default(0)
+  success          Boolean  @default(true)
+  error            String?  @db.Text
+  userId           Int?
+  sessionId        String?  @db.VarChar(100)
+  createdAt        DateTime @default(now())
+
+  @@index([task])
+  @@index([createdAt])
+  @@index([userId])
+  @@map("aiusagelog")
+}
+
+model AiRecommendationLog {
+  id             Int      @id @default(autoincrement())
+  type           String   @db.VarChar(30)
+  userId         Int?
+  sessionId      String?  @db.VarChar(100)
+  query          String?  @db.Text
+  recommendedIds String?  @db.Text
+  accepted       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  @@index([type])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("airecommendationlog")
+}
+
+model AiFeedback {
+  id        Int      @id @default(autoincrement())
+  messageId Int?
+  sessionId String?  @db.VarChar(100)
+  userId    Int?
+  rating    Int?
+  feedback  String?  @db.Text
+  category  String?  @db.VarChar(30)
+  createdAt DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([userId])
+  @@index([category])
+  @@map("aifeedback")
+}
