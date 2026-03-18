@@ -604,7 +604,7 @@ export default function ChatbotAI() {
         // Message đã được gửi về server → Telegram notification tự động
       } else {
         // ─── AI Chat Mode: gửi qua AI API ──────────────
-        const response = await fetch("/api/ai/chat", {
+        const response = await fetch("/api/ai/chat/stream", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

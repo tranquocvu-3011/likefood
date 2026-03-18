@@ -195,6 +195,13 @@ export default async function RootLayout({
   return (
     <html lang="vi" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
+        {/* Core Web Vitals: Preconnect & DNS Prefetch */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://www.google-analytics.com" />
+        <link rel="dns-prefetch" href="https://js.stripe.com" />
+        <link rel="dns-prefetch" href="https://api.stripe.com" />
         <Script id="lang-sync" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: `
           try {
             var lang = localStorage.getItem('language') || 

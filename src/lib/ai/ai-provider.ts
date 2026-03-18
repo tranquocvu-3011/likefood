@@ -338,3 +338,81 @@ export async function getOpenAIApiKey(): Promise<string> {
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+// ─── Streaming GPT ───────────────────────────────────────────
+
+interface StreamCallbacks {
+  onChunk: (chunk: string) => void;
+  onComplete?: (result: { text: string; usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number } }) => void;
+  onError?: (error: Error) => void;
+}
+
+export async function callGPTStream(
+  prompt: string,
+  opts: GPTCallOptions = {},
+  callbacks: StreamCallbacks
+): Promise<{ model: string; usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number } } | null> {
+  const client = await getClient();
+  if (!client) {
+    callbacks.onError?.(new Error("OpenAI client not available"));
+    return null;
+  }
+
+  const task = opts.task ?? "";
+  const model = opts.model ?? TASK_MODEL_MAP[task] ?? DEFAULT_MODEL;
+  const temperature = opts.temperature ?? 0.7;
+  const maxTokens = opts.maxTokens ?? 2000;
+  const topP = opts.topP ?? 0.9;
+
+  const messages: OpenAI.ChatCompletionMessageParam[] = [];
+  if (opts.systemMessage) {
+    messages.push({ role: "system", content: opts.systemMessage });
+  }
+  messages.push({ role: "user", content: prompt });
+
+  try {
+    const stream = await client.chat.completions.create({
+      model,
+      messages,
+      temperature,
+      max_tokens: maxTokens,
+      top_p: topP,
+      stream: true,
+    });
+
+    let fullText = "";
+    let totalCompletionTokens = 0;
+
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content ?? "";
+      if (content) {
+        fullText += content;
+        callbacks.onChunk(content);
+        
+        // Count tokens (approximate)
+        totalCompletionTokens += content.split(/\s+/).length * 1.3;
+      }
+    }
+
+    const result = {
+      model,
+      usage: {
+        prompt_tokens: Math.ceil(prompt.length / 4),
+        completion_tokens: Math.ceil(totalCompletionTokens),
+        total_tokens: Math.ceil(prompt.length / 4) + Math.ceil(totalCompletionTokens),
+      },
+    };
+
+    callbacks.onComplete?.({
+      text: fullText,
+      usage: result.usage,
+    });
+
+    return result;
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    console.error("[AI_PROVIDER] Stream error:", error);
+    callbacks.onError?.(error);
+    return null;
+  }
+}
