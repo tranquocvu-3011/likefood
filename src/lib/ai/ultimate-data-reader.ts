@@ -343,10 +343,9 @@ async function getStoreConfigInfo(): Promise<string> {
 • Địa chỉ: ${configMap.store_address || "Chưa cập nhật"}
 • Hotline: ${configMap.store_phone || "402-315-8105"}
 • Email: ${configMap.store_email || "tranquocvu3011@gmail.com"}
-• Free ship Standard: từ $${configMap.free_shipping_threshold || 99}
-• Free ship Express: từ $${configMap.free_shipping_express_threshold || 199}
-• Thời gian Standard: ${configMap.shipping_standard_days || "5-7"} ngày
-• Thời gian Express: ${configMap.shipping_express_days || "2-3"} ngày
+• Free ship Standard: từ $${configMap.free_shipping_threshold || 500}
+• Thời gian Standard: ${configMap.shipping_standard_days || "3-5"} ngày
+• Thời gian Express: ${configMap.shipping_express_days || "1-2"} ngày
 • Đổi trả: ${configMap.return_policy_days || 7} ngày
 • Thanh toán: Visa, Mastercard, AmEx, PayPal, Apple Pay, Google Pay, COD`;
   } catch {
@@ -355,7 +354,7 @@ async function getStoreConfigInfo(): Promise<string> {
 • Địa chỉ: Omaha, NE 68136, USA
 • Hotline: 402-315-8105
 • Email: tranquocvu3011@gmail.com
-• Free ship: Standard từ $99, Express từ $199
+• Free ship: Standard từ $500
 • Đổi trả: 7 ngày
 • Thanh toán: Visa, Mastercard, AmEx, PayPal, Apple Pay, Google Pay, COD`;
   }
@@ -366,9 +365,10 @@ async function getStoreConfigInfo(): Promise<string> {
 async function getShippingInfo(): Promise<string> {
   return `
 🚚 CHÍNH SÁCH GIAO HÀNG:
-• Standard (5-7 ngày): Phí $9.99, FREE từ $99
-• Express (2-3 ngày): Phí $19.99, FREE từ $199
-• Pickup (Miễn phí): Đến lấy tại cửa hàng
+• Store Pickup (Đến lấy tại cửa hàng): Miễn phí
+• Standard (3-5 ngày): Phí $5.99, FREE từ $500
+• Express (1-2 ngày): Phí $12.99
+• Same Day (Giao trong ngày): Phí $24.99
 • Giao hàng toàn 50 bang nước Mỹ
 • Đóng gói cẩn thận giữ nguyên hương vị`;
 }

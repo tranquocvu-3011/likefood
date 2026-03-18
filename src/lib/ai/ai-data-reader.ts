@@ -611,7 +611,7 @@ export async function buildAIContext(
 🛒 Danh mục: 🐟Hải sản khô | 🧂Gia vị | 🍵Trà & Cà phê | 🍬Bánh kẹo & Snacks | 🥩Thịt chế biến | 🎁Quà biếu
 🌐 Tính năng: Giỏ hàng, Checkout (Visa/MC/Amex/PayPal/Apple Pay/Google Pay/COD), Tracking, Review, Blog, Flash Sale, Coupon, Chat AI + Live Chat
 💰 Xu: $1=1xu | Check-in +5xu/ngày | Mốc 200/300/500/1000xu→voucher | Pickup: $1=2xu
-🚚 Ship: Standard 5-7d FREE từ $99 | Express 2-3d FREE từ $199 | Pickup FREE
+🚚 Ship: Standard 3-5d FREE từ $500 | Express 1-2d ($12.99) | Pickup FREE
 💳 Thanh toán: Visa/MC/Amex (Stripe), PayPal, Apple Pay, Google Pay, COD
 🔄 Đổi trả 7 ngày | Hoàn tiền 5-7 ngày | Hỗ trợ: AI 24/7, Live Chat, Hotline 402-315-8105`);
 

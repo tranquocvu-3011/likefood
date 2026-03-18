@@ -390,7 +390,7 @@ export async function getStoreInfoContext(): Promise<string> {
 - 📍 Địa chỉ: ${configMap.store_address ?? "Omaha, NE 68136, USA"}
 - ☎️ Hotline: ${configMap.store_phone ?? "402-315-8105"}
 - 🚚 Giao hàng: Toàn nước Mỹ
-- 🆓 Miễn phí ship: Standard từ $${configMap.free_shipping_threshold ?? "99"}
+- 🆓 Miễn phí ship: Standard từ $${configMap.free_shipping_threshold ?? "500"}
 - 💳 Thanh toán: Visa, Mastercard, AmEx, PayPal, Apple Pay, Google Pay, COD
 - 🔄 Đổi trả: 7 ngày nếu sản phẩm lỗi
 - ⭐ 100% hàng chính hãng nhập khẩu từ Việt Nam`;
@@ -400,7 +400,7 @@ export async function getStoreInfoContext(): Promise<string> {
 - 📍 Địa chỉ: Omaha, NE 68136, USA
 - ☎️ Hotline: 402-315-8105
 - 🚚 Giao hàng: Toàn nước Mỹ
-- 🆓 Miễn phí ship: Standard từ $99
+- 🆓 Miễn phí ship: Standard từ $500
 - 💳 Thanh toán: Visa, Mastercard, AmEx, PayPal, Apple Pay, Google Pay, COD
 - 🔄 Đổi trả: 7 ngày nếu sản phẩm lỗi
 - ⭐ 100% hàng chính hãng nhập khẩu từ Việt Nam`;

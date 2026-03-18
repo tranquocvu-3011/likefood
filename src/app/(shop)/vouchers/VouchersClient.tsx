@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
     Ticket, CheckCircle2, XCircle, Clock, Loader2, ArrowLeft,
-    Copy, Check, Truck, Gift, Percent, Crown, Lock, Star, Zap, ShoppingBag
+    Truck, Gift, Percent, Crown, Star, Search
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -23,7 +23,7 @@ interface Voucher {
     startDate: string;
     endDate: string;
     category: string;
-    status: "available" | "used" | "expired";
+    status: "available" | "used" | "expired" | "claimed" | "out-of-quota";
     claimedAt: string;
     usedAt: string | null;
 }
@@ -48,6 +48,10 @@ const getTabs = (vi: boolean) => [
     { id: "expired", label: vi ? "Hết hạn" : "Expired", icon: Clock },
 ];
 
+interface VouchersClientProps {
+    variant?: "market" | "wallet";
+}
+
 const MILESTONE_COLORS = [
     { bg: "from-sky-500 to-blue-600", light: "bg-sky-50", text: "text-sky-600", border: "border-sky-200", ring: "ring-sky-500/20", shadow: "shadow-sky-200/50" },
     { bg: "from-emerald-500 to-green-600", light: "bg-emerald-50", text: "text-emerald-600", border: "border-emerald-200", ring: "ring-emerald-500/20", shadow: "shadow-emerald-200/50" },
@@ -55,15 +59,17 @@ const MILESTONE_COLORS = [
     { bg: "from-amber-500 to-orange-600", light: "bg-amber-50", text: "text-amber-600", border: "border-amber-200", ring: "ring-amber-500/20", shadow: "shadow-amber-200/50" },
 ];
 
-export default function VouchersClient() {
+export default function VouchersClient({ variant = "market" }: VouchersClientProps) {
     const router = useRouter();
     const { status: sessionStatus } = useSession();
     const { isVietnamese } = useLanguage();
     const tabs = getTabs(isVietnamese);
+    const isWalletView = variant === "wallet";
     const [vouchers, setVouchers] = useState<Voucher[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("all");
     const [copiedCode, setCopiedCode] = useState<string | null>(null);
+    const [keyword, setKeyword] = useState("");
     const [points, setPoints] = useState(0);
     const [milestones, setMilestones] = useState<VoucherMilestone[]>([]);
     const [claimingMilestone, setClaimingMilestone] = useState<number | null>(null);
@@ -74,6 +80,12 @@ export default function VouchersClient() {
             const url = sessionStatus === "authenticated"
                 ? (activeTab === "all" ? "/api/user/vouchers" : `/api/user/vouchers?status=${activeTab}`)
                 : "/api/vouchers";
+
+            if (isWalletView && sessionStatus === "unauthenticated") {
+                setVouchers([]);
+                setIsLoading(false);
+                return;
+            }
             
             const res = await fetch(url);
             if (res.ok) {
@@ -85,7 +97,7 @@ export default function VouchersClient() {
         } finally {
             setIsLoading(false);
         }
-    }, [activeTab, sessionStatus]);
+    }, [activeTab, sessionStatus, isWalletView]);
 
     const fetchCheckInMilestones = useCallback(async () => {
         if (sessionStatus !== "authenticated") return;
@@ -101,11 +113,16 @@ export default function VouchersClient() {
     }, [sessionStatus]);
 
     useEffect(() => {
+        if (isWalletView && sessionStatus === "unauthenticated") {
+            router.replace("/login?callbackUrl=/profile/vouchers");
+            return;
+        }
+
         fetchVouchers();
         if (sessionStatus === "authenticated") {
             fetchCheckInMilestones();
         }
-    }, [sessionStatus, activeTab, fetchVouchers, fetchCheckInMilestones]);
+    }, [sessionStatus, activeTab, fetchVouchers, fetchCheckInMilestones, isWalletView, router]);
 
     const handleCopyCode = async (code: string) => {
         try {
@@ -165,26 +182,50 @@ export default function VouchersClient() {
     const getStatusStyle = (status: string) => {
         switch (status) {
             case "available": return "bg-emerald-500/10 text-emerald-600 border-emerald-500/20";
+            case "claimed": return "bg-blue-500/10 text-blue-600 border-blue-500/20";
             case "used": return "bg-slate-500/10 text-slate-500 border-slate-500/20";
             case "expired": return "bg-red-500/10 text-red-500 border-red-500/20";
+            case "out-of-quota": return "bg-amber-500/10 text-amber-600 border-amber-500/20";
             default: return "bg-slate-500/10 text-slate-500 border-slate-500/20";
         }
     };
 
-    const getStatusText = (status: string) => {
+    const getStatusText = useCallback((status: string) => {
         switch (status) {
             case "available": return isVietnamese ? "Có thể dùng" : "Available";
+            case "claimed": return isVietnamese ? "Đã lưu" : "Claimed";
             case "used": return isVietnamese ? "Đã dùng" : "Used";
             case "expired": return isVietnamese ? "Hết hạn" : "Expired";
+            case "out-of-quota": return isVietnamese ? "Hết lượt" : "Out of quota";
             default: return status;
         }
-    };
+    }, [isVietnamese]);
 
     const getMilestoneIcon = (m: VoucherMilestone) => {
         if (m.category === "shipping") return Truck;
         if (m.points >= 1000) return Crown;
         return Percent;
     };
+
+    const filteredVouchers = useMemo(() => {
+        const normalizedKeyword = keyword.trim().toLowerCase();
+        if (!normalizedKeyword) return vouchers;
+        return vouchers.filter((voucher) => {
+            const codeMatch = voucher.code.toLowerCase().includes(normalizedKeyword);
+            const statusMatch = getStatusText(voucher.status).toLowerCase().includes(normalizedKeyword);
+            return codeMatch || statusMatch;
+        });
+    }, [vouchers, keyword, getStatusText]);
+
+    const stats = useMemo(() => {
+        const available = vouchers.filter((v) => v.status === "available").length;
+        const used = vouchers.filter((v) => v.status === "used").length;
+        const expired = vouchers.filter((v) => v.status === "expired").length;
+        return { total: vouchers.length, available, used, expired };
+    }, [vouchers]);
+
+    const maxPoints = milestones.length > 0 ? milestones[milestones.length - 1].points : 1000;
+    const progressPct = Math.min((points / maxPoints) * 100, 100);
 
     if (isLoading && sessionStatus === "loading") {
         return (
@@ -193,9 +234,6 @@ export default function VouchersClient() {
             </div>
         );
     }
-
-    const maxPoints = milestones.length > 0 ? milestones[milestones.length - 1].points : 1000;
-    const progressPct = Math.min((points / maxPoints) * 100, 100);
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 pb-20 pt-8">
@@ -207,17 +245,25 @@ export default function VouchersClient() {
                     animate={{ opacity: 1, y: 0 }}
                     className="mb-8"
                 >
-                    <Link href="/products" className="inline-flex items-center gap-2 text-slate-400 hover:text-primary transition-colors mb-4 group">
+                    <Link href={isWalletView ? "/profile" : "/products"} className="inline-flex items-center gap-2 text-slate-400 hover:text-primary transition-colors mb-4 group">
                         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                        <span className="text-sm font-semibold">{isVietnamese ? "Quay lại mua sắm" : "Back to Shopping"}</span>
+                        <span className="text-sm font-semibold">
+                            {isWalletView
+                                ? (isVietnamese ? "Quay lại tài khoản" : "Back to Profile")
+                                : (isVietnamese ? "Quay lại mua sắm" : "Back to Shopping")}
+                        </span>
                     </Link>
                     <div className="flex items-end justify-between">
                         <div>
                             <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900">
-                                {isVietnamese ? "Trung tâm Voucher" : "Voucher Center"}
+                                {isWalletView
+                                    ? (isVietnamese ? "Ví Voucher của tôi" : "My Voucher Wallet")
+                                    : (isVietnamese ? "Trung tâm Voucher" : "Voucher Center")}
                             </h1>
                             <p className="text-slate-400 text-sm font-medium mt-1">
-                                {isVietnamese ? "Khám phá các ưu đãi và mã giảm giá tốt nhất" : "Explore best offers and discount codes"}
+                                {isWalletView
+                                    ? (isVietnamese ? "Quản lý voucher đã lưu, sao chép và sử dụng nhanh khi thanh toán" : "Manage saved vouchers and apply them quickly at checkout")
+                                    : (isVietnamese ? "Khám phá các ưu đãi và mã giảm giá tốt nhất" : "Explore best offers and discount codes")}
                             </p>
                         </div>
                         {sessionStatus === "authenticated" && (
@@ -228,6 +274,29 @@ export default function VouchersClient() {
                         )}
                     </div>
                 </motion.div>
+
+                {sessionStatus === "authenticated" && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6"
+                    >
+                        {[
+                            { label: isVietnamese ? "Tổng" : "Total", value: stats.total, color: "bg-slate-100 text-slate-800" },
+                            { label: isVietnamese ? "Có thể dùng" : "Available", value: stats.available, color: "bg-emerald-100 text-emerald-700" },
+                            { label: isVietnamese ? "Đã dùng" : "Used", value: stats.used, color: "bg-slate-200 text-slate-700" },
+                            { label: isVietnamese ? "Hết hạn" : "Expired", value: stats.expired, color: "bg-red-100 text-red-700" },
+                        ].map((item) => (
+                            <div key={item.label} className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
+                                <p className="text-[11px] uppercase tracking-wider text-slate-400 font-bold mb-1">{item.label}</p>
+                                <div className="flex items-center justify-between">
+                                    <p className="text-2xl font-black text-slate-900">{item.value}</p>
+                                    <span className={`text-[10px] px-2 py-1 rounded-full font-bold ${item.color}`}>{item.label}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </motion.div>
+                )}
 
                 {/* ═══════════════ MILESTONE SECTION (Only for Logged In) ═══════════════ */}
                 {sessionStatus === "authenticated" && milestones.length > 0 && (
@@ -314,9 +383,12 @@ export default function VouchersClient() {
                                                 {m.reached && !m.claimed && (
                                                     <button
                                                         onClick={() => handleClaimMilestone(m.points)}
+                                                        disabled={claimingMilestone === m.points}
                                                         className={`mt-3 w-full py-2 rounded-xl text-xs font-bold bg-gradient-to-r ${colors.bg} text-white`}
                                                     >
-                                                        {isVietnamese ? "Nhận ngay" : "Claim"}
+                                                        {claimingMilestone === m.points
+                                                            ? (isVietnamese ? "Đang nhận..." : "Claiming...")
+                                                            : (isVietnamese ? "Nhận ngay" : "Claim")}
                                                     </button>
                                                 )}
                                             </div>
@@ -353,17 +425,33 @@ export default function VouchersClient() {
                     })}
                 </motion.div>
 
+                <div className="relative mb-6">
+                    <Search className="w-4 h-4 text-slate-300 absolute left-4 top-1/2 -translate-y-1/2" />
+                    <input
+                        value={keyword}
+                        onChange={(e) => setKeyword(e.target.value)}
+                        placeholder={isVietnamese ? "Tìm theo mã voucher hoặc trạng thái" : "Search by voucher code or status"}
+                        className="w-full rounded-2xl border border-slate-200 bg-white px-11 py-3 text-sm font-medium text-slate-700 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-primary/20"
+                    />
+                </div>
+
                 {/* ═══════════════ VOUCHERS LIST ═══════════════ */}
                 <AnimatePresence mode="wait">
-                    {vouchers.length === 0 ? (
+                    {filteredVouchers.length === 0 ? (
                         <div className="py-20 text-center bg-white rounded-3xl border border-slate-100">
                             <Ticket className="w-12 h-12 text-slate-200 mx-auto mb-4" />
-                            <p className="text-slate-400 font-bold">{isVietnamese ? "Không có voucher nào" : "No vouchers found"}</p>
+                            <p className="text-slate-400 font-bold">{isVietnamese ? "Không có voucher nào phù hợp" : "No matching vouchers"}</p>
+                            {isWalletView && (
+                                <Link href="/vouchers" className="inline-flex mt-4 px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold">
+                                    {isVietnamese ? "Khám phá voucher mới" : "Explore vouchers"}
+                                </Link>
+                            )}
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {vouchers.map((voucher, index) => {
+                            {filteredVouchers.map((voucher, index) => {
                                 const gradient = getCategoryGradient(voucher.category);
+                                const canCopy = sessionStatus === "authenticated" && voucher.status === "available";
                                 return (
                                     <motion.div
                                         key={voucher.id}
@@ -394,10 +482,21 @@ export default function VouchersClient() {
                                             </div>
                                             {sessionStatus === "authenticated" ? (
                                                 <button
-                                                    onClick={() => handleCopyCode(voucher.code)}
-                                                    className={`w-full py-2 rounded-xl text-xs font-bold ${copiedCode === voucher.code ? "bg-emerald-500 text-white" : "bg-slate-900 text-white"}`}
+                                                    onClick={() => canCopy && handleCopyCode(voucher.code)}
+                                                    disabled={!canCopy}
+                                                    className={`w-full py-2 rounded-xl text-xs font-bold ${
+                                                        !canCopy
+                                                            ? "bg-slate-200 text-slate-500 cursor-not-allowed"
+                                                            : copiedCode === voucher.code
+                                                                ? "bg-emerald-500 text-white"
+                                                                : "bg-slate-900 text-white"
+                                                    }`}
                                                 >
-                                                    {copiedCode === voucher.code ? (isVietnamese ? "Đã sao chép" : "Copied") : (isVietnamese ? "Sao chép mã" : "Copy code")}
+                                                    {!canCopy
+                                                        ? (isVietnamese ? "Không thể sử dụng" : "Unavailable")
+                                                        : copiedCode === voucher.code
+                                                            ? (isVietnamese ? "Đã sao chép" : "Copied")
+                                                            : (isVietnamese ? "Sao chép mã" : "Copy code")}
                                                 </button>
                                             ) : (
                                                 <Link href={`/login?callbackUrl=/vouchers`} className="w-full">
