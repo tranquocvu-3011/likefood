@@ -52,5 +52,7 @@ export default function EditPostPage() {
         );
     }
 
-    return <PostForm initialData={post} />;
+    console.log("EditPostPage rendered with post data:", post);
+
+    return <PostForm key={post.id || "new"} initialData={post} />;
 }
