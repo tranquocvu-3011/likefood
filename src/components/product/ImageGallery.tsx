@@ -9,7 +9,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import ImageWithFallback from "@/components/shared/ImageWithFallback";
-import { X, ChevronLeft, ChevronRight, ZoomIn } from "lucide-react";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/lib/i18n/context";
 import { createPortal } from "react-dom";
@@ -109,7 +109,7 @@ export default function ImageGallery({ images, productName }: ImageGalleryProps)
         <div className="space-y-3">
             {/* Main Image */}
             <div
-                className="aspect-square rounded-2xl overflow-hidden bg-gradient-to-b from-slate-50 to-white border border-slate-100/80 shadow-lg relative group cursor-zoom-in touch-none"
+                className="aspect-square rounded-2xl overflow-hidden bg-gradient-to-b from-slate-50 to-white border border-slate-100/80 shadow-lg relative group cursor-pointer touch-none"
                 onClick={() => setIsLightboxOpen(true)}
             >
                 <AnimatePresence mode="popLayout" custom={direction}>
@@ -141,13 +141,6 @@ export default function ImageGallery({ images, productName }: ImageGalleryProps)
                         </motion.div>
                     )}
                 </AnimatePresence>
-
-                {/* Zoom overlay */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-300 flex items-center justify-center z-10">
-                    <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 bg-white/90 backdrop-blur-md rounded-2xl p-3 shadow-lg transform group-hover:scale-100 scale-90">
-                        <ZoomIn className="w-5 h-5 text-slate-700" />
-                    </div>
-                </div>
 
                 {/* Navigation Arrows - luôn hiển thị để dễ chuyển ảnh */}
                 {sortedImages.length > 1 && (

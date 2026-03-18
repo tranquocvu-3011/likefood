@@ -2,16 +2,15 @@
 
 /**
  * LIKEFOOD - Vietnamese Specialty Marketplace
+ * Product Detail Page — Compact Premium Layout
  * Copyright (c) 2026 LIKEFOOD Team
- * Licensed under the MIT License
- * https://github.com/tranquocvu-3011/likefood
  */
 
 import { useState, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
 import {
-    Star, Heart, Share2, ShoppingCart, Truck, ArrowLeft,
+    Star, Heart, Share2, ShoppingCart, Truck, 
     Loader2, Flame, Zap, ChevronRight, Package, ShoppingBag,
     ChevronDown, Shield, RefreshCw, CreditCard, Info
 } from "lucide-react";
@@ -37,18 +36,17 @@ import PriceDisplay from "@/components/ui/price-display";
 import { WriteReviewButton } from "@/components/review/WriteReviewButton";
 
 const ReviewSummaryAI = dynamic(() => import("@/components/product/ReviewSummaryAI"), {
-    loading: () => <div className="h-32 bg-slate-100 rounded-2xl animate-pulse" />,
+    loading: () => <div className="h-24 bg-slate-100 rounded-xl animate-pulse" />,
     ssr: false,
 });
 const FrequentlyBoughtTogether = dynamic(() => import("@/components/product/FrequentlyBoughtTogether"), {
-    loading: () => <div className="h-32 bg-slate-100 rounded-2xl animate-pulse" />,
+    loading: () => <div className="h-24 bg-slate-100 rounded-xl animate-pulse" />,
     ssr: false,
 });
 
 import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/commerce";
 import { SizeGuide, SizeGuideButton } from "@/components/product-size-guide/SizeGuide";
 import StickyBuyBar from "@/components/product/StickyBuyBar";
-import TrustBadgesRow from "@/components/product/TrustBadgesRow";
 import { motion } from "framer-motion";
 
 interface ProductVariant {
@@ -85,7 +83,6 @@ interface Product {
     reviews?: Review[];
     variants?: ProductVariant[];
     images?: ProductImage[];
-    // Extended fields from API
     soldCount?: number;
     isFlashSale?: boolean;
     isNew?: boolean;
@@ -111,6 +108,9 @@ export interface ProductDetailClientProps {
     initialRelated?: RelatedProduct[];
 }
 
+/* ─── Tab type for description/specs ─── */
+type DetailTab = "description" | "specs";
+
 export default function ProductDetailClient({ initialProduct, initialRelated }: ProductDetailClientProps) {
     const params = useParams();
     const slug = params.slug as string;
@@ -126,18 +126,17 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
     const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
     const [showSizeGuide, setShowSizeGuide] = useState(false);
     const [descExpanded, setDescExpanded] = useState(false);
+    const [activeTab, setActiveTab] = useState<DetailTab>("description");
     const { t, language } = useLanguage();
 
-    // Auto-format description: split by emoji markers into neat sections
+    // Auto-format description
     const descriptionSections = useMemo(() => {
         if (!product?.description) return [];
         const text = product.description;
-        // Split by common emoji section markers (🌿 GIỚI THIỆU:, 🍃 HƯƠNG VỊ:, etc.)
         const sectionRegex = /(?:^|\s)([\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FEFF}✅☑️🔥⭐️🎁💪🍃🌿🧂🌶️📦🎯🏷️💰🔒🚚👨‍🍳🧑‍🍳👩‍🍳🍴🥢🥄🍽️])\s*([A-ZÀ-Ỹ\s&]+):\s*/gu;
         const parts: { title: string; content: string; emoji: string }[] = [];
-        let lastIndex = 0;
-        let match;
         const matches: { index: number; emoji: string; title: string; length: number }[] = [];
+        let match;
 
         while ((match = sectionRegex.exec(text)) !== null) {
             matches.push({
@@ -149,11 +148,9 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
         }
 
         if (matches.length === 0) {
-            // No emoji sections found - just split by newlines or periods for readability
             return [{ title: "", content: text, emoji: "" }];
         }
 
-        // Text before first section
         const preamble = text.slice(0, matches[0].index).trim();
         if (preamble) {
             parts.push({ title: "", content: preamble, emoji: "" });
@@ -170,9 +167,7 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
     }, [product?.description]);
 
     useEffect(() => {
-        // Skip fetch if initial data was provided by server component
         if (initialProduct) {
-            // Still track recently viewed on client
             if (typeof window !== 'undefined' && initialProduct) {
                 const viewed = localStorage.getItem("recentlyViewed");
                 const viewedIds = viewed ? JSON.parse(viewed) : [];
@@ -193,14 +188,10 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
                 if (res.ok) {
                     const data = await res.json();
                     setProduct(data);
-
                     if (typeof window !== 'undefined') {
                         const viewed = localStorage.getItem("recentlyViewed");
                         const viewedIds = viewed ? JSON.parse(viewed) : [];
-                        const newViewed = [
-                            data.id,
-                            ...viewedIds.filter((id: string) => id !== data.id)
-                        ].slice(0, 10);
+                        const newViewed = [data.id, ...viewedIds.filter((id: string) => id !== data.id)].slice(0, 10);
                         localStorage.setItem("recentlyViewed", JSON.stringify(newViewed));
                     }
                 } else if (res.status === 404) {
@@ -244,55 +235,36 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
     };
 
     const getCurrentInventory = () => {
-        if (selectedVariant) {
-            return selectedVariant.stock;
-        }
+        if (selectedVariant) return selectedVariant.stock;
         return product?.inventory || 0;
     };
 
     const getOriginalPrice = () => {
         if (!product) return 0;
         const current = getCurrentPrice();
-        if (product.originalPrice != null && product.originalPrice > current) {
-            return product.originalPrice;
-        }
+        if (product.originalPrice != null && product.originalPrice > current) return product.originalPrice;
         const hasSalePrice = product.salePrice != null && product.salePrice < product.price;
         return hasSalePrice ? product.price : current;
     };
 
-    const hasDiscount = () => {
-        const original = getOriginalPrice();
-        const current = getCurrentPrice();
-        return original > current;
-    };
-
+    const hasDiscount = () => getOriginalPrice() > getCurrentPrice();
     const getDiscountPercent = () => {
         if (!hasDiscount()) return 0;
-        const original = getOriginalPrice();
-        const current = getCurrentPrice();
-        return Math.round(((original - current) / original) * 100);
+        return Math.round(((getOriginalPrice() - getCurrentPrice()) / getOriginalPrice()) * 100);
     };
 
-    /** Builds the cart item payload — shared between add-to-cart and buy-now */
     const buildCartItem = () => {
         if (!product) return null;
         const currentPrice = getCurrentPrice();
         const currentInventory = getCurrentInventory();
-
-        if (currentInventory === 0) {
-            toast.error(t("shop.productOutOfStock"));
-            return null;
-        }
-
+        if (currentInventory === 0) { toast.error(t("shop.productOutOfStock")); return null; }
         const onSale = hasDiscount();
-        const originalForCart = onSale ? getOriginalPrice() : undefined;
-
         return {
             productId: Number(product.id),
             slug: product.slug || undefined,
             name: product.name + (selectedVariant ? ` - ${selectedVariant.weight || selectedVariant.flavor || ''}` : ''),
             price: currentPrice,
-            originalPrice: originalForCart,
+            originalPrice: onSale ? getOriginalPrice() : undefined,
             salePrice: onSale ? currentPrice : undefined,
             isOnSale: onSale,
             image: product.image || undefined,
@@ -305,7 +277,6 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
     const handleAddToCart = () => {
         const item = buildCartItem();
         if (!item) return;
-
         setIsAddingToCart(true);
         addItem(item);
         setTimeout(() => setIsAddingToCart(false), 500);
@@ -314,7 +285,6 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
     const handleBuyNow = () => {
         const item = buildCartItem();
         if (!item) return;
-
         addItem(item);
         router.push("/checkout");
     };
@@ -323,11 +293,7 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
         const url = window.location.href;
         try {
             if (navigator.share) {
-                await navigator.share({
-                    title: product?.name,
-                    text: product?.description,
-                    url: url,
-                });
+                await navigator.share({ title: product?.name, text: product?.description, url });
             } else {
                 await navigator.clipboard.writeText(url);
                 toast.success(t("shop.linkCopied"));
@@ -343,9 +309,7 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
         ? Math.min((product.soldCount / (product.soldCount + product.inventory)) * 100, 100)
         : 0;
 
-    if (isLoading) {
-        return <LoadingState fullPage text={t("shop.loadingProduct")} />;
-    }
+    if (isLoading) return <LoadingState fullPage text={t("shop.loadingProduct")} />;
 
     if (error || !product) {
         return (
@@ -367,10 +331,10 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20">
-            <div className="pt-6 pb-16">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/10">
+            <div className="pt-4 pb-10">
                 <div className="page-container-wide">
-                    {/* JSON-LD for SEO */}
+                    {/* SEO */}
                     <ProductStructuredData
                         product={{
                             slug: product.slug,
@@ -386,44 +350,37 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
                         }}
                     />
 
-                    {/* Breadcrumbs */}
-                    <motion.nav
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mb-6 flex items-center gap-2 text-sm"
-                    >
-                        <Link href="/" prefetch={true} className="text-slate-400 hover:text-emerald-600 font-medium transition-colors">{t("common.home")}</Link>
-                        <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-                        <Link href="/products" prefetch={true} className="text-slate-400 hover:text-emerald-600 font-medium transition-colors">{t("common.products")}</Link>
-                        <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-                        <span className="text-slate-500 font-semibold truncate max-w-[180px]">{product.name}</span>
-                    </motion.nav>
+                    {/* Breadcrumbs — compact */}
+                    <nav className="mb-4 flex items-center gap-1.5 text-xs text-slate-400">
+                        <Link href="/" prefetch={true} className="hover:text-emerald-600 transition-colors">{t("common.home")}</Link>
+                        <ChevronRight className="w-3 h-3" />
+                        <Link href="/products" prefetch={true} className="hover:text-emerald-600 transition-colors">{t("common.products")}</Link>
+                        <ChevronRight className="w-3 h-3" />
+                        <Link href={`/products?category=${encodeURIComponent(product.category)}`} className="hover:text-emerald-600 transition-colors">{product.category}</Link>
+                        <ChevronRight className="w-3 h-3" />
+                        <span className="text-slate-600 font-medium truncate max-w-[160px]">{product.name}</span>
+                    </nav>
 
-                    {/* Main Product Section */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 mb-20">
-                        {/* Image Gallery - Left Side */}
+                    {/* ══════════ MAIN: Image + Info ══════════ */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+                        
+                        {/* ─── Image Gallery — 5 cols ─── */}
                         <motion.div
-                            initial={{ opacity: 0, x: -30 }}
+                            initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.5 }}
+                            transition={{ duration: 0.4 }}
+                            className="lg:col-span-5"
                         >
-                            <div className="sticky top-28 max-w-[480px] mx-auto lg:mx-0">
-                                <div className="relative aspect-square rounded-2xl overflow-hidden bg-white shadow-xl shadow-slate-200/50 mb-3">
+                            <div className="sticky top-24">
+                                <div className="relative rounded-2xl overflow-hidden bg-white shadow-lg shadow-slate-200/40">
                                     {(product.images && product.images.filter(img => img.imageUrl).length > 0) || product.image ? (
                                         <ImageGallery
                                             images={(() => {
-                                                // Filter out images with empty/invalid URLs
                                                 const gallery = [...(product.images || [])].filter(img => img.imageUrl && img.imageUrl.trim() !== '');
                                                 if (product.image) {
                                                     const mainImageInGallery = gallery.find(img => img.imageUrl === product.image);
                                                     if (!mainImageInGallery) {
-                                                        gallery.unshift({
-                                                            id: -1,
-                                                            imageUrl: product.image,
-                                                            altText: product.name,
-                                                            order: -1,
-                                                            isPrimary: true,
-                                                        });
+                                                        gallery.unshift({ id: -1, imageUrl: product.image, altText: product.name, order: -1, isPrimary: true });
                                                     } else {
                                                         gallery.sort((a) => (a.imageUrl === product.image ? -1 : 1));
                                                     }
@@ -433,116 +390,88 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
                                             productName={product.name}
                                         />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
-                                            <ShoppingBag className="w-32 h-32 text-slate-200" />
+                                        <div className="aspect-square flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
+                                            <ShoppingBag className="w-24 h-24 text-slate-200" />
                                         </div>
                                     )}
 
-                                    {/* Sale Badge */}
+                                    {/* Badges — top left/right */}
                                     {hasDiscount() && (
-                                        <div className="absolute top-6 left-6 z-10">
-                                            <Badge variant="sale" className="px-5 py-2.5 rounded-2xl">
-                                                <Flame className="w-5 h-5 text-white fill-white mr-2" />
-                                                Sale {getDiscountPercent()}%
+                                        <div className="absolute top-3 left-3 z-10">
+                                            <Badge variant="sale" className="px-3 py-1.5 rounded-xl text-xs">
+                                                <Flame className="w-3.5 h-3.5 text-white fill-white mr-1" />
+                                                -{getDiscountPercent()}%
                                             </Badge>
                                         </div>
                                     )}
-
-                                    {/* Flash Sale Badge */}
                                     {product.isFlashSale && (
-                                        <div className="absolute top-6 right-6 z-10">
-                                            <Badge variant="flash" className="px-5 py-2.5 rounded-2xl">
-                                                <Zap className="w-5 h-5 text-white fill-white mr-2" />
-                                                {t("common.flashSale")}
+                                        <div className="absolute top-3 right-3 z-10">
+                                            <Badge variant="flash" className="px-3 py-1.5 rounded-xl text-xs">
+                                                <Zap className="w-3.5 h-3.5 text-white fill-white mr-1" />
+                                                Flash
                                             </Badge>
                                         </div>
                                     )}
-
-                                    {/* Out of Stock Overlay */}
                                     {getCurrentInventory() === 0 && (
-                                        <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-20">
-                                            <div className="bg-white/10 backdrop-blur-md px-8 py-4 rounded-3xl border border-white/20">
-                                                <span className="text-2xl font-black text-white uppercase tracking-widest">{t("shop.outOfStock")}</span>
-                                            </div>
+                                        <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-20">
+                                            <span className="text-lg font-black text-white uppercase tracking-widest bg-black/30 px-6 py-2 rounded-xl">{t("shop.outOfStock")}</span>
                                         </div>
                                     )}
                                 </div>
                             </div>
                         </motion.div>
 
-                        {/* Product Info - Right Side */}
+                        {/* ─── Product Info — 7 cols ─── */}
                         <motion.div
-                            initial={{ opacity: 0, x: 30 }}
+                            initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.5, delay: 0.1 }}
-                            className="space-y-6"
+                            transition={{ duration: 0.4, delay: 0.05 }}
+                            className="lg:col-span-7 space-y-4"
                         >
-                            {/* Category & Badges */}
+                            {/* Category + Tags — single line */}
                             <div className="flex items-center gap-2 flex-wrap">
                                 <Link
                                     href={`/products?category=${encodeURIComponent(product.category)}`}
-                                    className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-3.5 py-1.5 rounded-full hover:bg-emerald-100 transition-colors"
+                                    className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full hover:bg-emerald-100 transition-colors"
                                 >
                                     {product.category}
-                                    <ChevronRight className="w-3 h-3" />
                                 </Link>
-                                {product.isFlashSale && (
-                                    <Badge variant="flash" className="text-[10px] py-1">
-                                        <Flame className="w-3 h-3 mr-1" />
-                                        {t("common.flashSale")}
-                                    </Badge>
-                                )}
                                 {product.isNew && (
-                                    <Badge variant="new" className="text-[10px] py-1">
-                                        <Zap className="w-3 h-3 mr-1" />
+                                    <Badge variant="new" className="text-[10px] py-0.5 px-2">
+                                        <Zap className="w-2.5 h-2.5 mr-0.5" />
                                         {t("common.new")}
                                     </Badge>
                                 )}
-                            </div>
-
-                            {/* Product Title & Weight */}
-                            <div className="space-y-4">
-                                <h1 className="text-3xl lg:text-4xl font-black text-slate-900 leading-tight">
-                                    {product.name}
-                                </h1>
                                 {product.weight && (
-                                    <div className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-50 to-white text-slate-600 px-4 py-2 rounded-xl text-sm font-bold border border-slate-100 shadow-sm">
-                                        <Package className="w-4 h-4 text-emerald-500" />
-                                        <span className="text-slate-500">{t("shop.packaging")}:</span>
-                                        <span className="text-slate-900">{product.weight}</span>
-                                    </div>
+                                    <span className="text-[11px] font-medium text-slate-400 bg-slate-50 px-2.5 py-1 rounded-full">
+                                        <Package className="w-3 h-3 inline mr-1 text-slate-400" />
+                                        {product.weight}
+                                    </span>
                                 )}
                             </div>
 
-                            {/* Rating & Stats */}
-                            <div className="flex items-center gap-6 flex-wrap">
-                                <div className="flex items-center gap-2">
-                                    <div className="flex items-center gap-1">
-                                        {[...Array(5)].map((_, i) => (
-                                            <Star
-                                                key={i}
-                                                className={`w-5 h-5 ${i < Math.round(product.avgRating)
-                                                        ? "fill-amber-400 text-amber-400"
-                                                        : "text-slate-200"
-                                                    }`}
-                                            />
-                                        ))}
-                                    </div>
-                                    <span className="text-base font-bold text-slate-700">
-                                        {product.avgRating.toFixed(1)}
-                                        <span className="text-slate-400 font-medium ml-1">({product.reviewCount} {t("shop.rating").toLowerCase()})</span>
-                                    </span>
+                            {/* Title */}
+                            <h1 className="text-2xl lg:text-3xl font-black text-slate-900 leading-tight">{product.name}</h1>
+
+                            {/* Rating + Sold — single compact line */}
+                            <div className="flex items-center gap-4 text-sm">
+                                <div className="flex items-center gap-1">
+                                    {[...Array(5)].map((_, i) => (
+                                        <Star
+                                            key={i}
+                                            className={`w-4 h-4 ${i < Math.round(product.avgRating) ? "fill-amber-400 text-amber-400" : "text-slate-200"}`}
+                                        />
+                                    ))}
+                                    <span className="ml-1 font-bold text-slate-700">{product.avgRating.toFixed(1)}</span>
+                                    <span className="text-slate-400 text-xs">({product.reviewCount})</span>
                                 </div>
                                 {product.soldCount != null && product.soldCount > 0 && (
-                                    <div className="flex items-center gap-2 text-slate-500">
-                                        <ShoppingBag className="w-4 h-4" />
-                                        <span className="text-sm font-semibold">
-                                            {t("shop.sold")} <span className="text-slate-900 font-black">{product.soldCount.toLocaleString()}</span>
-                                        </span>
-                                    </div>
+                                    <span className="text-xs text-slate-400">
+                                        <ShoppingBag className="w-3 h-3 inline mr-0.5" />
+                                        {t("shop.sold")} {product.soldCount.toLocaleString()}
+                                    </span>
                                 )}
                             </div>
-
 
                             {/* Variant Selector */}
                             {product.variants && product.variants.length > 0 && (
@@ -550,38 +479,38 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
                                     variants={product.variants}
                                     basePrice={product.price}
                                     selectedVariant={selectedVariant}
-                                    onVariantChange={(variant) => {
-                                        setSelectedVariant(variant);
-                                        setQuantity(1);
-                                    }}
+                                    onVariantChange={(variant) => { setSelectedVariant(variant); setQuantity(1); }}
                                 />
                             )}
 
-                            {/* Purchase Card: Price + Stock + Quantity + Buttons */}
-                            <div className="bg-white rounded-2xl border border-slate-100 shadow-lg shadow-slate-100/50 overflow-hidden">
-                                {/* Price */}
-                                <div className="p-5 bg-gradient-to-r from-slate-50 to-white">
-                                    <PriceDisplay
-                                        currentPrice={getCurrentPrice()}
-                                        originalPrice={hasDiscount() ? getOriginalPrice() : undefined}
-                                        salePrice={hasDiscount() ? getCurrentPrice() : undefined}
-                                        isOnSale={hasDiscount()}
-                                        size="xl"
-                                        showDiscountBadge={false}
-                                    />
-                                    <p className="mt-1 text-xs font-medium text-slate-400">{formatVndEquivalent(getCurrentPrice())}</p>
+                            {/* ═══ Purchase Card ═══ */}
+                            <div className="bg-white rounded-xl border border-slate-100 shadow-md overflow-hidden">
+                                {/* Price row */}
+                                <div className="px-4 py-3 bg-gradient-to-r from-slate-50/80 to-white">
+                                    <div className="flex items-end gap-3">
+                                        <PriceDisplay
+                                            currentPrice={getCurrentPrice()}
+                                            originalPrice={hasDiscount() ? getOriginalPrice() : undefined}
+                                            salePrice={hasDiscount() ? getCurrentPrice() : undefined}
+                                            isOnSale={hasDiscount()}
+                                            size="xl"
+                                            showDiscountBadge={false}
+                                        />
+                                        {hasDiscount() && (
+                                            <span className="text-xs font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-full mb-1">
+                                                -{getDiscountPercent()}%
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className="text-[11px] font-medium text-slate-400 mt-0.5">{formatVndEquivalent(getCurrentPrice())}</p>
                                     {selectedVariant && selectedVariant.priceAdjustment !== 0 && (
-                                        <p className="mt-1 text-xs font-bold text-emerald-600">
-                                            + {formatPrice(selectedVariant.priceAdjustment)} ({language === "vi" ? "Tuỳ chọn" : "Option"} {selectedVariant.weight || selectedVariant.flavor})
+                                        <p className="text-[11px] font-bold text-emerald-600 mt-0.5">
+                                            + {formatPrice(selectedVariant.priceAdjustment)} ({selectedVariant.weight || selectedVariant.flavor})
                                         </p>
                                     )}
-                                    {/* Sold Progress */}
+                                    {/* Sold progress — only in sale mode */}
                                     {hasDiscount() && product.soldCount != null && product.soldCount > 0 && (
-                                        <div className="mt-3">
-                                            <div className="flex items-center justify-between text-xs mb-1">
-                                                <span className="text-slate-500 font-medium">{t("shop.sold")} {product.soldCount.toLocaleString()}</span>
-                                                <span className="text-slate-400">{t("shop.inStock")}</span>
-                                            </div>
+                                        <div className="mt-2">
                                             <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
                                                 <motion.div
                                                     initial={{ width: 0 }}
@@ -590,18 +519,19 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
                                                     className="h-full bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 rounded-full"
                                                 />
                                             </div>
+                                            <p className="text-[10px] text-slate-400 mt-0.5">{t("shop.sold")} {product.soldCount.toLocaleString()}</p>
                                         </div>
                                     )}
                                 </div>
 
-                                {/* Freeship mini bar */}
-                                <div className={`mx-5 -mb-2 px-4 py-2.5 flex items-center gap-3 rounded-b-xl ${getCurrentPrice() >= FREE_SHIPPING_THRESHOLD_USD ? 'bg-green-50 border-green-100' : 'bg-blue-50 border-blue-100'} border-x border-t-0`}>
-                                    <Truck className={`w-4 h-4 shrink-0 ${getCurrentPrice() >= FREE_SHIPPING_THRESHOLD_USD ? 'text-green-500' : 'text-blue-500'}`} />
+                                {/* Free ship bar */}
+                                <div className={`mx-4 px-3 py-2 flex items-center gap-2 rounded-lg text-xs ${getCurrentPrice() >= FREE_SHIPPING_THRESHOLD_USD ? 'bg-green-50 border border-green-100' : 'bg-blue-50 border border-blue-100'}`}>
+                                    <Truck className={`w-3.5 h-3.5 shrink-0 ${getCurrentPrice() >= FREE_SHIPPING_THRESHOLD_USD ? 'text-green-500' : 'text-blue-500'}`} />
                                     {getCurrentPrice() >= FREE_SHIPPING_THRESHOLD_USD ? (
-                                        <span className="text-xs font-bold text-green-700">{t("cart.freeShipping")}! ✓</span>
+                                        <span className="font-bold text-green-700">{t("cart.freeShipping")} ✓</span>
                                     ) : (
                                         <div className="flex-1">
-                                            <span className="text-xs font-medium text-blue-600">
+                                            <span className="font-medium text-blue-600">
                                                 {t("cart.addMoreForFreeShip").replace("{amount}", formatPrice(FREE_SHIPPING_THRESHOLD_USD - getCurrentPrice()))}
                                             </span>
                                             <div className="h-1 bg-blue-100 rounded-full overflow-hidden mt-1">
@@ -611,68 +541,57 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
                                     )}
                                 </div>
 
-                                {/* Quantity + Actions */}
-                                <div className="p-5 space-y-4">
-                                    {/* Stock status inline */}
+                                {/* Quantity + Stock + Buttons */}
+                                <div className="p-4 space-y-3">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
-                                            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">{t("common.quantity")}:</span>
-                                            <QuantitySelector
-                                                value={quantity}
-                                                min={1}
-                                                max={getCurrentInventory()}
-                                                onChange={(val) => setQuantity(val)}
-                                                size="lg"
-                                            />
+                                            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{t("common.quantity")}:</span>
+                                            <QuantitySelector value={quantity} min={1} max={getCurrentInventory()} onChange={setQuantity} size="lg" />
                                         </div>
-                                        <div className={`flex items-center gap-1.5 text-xs font-bold ${getCurrentInventory() > 0 ? 'text-green-600' : 'text-red-500'}`}>
-                                            <div className={`w-2 h-2 rounded-full ${getCurrentInventory() > 0 ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+                                        <div className={`flex items-center gap-1 text-xs font-bold ${getCurrentInventory() > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                                            <div className={`w-1.5 h-1.5 rounded-full ${getCurrentInventory() > 0 ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
                                             {getCurrentInventory() > 0 ? t("shop.inStock") : t("shop.outOfStock")}
                                         </div>
                                     </div>
 
-                                    {/* Buttons */}
-                                    <div className="flex gap-3 pt-2">
+                                    <div className="flex gap-2.5">
                                         <Button
                                             onClick={handleAddToCart}
                                             disabled={getCurrentInventory() === 0 || isAddingToCart}
-                                            className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-sm shadow-lg shadow-emerald-500/20"
+                                            className="flex-1 h-11 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-sm shadow-lg shadow-emerald-500/20"
                                         >
                                             {isAddingToCart ? (
-                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                                <Loader2 className="w-4 h-4 animate-spin" />
                                             ) : (
-                                                <>
-                                                    <ShoppingCart className="w-4 h-4 mr-2" />
-                                                    {t("shop.addToCart")}
-                                                </>
+                                                <><ShoppingCart className="w-4 h-4 mr-1.5" />{t("shop.addToCart")}</>
                                             )}
                                         </Button>
                                         <Button
                                             onClick={handleBuyNow}
                                             disabled={getCurrentInventory() === 0}
-                                            className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-900 hover:to-black text-white font-bold text-sm shadow-lg shadow-slate-500/20"
+                                            className="flex-1 h-11 rounded-xl bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-900 hover:to-black text-white font-bold text-sm shadow-lg shadow-slate-500/20"
                                         >
                                             {t("shop.buyNow")}
                                         </Button>
                                     </div>
 
-                                    {/* Secondary actions + Size guide */}
-                                    <div className="flex items-center justify-between pt-2">
+                                    {/* Secondary actions */}
+                                    <div className="flex items-center justify-between pt-1">
                                         <div className="flex items-center gap-4">
                                             <button
                                                 type="button"
                                                 onClick={() => toggleWishlist(product.id)}
-                                                className={`flex items-center gap-1.5 text-xs font-semibold transition-all ${isInWishlist(product.id) ? 'text-red-500' : 'text-slate-400 hover:text-red-500'}`}
+                                                className={`flex items-center gap-1 text-xs font-semibold transition-all ${isInWishlist(product.id) ? 'text-red-500' : 'text-slate-400 hover:text-red-500'}`}
                                             >
-                                                <Heart className={`w-4 h-4 ${isInWishlist(product.id) ? "fill-current" : ""}`} />
+                                                <Heart className={`w-3.5 h-3.5 ${isInWishlist(product.id) ? "fill-current" : ""}`} />
                                                 {isInWishlist(product.id) ? t("shop.wishlistLiked") : t("shop.wishlistLike")}
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={handleShare}
-                                                className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-emerald-500 transition-all"
+                                                className="flex items-center gap-1 text-xs font-semibold text-slate-400 hover:text-emerald-500 transition-all"
                                             >
-                                                <Share2 className="w-4 h-4" />
+                                                <Share2 className="w-3.5 h-3.5" />
                                                 {t("shop.share")}
                                             </button>
                                         </div>
@@ -681,106 +600,110 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
                                 </div>
                             </div>
 
-                            {/* Trust Badges - Compact Inline */}
-                            <div className="flex items-center justify-between gap-2 py-4 px-5 bg-gradient-to-r from-slate-50 to-blue-50/30 rounded-2xl border border-slate-100/80">
+                            {/* Trust Badges — single row, ultra compact */}
+                            <div className="grid grid-cols-4 gap-2">
                                 {[
                                     { icon: Truck, label: t("shop.fastDelivery"), color: "text-orange-500", bg: "bg-orange-50" },
                                     { icon: Shield, label: t("shop.qualityGuarantee"), color: "text-emerald-500", bg: "bg-emerald-50" },
                                     { icon: RefreshCw, label: t("shop.easyReturn"), color: "text-blue-500", bg: "bg-blue-50" },
                                     { icon: CreditCard, label: t("shop.securePayment"), color: "text-violet-500", bg: "bg-violet-50" },
                                 ].map((badge) => (
-                                    <div key={badge.label} className="flex items-center gap-2 px-2">
-                                        <div className={`w-8 h-8 rounded-lg ${badge.bg} flex items-center justify-center`}>
-                                            <badge.icon className={`w-4 h-4 ${badge.color}`} />
-                                        </div>
-                                        <span className="text-[10px] font-bold text-slate-600 whitespace-nowrap">{badge.label}</span>
+                                    <div key={badge.label} className={`flex flex-col items-center gap-1.5 py-2.5 px-1 rounded-xl ${badge.bg} border border-slate-100/50`}>
+                                        <badge.icon className={`w-4 h-4 ${badge.color}`} />
+                                        <span className="text-[9px] font-bold text-slate-600 text-center leading-tight">{badge.label}</span>
                                     </div>
                                 ))}
                             </div>
                         </motion.div>
                     </div>
-                    {/* ────────── Description Section ────────── */}
-                    <motion.section
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        className="mb-16"
-                    >
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                                <Info className="w-5 h-5 text-white" />
-                            </div>
-                            <h2 className="text-2xl font-black text-slate-900">
-                                {language === "vi" ? "Mô tả sản phẩm" : "Product Description"}
-                            </h2>
+
+                    {/* ══════════ DETAIL TABS: Description + Specs ══════════ */}
+                    <div className="mt-8">
+                        {/* Tab headers */}
+                        <div className="flex border-b border-slate-200">
+                            <button
+                                type="button"
+                                onClick={() => setActiveTab("description")}
+                                className={`px-5 py-2.5 text-sm font-bold transition-all relative ${
+                                    activeTab === "description"
+                                        ? "text-emerald-600"
+                                        : "text-slate-400 hover:text-slate-600"
+                                }`}
+                            >
+                                <Info className="w-4 h-4 inline mr-1.5" />
+                                {language === "vi" ? "Mô tả sản phẩm" : "Description"}
+                                {activeTab === "description" && (
+                                    <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-500 rounded-full" />
+                                )}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setActiveTab("specs")}
+                                className={`px-5 py-2.5 text-sm font-bold transition-all relative ${
+                                    activeTab === "specs"
+                                        ? "text-emerald-600"
+                                        : "text-slate-400 hover:text-slate-600"
+                                }`}
+                            >
+                                <Package className="w-4 h-4 inline mr-1.5" />
+                                {language === "vi" ? "Thông số" : "Specifications"}
+                                {activeTab === "specs" && (
+                                    <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-500 rounded-full" />
+                                )}
+                            </button>
                         </div>
 
-                        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-                            <div className={`relative ${!descExpanded && descriptionSections.length > 2 ? 'max-h-[320px] overflow-hidden' : ''}`}>
-                                <div className="p-6 lg:p-8 space-y-6">
-                                    {descriptionSections.map((section, idx) => (
-                                        <div key={idx}>
-                                            {section.title && (
-                                                <h3 className="flex items-center gap-2 text-base font-bold text-slate-800 mb-3">
-                                                    <span className="text-lg">{section.emoji}</span>
-                                                    {section.title}
-                                                </h3>
-                                            )}
-                                            <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-line">
-                                                {section.content}
-                                            </p>
+                        {/* Tab content */}
+                        <div className="bg-white rounded-b-2xl border-x border-b border-slate-100 shadow-sm">
+                            {activeTab === "description" && (
+                                <div>
+                                    <div className={`relative ${!descExpanded && descriptionSections.length > 2 ? 'max-h-[280px] overflow-hidden' : ''}`}>
+                                        <div className="p-5 space-y-4">
+                                            {descriptionSections.map((section, idx) => (
+                                                <div key={idx}>
+                                                    {section.title && (
+                                                        <h3 className="flex items-center gap-1.5 text-sm font-bold text-slate-800 mb-1.5">
+                                                            <span>{section.emoji}</span>
+                                                            {section.title}
+                                                        </h3>
+                                                    )}
+                                                    <p className="text-[13px] text-slate-600 leading-relaxed whitespace-pre-line">{section.content}</p>
+                                                </div>
+                                            ))}
                                         </div>
-                                    ))}
+                                        {!descExpanded && descriptionSections.length > 2 && (
+                                            <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent" />
+                                        )}
+                                    </div>
+                                    {descriptionSections.length > 2 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setDescExpanded(!descExpanded)}
+                                            className="w-full py-3 flex items-center justify-center gap-1.5 text-xs font-bold text-emerald-600 hover:bg-emerald-50/50 transition-colors border-t border-slate-100"
+                                        >
+                                            {descExpanded ? (language === "vi" ? "Thu gọn" : "Show less") : (language === "vi" ? "Xem thêm" : "Show more")}
+                                            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${descExpanded ? 'rotate-180' : ''}`} />
+                                        </button>
+                                    )}
                                 </div>
+                            )}
 
-                                {/* Gradient overlay when collapsed */}
-                                {!descExpanded && descriptionSections.length > 2 && (
-                                    <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent" />
-                                )}
-                            </div>
-
-                            {/* Expand/Collapse button */}
-                            {descriptionSections.length > 2 && (
-                                <button
-                                    type="button"
-                                    onClick={() => setDescExpanded(!descExpanded)}
-                                    className="w-full py-4 flex items-center justify-center gap-2 text-sm font-bold text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50/50 transition-colors border-t border-slate-100"
-                                >
-                                    {descExpanded
-                                        ? (language === "vi" ? "Thu gọn" : "Show less")
-                                        : (language === "vi" ? "Xem thêm" : "Show more")
-                                    }
-                                    <ChevronDown className={`w-4 h-4 transition-transform ${descExpanded ? 'rotate-180' : ''}`} />
-                                </button>
+                            {activeTab === "specs" && (
+                                <div className="p-5">
+                                    <ProductSpecifications slug={slug} />
+                                </div>
                             )}
                         </div>
-                    </motion.section>
+                    </div>
 
-
-                    {/* Specifications */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        className="mb-16"
-                    >
-                        <ProductSpecifications slug={slug} />
-                    </motion.div>
-
-
-                    {/* Frequently Bought Together */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        className="mb-16"
-                    >
-                        <div className="flex items-center gap-4 mb-6">
-                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-orange-400 to-amber-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
-                                <ShoppingBag className="w-6 h-6 text-white" />
+                    {/* ══════════ FREQUENTLY BOUGHT TOGETHER ══════════ */}
+                    <section className="mt-8">
+                        <div className="flex items-center gap-2 mb-4">
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-orange-400 to-amber-500 flex items-center justify-center shadow-sm">
+                                <ShoppingBag className="w-4 h-4 text-white" />
                             </div>
-                            <h2 className="text-2xl font-black text-slate-900">
-                                {language === "vi" ? "Thường mua cùng nhau" : "Frequently Bought Together"}
+                            <h2 className="text-lg font-black text-slate-900">
+                                {language === "vi" ? "Thường mua cùng" : "Frequently Bought Together"}
                             </h2>
                         </div>
                         <FrequentlyBoughtTogether
@@ -796,26 +719,16 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
                                 inventory: product.inventory
                             }}
                         />
-                    </motion.div>
+                    </section>
 
-                    {/* Customer Reviews Section */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        className="mb-16"
-                    >
-                        <div className="flex items-center gap-4 mb-8">
-                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
-                                <Star className="w-6 h-6 text-white" />
+                    {/* ══════════ REVIEWS ══════════ */}
+                    <section className="mt-8">
+                        <div className="flex items-center gap-2 mb-4">
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-sm">
+                                <Star className="w-4 h-4 text-white" />
                             </div>
                             <div className="flex-1">
-                                <h2 className="text-2xl font-black text-slate-900">
-                                    {t("shop.customerReviews")}
-                                </h2>
-                                <p className="text-slate-500 text-sm font-medium mt-0.5">
-                                    {t("shop.beFirstReview")}
-                                </p>
+                                <h2 className="text-lg font-black text-slate-900">{t("shop.customerReviews")}</h2>
                             </div>
                             <WriteReviewButton
                                 productId={product.id}
@@ -823,44 +736,30 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
                                 productImage={product.image || undefined}
                             />
                         </div>
-                        <ReviewSummaryAI
-                            productId={product.id}
-                        />
-                    </motion.div>
+                        <ReviewSummaryAI productId={product.id} />
+                    </section>
 
-                    {/* Size Guide Modal */}
-                    <SizeGuide
-                        isOpen={showSizeGuide}
-                        onClose={() => setShowSizeGuide(false)}
-                        productName={product.name}
-                    />
-
-                    {/* Related Products */}
+                    {/* ══════════ RELATED PRODUCTS ══════════ */}
                     {relatedProducts.length > 0 && (
-                        <motion.section
-                            initial={{ opacity: 0, y: 30 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            className="pb-8"
-                        >
-                            <div className="flex items-center gap-4 mb-8">
-                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
-                                    <Package className="w-6 h-6 text-white" />
+                        <section className="mt-8 pb-4">
+                            <div className="flex items-center gap-2 mb-4">
+                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-sm">
+                                    <Package className="w-4 h-4 text-white" />
                                 </div>
-                                <h2 className="text-2xl font-black text-slate-900">
-                                    {t("shop.relatedProducts")}
-                                </h2>
+                                <h2 className="text-lg font-black text-slate-900">{t("shop.relatedProducts")}</h2>
                             </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
-                                {relatedProducts.map((product) => (
-                                    <ProductCard key={product.id} product={product} />
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                                {relatedProducts.map((rp) => (
+                                    <ProductCard key={rp.id} product={rp} />
                                 ))}
                             </div>
-                        </motion.section>
+                        </section>
                     )}
+
+                    {/* Size Guide Modal */}
+                    <SizeGuide isOpen={showSizeGuide} onClose={() => setShowSizeGuide(false)} productName={product.name} />
                 </div>
             </div>
-            {/* Sticky Buy Bar - Mobile Only */}
             <StickyBuyBar
                 productName={product.name}
                 price={getCurrentPrice()}
