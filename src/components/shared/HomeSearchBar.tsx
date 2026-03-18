@@ -77,7 +77,7 @@ export default function HomeSearchBar() {
     // Fetch suggestions when user types (defer to avoid sync state in effect)
     useEffect(() => {
         const raf = requestAnimationFrame(() => {
-            if (debouncedQuery.length >= 2) {
+            if (debouncedQuery.length >= 1) {
                 fetchSuggestions(debouncedQuery);
             } else {
                 setSuggestions([]);

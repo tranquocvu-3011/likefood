@@ -8,7 +8,7 @@
  */
 
 // Force Turbopack recompile - no Bot icon used here
-import { useEffect, useRef, useState, useCallback, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, useCallback, type KeyboardEvent, TextDecoder } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
@@ -603,7 +603,7 @@ export default function ChatbotAI() {
         // Live Chat: KHÔNG tự trả lời — chỉ chờ nhân viên
         // Message đã được gửi về server → Telegram notification tự động
       } else {
-        // ─── AI Chat Mode: gửi qua AI API ──────────────
+        // ─── AI Chat Mode: SSE Streaming ──────────────
         const response = await fetch("/api/ai/chat/stream", {
           method: "POST",
           headers: { "Content-Type": "application/json" },

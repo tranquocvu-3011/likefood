@@ -26,7 +26,7 @@ export function useSearchHints(query: string, enabled: boolean) {
     const [isLoading, setIsLoading] = useState(false);
 
     const fetchHints = useCallback(async (q: string) => {
-        if (q.length < 2) { setSuggestions([]); return; }
+        if (q.length < 1) { setSuggestions([]); return; }
         setIsLoading(true);
         try {
             const res = await fetch(`/api/products/search-hints?q=${encodeURIComponent(q)}`);
