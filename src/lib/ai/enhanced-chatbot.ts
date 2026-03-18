@@ -283,8 +283,8 @@ function getQuickReplies(intent: Intent, language: "vi" | "en"): string[] {
       en: ["I want to find products", "Show me promotions", "Learn about shipping"]
     },
     PRODUCT_SEARCH: {
-      vi: ["Xem sản phẩm nổi bật", "Tìm theo danh mục", "Sản phẩm giảm giá"],
-      en: ["Featured products", "Browse by category", "On sale items"]
+      vi: ["Xem gợi ý sản phẩm", "Tìm theo danh mục", "Sản phẩm giảm giá"],
+      en: ["View product suggestions", "Browse by category", "On sale items"]
     },
     PRODUCT_BENEFITS: {
       vi: ["Cách sử dụng", "Cách bảo quản", "Giá và mua hàng"],

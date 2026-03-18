@@ -385,13 +385,18 @@ function ProductCatalogContent() {
     // Close search hints when clicking outside
     const searchContainerRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
-        const handler = (e: MouseEvent) => {
+        const handler = (e: MouseEvent | TouchEvent) => {
             if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
                 setShowSearchHints(false);
             }
         };
+        // Sử dụng cả mousedown và touchstart để hỗ trợ mobile
         document.addEventListener("mousedown", handler);
-        return () => document.removeEventListener("mousedown", handler);
+        document.addEventListener("touchstart", handler, { passive: true });
+        return () => {
+            document.removeEventListener("mousedown", handler);
+            document.removeEventListener("touchstart", handler);
+        };
     }, []);
 
     const lastTrackedList = useRef<{ category?: string; search?: string } | null>(null);
@@ -595,6 +600,7 @@ function ProductCatalogContent() {
                                                     {recentSearches.map((term) => (
                                                         <button
                                                             key={term}
+                                                            onMouseDown={(e) => e.preventDefault()}
                                                             onClick={() => {
                                                                 setSearchQuery(term);
                                                                 setShowSearchHints(false);
@@ -613,8 +619,14 @@ function ProductCatalogContent() {
                                                 {searchHints.map((hint) => (
                                                     <button
                                                         key={hint.id}
-                                                        onClick={() => {
-                                                            setSearchQuery(hint.name);
+                                                        onMouseDown={(e) => {
+                                                            e.preventDefault();
+                                                            // Nếu có slug thì đi đến trang chi tiết, không thì search theo tên
+                                                            if (hint.slug) {
+                                                                router.push(`/products/${hint.slug}`);
+                                                            } else {
+                                                                setSearchQuery(hint.name);
+                                                            }
                                                             setShowSearchHints(false);
 
                                                             // Lưu vào recent searches

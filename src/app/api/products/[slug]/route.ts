@@ -201,17 +201,20 @@ export async function PUT(
 
             // Update gallery images if provided
             if (galleryImages && Array.isArray(galleryImages)) {
+                // Filter out empty/invalid URLs
+                const validImages = galleryImages.filter((url: string) => typeof url === 'string' && url.trim() !== '');
+
                 await tx.productimage.deleteMany({
                     where: { productId: Number(id) }
                 });
 
-                if (galleryImages.length > 0) {
+                if (validImages.length > 0) {
                     await tx.productimage.createMany({
-                        data: galleryImages.map((url: string, index: number) => ({
+                        data: validImages.map((url: string, index: number) => ({
                             productId: Number(id),
-                            imageUrl: url,
+                            imageUrl: url.trim(),
                             order: index,
-                            isPrimary: false
+                            isPrimary: index === 0
                         }))
                     });
                 }

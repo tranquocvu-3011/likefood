@@ -198,14 +198,21 @@ function NavbarContent() {
     const handleSuggestionClick = useCallback((slug: string | undefined, id: string) => {
         setShowSuggestions(false);
         setMobileSearchActive(false);
+        // Reset search query after navigation to prevent stale state
+        setTimeout(() => {
+            setSearchQuery("");
+        }, 100);
         router.push(`/products/${slug || id}`);
     }, [router]);
 
     const handleTrendingClick = useCallback((kw: string) => {
         saveSearchHistory(kw);
-        setSearchQuery(kw);
         setShowSuggestions(false);
         router.push(`/products?search=${encodeURIComponent(kw)}`);
+        // Reset search query sau khi navigate
+        setTimeout(() => {
+            setSearchQuery("");
+        }, 100);
     }, [router, saveSearchHistory]);
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -331,6 +338,7 @@ function NavbarContent() {
                                                         onClearHistory={clearSearchHistory}
                                                         onSuggestionClick={handleSuggestionClick}
                                                         onTrendingClick={handleTrendingClick}
+                                                        onViewAllClick={() => setShowSuggestions(false)}
                                                     />
                                                 </motion.div>
                                             )}
@@ -425,13 +433,19 @@ function NavbarContent() {
                                                 onClearHistory={clearSearchHistory}
                                                 onSuggestionClick={handleSuggestionClick}
                                                 onTrendingClick={handleTrendingClick}
+                                                onViewAllClick={() => setShowSuggestions(false)}
                                             />
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
 
+                                {/* Click outside overlay - đóng dropdown khi click ra ngoài */}
                                 {showSuggestions && (
-                                    <div className="fixed inset-0 z-[45]" onClick={() => setShowSuggestions(false)} />
+                                    <div 
+                                        className="fixed inset-0 z-[45]" 
+                                        onClick={() => setShowSuggestions(false)}
+                                        onTouchStart={() => setShowSuggestions(false)}
+                                    />
                                 )}
                             </form>
                         </div>

@@ -161,9 +161,9 @@ export default async function Home() {
         {/* Section 2: Category Showcase */}
         {show("categories") && <section aria-label="Danh mục sản phẩm"><CategoryShowcase /></section>}
 
-        {/* Section 3: Featured Products - Streaming with Skeleton */}
+        {/* Section 3: Product Suggestions - Streaming with Skeleton */}
         {show("featured-products") && (
-        <section aria-label="Sản phẩm nổi bật">
+        <section aria-label="Gợi ý sản phẩm">
         <Suspense fallback={
           <div className="w-full px-4 sm:px-6 lg:px-[6%] py-20">
             <div className="mb-12 text-center">

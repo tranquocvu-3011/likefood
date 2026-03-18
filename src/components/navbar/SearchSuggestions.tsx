@@ -25,6 +25,7 @@ interface SearchSuggestionsProps {
     onClearHistory: () => void;
     onSuggestionClick: (slug: string | undefined, id: string) => void;
     onTrendingClick: (keyword: string) => void;
+    onViewAllClick?: () => void;
 }
 
 export default function SearchSuggestions({
@@ -38,6 +39,7 @@ export default function SearchSuggestions({
     onClearHistory,
     onSuggestionClick,
     onTrendingClick,
+    onViewAllClick,
 }: SearchSuggestionsProps) {
     
     const highlightText = (text: string, highlight: string) => {
@@ -69,6 +71,7 @@ export default function SearchSuggestions({
                             <span className="text-[11px] font-black uppercase tracking-widest text-slate-400">{t('shopPage.recentSearches')}</span>
                         </div>
                         <button
+                            onMouseDown={(e) => e.preventDefault()}
                             onClick={onClearHistory}
                             className="text-[11px] font-semibold text-slate-400 hover:text-slate-600 transition-colors"
                         >
@@ -79,6 +82,7 @@ export default function SearchSuggestions({
                         {searchHistory.map((h) => (
                             <button
                                 key={h}
+                                onMouseDown={(e) => e.preventDefault()}
                                 onClick={() => onTrendingClick(h)}
                                 className="px-3 py-2 rounded-2xl text-[12px] font-semibold bg-slate-100 text-slate-600 hover:bg-primary/10 hover:text-primary transition-all"
                             >
@@ -113,7 +117,10 @@ export default function SearchSuggestions({
                     {suggestions.map((item, idx) => (
                         <button
                             key={item.id}
-                            onClick={() => onSuggestionClick(item.slug, String(item.id))}
+                            onMouseDown={(e) => {
+                                e.preventDefault();
+                                onSuggestionClick(item.slug, String(item.id));
+                            }}
                             className={`w-full px-4 py-3 flex items-center gap-4 rounded-2xl transition-all text-left group ${
                                 selectedIndex === idx ? "bg-primary/10 translate-x-1" : "hover:bg-primary/5"
                             }`}
@@ -144,16 +151,24 @@ export default function SearchSuggestions({
                     ))}
                 </div>
                 <div className="p-3 border-t border-slate-100">
-                    <Link
-                        href={`/products?search=${encodeURIComponent(query)}`}
-                        className={`block px-4 py-3.5 text-[11px] font-black rounded-2xl text-center shadow-lg transition-all uppercase tracking-widest ${
+                    <button
+                        type="button"
+                        onMouseDown={(e) => {
+                            e.preventDefault();
+                            onViewAllClick?.();
+                        }}
+                        onClick={() => {
+                            // Navigate đến trang danh sách sản phẩm với search query
+                            window.location.href = `/products?search=${encodeURIComponent(query)}`;
+                        }}
+                        className={`block w-full px-4 py-3.5 text-[11px] font-black rounded-2xl text-center shadow-lg transition-all uppercase tracking-widest ${
                             selectedIndex === suggestions.length 
                                 ? "bg-primary text-white scale-[1.02]" 
                                 : "bg-slate-900 hover:bg-primary text-white"
                         }`}
                     >
                         {t("common.viewAllResults")} &quot;{query}&quot;
-                    </Link>
+                    </button>
                 </div>
             </div>
         );

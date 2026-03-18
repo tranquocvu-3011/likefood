@@ -7,12 +7,13 @@
  * https://github.com/tranquocvu-3011/likefood
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
 import {
     Star, Heart, Share2, ShoppingCart, Truck, ArrowLeft,
-    Loader2, Flame, Zap, ChevronRight, Package, ShoppingBag
+    Loader2, Flame, Zap, ChevronRight, Package, ShoppingBag,
+    ChevronDown, Shield, RefreshCw, CreditCard, Info
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
@@ -124,7 +125,49 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
     const [isAddingToCart, setIsAddingToCart] = useState(false);
     const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
     const [showSizeGuide, setShowSizeGuide] = useState(false);
+    const [descExpanded, setDescExpanded] = useState(false);
     const { t, language } = useLanguage();
+
+    // Auto-format description: split by emoji markers into neat sections
+    const descriptionSections = useMemo(() => {
+        if (!product?.description) return [];
+        const text = product.description;
+        // Split by common emoji section markers (🌿 GIỚI THIỆU:, 🍃 HƯƠNG VỊ:, etc.)
+        const sectionRegex = /(?:^|\s)([\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FEFF}✅☑️🔥⭐️🎁💪🍃🌿🧂🌶️📦🎯🏷️💰🔒🚚👨‍🍳🧑‍🍳👩‍🍳🍴🥢🥄🍽️])\s*([A-ZÀ-Ỹ\s&]+):\s*/gu;
+        const parts: { title: string; content: string; emoji: string }[] = [];
+        let lastIndex = 0;
+        let match;
+        const matches: { index: number; emoji: string; title: string; length: number }[] = [];
+
+        while ((match = sectionRegex.exec(text)) !== null) {
+            matches.push({
+                index: match.index,
+                emoji: match[1],
+                title: match[2].trim(),
+                length: match[0].length,
+            });
+        }
+
+        if (matches.length === 0) {
+            // No emoji sections found - just split by newlines or periods for readability
+            return [{ title: "", content: text, emoji: "" }];
+        }
+
+        // Text before first section
+        const preamble = text.slice(0, matches[0].index).trim();
+        if (preamble) {
+            parts.push({ title: "", content: preamble, emoji: "" });
+        }
+
+        for (let i = 0; i < matches.length; i++) {
+            const start = matches[i].index + matches[i].length;
+            const end = i < matches.length - 1 ? matches[i + 1].index : text.length;
+            const content = text.slice(start, end).trim();
+            parts.push({ title: matches[i].title, content, emoji: matches[i].emoji });
+        }
+
+        return parts;
+    }, [product?.description]);
 
     useEffect(() => {
         // Skip fetch if initial data was provided by server component
@@ -347,104 +390,82 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
                     <motion.nav
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="mb-8 flex items-center gap-2 text-sm"
+                        className="mb-6 flex items-center gap-2 text-sm"
                     >
                         <Link href="/" prefetch={true} className="text-slate-400 hover:text-emerald-600 font-medium transition-colors">{t("common.home")}</Link>
-                        <ChevronRight className="w-4 h-4 text-slate-300" />
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
                         <Link href="/products" prefetch={true} className="text-slate-400 hover:text-emerald-600 font-medium transition-colors">{t("common.products")}</Link>
-                        <ChevronRight className="w-4 h-4 text-slate-300" />
-                        <span className="text-slate-600 font-semibold truncate max-w-[200px]">{product.name}</span>
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+                        <span className="text-slate-500 font-semibold truncate max-w-[180px]">{product.name}</span>
                     </motion.nav>
 
-                    {/* Back Button */}
-                    <motion.button
-                        type="button"
-                        aria-label={t("common.back")}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        onClick={() => {
-                            if (typeof document !== 'undefined' && document.referrer && document.referrer.includes(window.location.origin)) {
-                                router.back();
-                            } else {
-                                router.push('/products');
-                            }
-                        }}
-                        className="mb-6 inline-flex items-center gap-2 text-slate-500 hover:text-emerald-600 transition-colors font-medium"
-                    >
-                        <ArrowLeft className="w-5 h-5" />
-                        {t("common.back")}
-                    </motion.button>
-
                     {/* Main Product Section */}
-                    <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 lg:gap-12 mb-20">
-                        {/* Image Gallery - Left Side (nhỏ gọn hơn) */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 mb-20">
+                        {/* Image Gallery - Left Side */}
                         <motion.div
                             initial={{ opacity: 0, x: -30 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.5 }}
-                            className="xl:col-span-5"
                         >
-                            <div className="sticky top-24 max-w-[420px] mx-auto xl:mx-0">
-                                <div className="relative">
-                                    {/* Main Image - thu nhỏ */}
-                                    <div className="relative aspect-square rounded-2xl overflow-hidden bg-white shadow-xl shadow-slate-200/50 mb-3">
-                                        {(product.images && product.images.length > 0) || product.image ? (
-                                            <ImageGallery
-                                                images={(() => {
-                                                    const gallery = [...(product.images || [])];
-                                                    if (product.image) {
-                                                        const mainImageInGallery = gallery.find(img => img.imageUrl === product.image);
-                                                        if (!mainImageInGallery) {
-                                                            gallery.unshift({
-                                                                id: Number('main'),
-                                                                imageUrl: product.image,
-                                                                altText: product.name,
-                                                                order: -1,
-                                                                isPrimary: true
-                                                            });
-                                                        } else {
-                                                            gallery.sort((a) => (a.imageUrl === product.image ? -1 : 1));
-                                                        }
+                            <div className="sticky top-28 max-w-[480px] mx-auto lg:mx-0">
+                                <div className="relative aspect-square rounded-2xl overflow-hidden bg-white shadow-xl shadow-slate-200/50 mb-3">
+                                    {(product.images && product.images.filter(img => img.imageUrl).length > 0) || product.image ? (
+                                        <ImageGallery
+                                            images={(() => {
+                                                // Filter out images with empty/invalid URLs
+                                                const gallery = [...(product.images || [])].filter(img => img.imageUrl && img.imageUrl.trim() !== '');
+                                                if (product.image) {
+                                                    const mainImageInGallery = gallery.find(img => img.imageUrl === product.image);
+                                                    if (!mainImageInGallery) {
+                                                        gallery.unshift({
+                                                            id: -1,
+                                                            imageUrl: product.image,
+                                                            altText: product.name,
+                                                            order: -1,
+                                                            isPrimary: true,
+                                                        });
+                                                    } else {
+                                                        gallery.sort((a) => (a.imageUrl === product.image ? -1 : 1));
                                                     }
-                                                    return gallery;
-                                                })()}
-                                                productName={product.name}
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
-                                                <ShoppingBag className="w-32 h-32 text-slate-200" />
-                                            </div>
-                                        )}
+                                                }
+                                                return gallery;
+                                            })()}
+                                            productName={product.name}
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
+                                            <ShoppingBag className="w-32 h-32 text-slate-200" />
+                                        </div>
+                                    )}
 
-                                        {/* Sale Badge */}
-                                        {hasDiscount() && (
-                                            <div className="absolute top-6 left-6 z-10">
-                                                <Badge variant="sale" className="px-5 py-2.5 rounded-2xl">
-                                                    <Flame className="w-5 h-5 text-white fill-white mr-2" />
-                                                    Sale {getDiscountPercent()}%
-                                                </Badge>
-                                            </div>
-                                        )}
+                                    {/* Sale Badge */}
+                                    {hasDiscount() && (
+                                        <div className="absolute top-6 left-6 z-10">
+                                            <Badge variant="sale" className="px-5 py-2.5 rounded-2xl">
+                                                <Flame className="w-5 h-5 text-white fill-white mr-2" />
+                                                Sale {getDiscountPercent()}%
+                                            </Badge>
+                                        </div>
+                                    )}
 
-                                        {/* Flash Sale Badge */}
-                                        {product.isFlashSale && (
-                                            <div className="absolute top-6 right-6 z-10">
-                                                <Badge variant="flash" className="px-5 py-2.5 rounded-2xl">
-                                                    <Zap className="w-5 h-5 text-white fill-white mr-2" />
-                                                    {t("common.flashSale")}
-                                                </Badge>
-                                            </div>
-                                        )}
+                                    {/* Flash Sale Badge */}
+                                    {product.isFlashSale && (
+                                        <div className="absolute top-6 right-6 z-10">
+                                            <Badge variant="flash" className="px-5 py-2.5 rounded-2xl">
+                                                <Zap className="w-5 h-5 text-white fill-white mr-2" />
+                                                {t("common.flashSale")}
+                                            </Badge>
+                                        </div>
+                                    )}
 
-                                        {/* Out of Stock Overlay */}
-                                        {getCurrentInventory() === 0 && (
-                                            <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-20">
-                                                <div className="bg-white/10 backdrop-blur-md px-8 py-4 rounded-3xl border border-white/20">
-                                                    <span className="text-2xl font-black text-white uppercase tracking-widest">{t("shop.outOfStock")}</span>
-                                                </div>
+                                    {/* Out of Stock Overlay */}
+                                    {getCurrentInventory() === 0 && (
+                                        <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-20">
+                                            <div className="bg-white/10 backdrop-blur-md px-8 py-4 rounded-3xl border border-white/20">
+                                                <span className="text-2xl font-black text-white uppercase tracking-widest">{t("shop.outOfStock")}</span>
                                             </div>
-                                        )}
-                                    </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </motion.div>
@@ -454,41 +475,42 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
                             initial={{ opacity: 0, x: 30 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.5, delay: 0.1 }}
-                            className="xl:col-span-7 space-y-6"
+                            className="space-y-6"
                         >
                             {/* Category & Badges */}
-                            <div className="flex items-center gap-3 flex-wrap">
+                            <div className="flex items-center gap-2 flex-wrap">
                                 <Link
                                     href={`/products?category=${encodeURIComponent(product.category)}`}
-                                    className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.2em] text-emerald-600 bg-emerald-50 px-4 py-2 rounded-full hover:bg-emerald-100 transition-colors"
+                                    className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-3.5 py-1.5 rounded-full hover:bg-emerald-100 transition-colors"
                                 >
                                     {product.category}
                                     <ChevronRight className="w-3 h-3" />
                                 </Link>
                                 {product.isFlashSale && (
-                                    <Badge variant="flash">
-                                        <Flame className="w-4 h-4 mr-1.5" />
+                                    <Badge variant="flash" className="text-[10px] py-1">
+                                        <Flame className="w-3 h-3 mr-1" />
                                         {t("common.flashSale")}
                                     </Badge>
                                 )}
                                 {product.isNew && (
-                                    <Badge variant="new">
-                                        <Zap className="w-4 h-4 mr-1.5" />
+                                    <Badge variant="new" className="text-[10px] py-1">
+                                        <Zap className="w-3 h-3 mr-1" />
                                         {t("common.new")}
                                     </Badge>
                                 )}
                             </div>
 
                             {/* Product Title & Weight */}
-                            <div className="space-y-3">
-                                <h1 className="text-4xl lg:text-5xl font-black uppercase tracking-tight text-slate-900 leading-tight">
+                            <div className="space-y-4">
+                                <h1 className="text-3xl lg:text-4xl font-black text-slate-900 leading-tight">
                                     {product.name}
                                 </h1>
                                 {product.weight && (
-                                    <p className="inline-flex items-center gap-2 bg-slate-50 text-slate-600 px-4 py-2 rounded-xl text-sm font-bold border border-slate-100 uppercase tracking-widest shadow-sm">
+                                    <div className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-50 to-white text-slate-600 px-4 py-2 rounded-xl text-sm font-bold border border-slate-100 shadow-sm">
                                         <Package className="w-4 h-4 text-emerald-500" />
-                                        {t("shop.packaging")}: <span className="text-slate-900">{product.weight}</span>
-                                    </p>
+                                        <span className="text-slate-500">{t("shop.packaging")}:</span>
+                                        <span className="text-slate-900">{product.weight}</span>
+                                    </div>
                                 )}
                             </div>
 
@@ -522,92 +544,6 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
                             </div>
 
 
-
-                            {/* Price Section - Enhanced */}
-                            <div className="bg-gradient-to-br from-slate-50 via-white to-slate-50 rounded-3xl p-6 border border-slate-100 shadow-lg shadow-slate-100/50">
-                                <PriceDisplay
-                                    currentPrice={getCurrentPrice()}
-                                    originalPrice={hasDiscount() ? getOriginalPrice() : undefined}
-                                    salePrice={hasDiscount() ? getCurrentPrice() : undefined}
-                                    isOnSale={hasDiscount()}
-                                    size="xl"
-                                    showDiscountBadge={false}
-                                />
-                                {/* VND Equivalent */}
-                                <p className="mt-2 text-sm font-semibold text-slate-400">
-                                    {formatVndEquivalent(getCurrentPrice())}
-                                </p>
-                                {selectedVariant && selectedVariant.priceAdjustment !== 0 && (
-                                    <p className="mt-2 text-xs font-bold text-emerald-600 uppercase tracking-widest">
-                                        + {formatPrice(selectedVariant.priceAdjustment)} ({language === "vi" ? "Tuỳ chọn" : "Option"} {selectedVariant.weight || selectedVariant.flavor})
-                                    </p>
-                                )}
-
-                                {/* Sold Progress */}
-                                {hasDiscount() && product.soldCount != null && product.soldCount > 0 && (
-                                    <div className="space-y-2">
-                                        <div className="flex items-center justify-between text-sm">
-                                            <span className="text-slate-500 font-medium flex items-center gap-1">
-                                                <Package className="w-4 h-4" />
-                                                {t("shop.sold")} {product.soldCount.toLocaleString()}
-                                            </span>
-                                            <span className="text-slate-400">{t("shop.inStock")}</span>
-                                        </div>
-                                        <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                                            <motion.div
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${soldPercentage}%` }}
-                                                transition={{ duration: 1, ease: "easeOut" }}
-                                                className="h-full bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 rounded-full"
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Freeship Progress */}
-                            <div className={`p-5 rounded-2xl border-2 transition-all ${getCurrentPrice() >= FREE_SHIPPING_THRESHOLD_USD
-                                    ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200'
-                                    : 'bg-gradient-to-r from-blue-50 to-sky-50 border-blue-200'
-                                }`}>
-                                {getCurrentPrice() >= FREE_SHIPPING_THRESHOLD_USD ? (
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center shadow-lg shadow-green-500/30">
-                                            <Truck className="w-6 h-6 text-white" />
-                                        </div>
-                                        <div>
-                                            <p className="text-green-700 font-bold text-lg">{t("cart.freeShipping")}!</p>
-                                            <p className="text-green-600 text-sm">{t("shop.savedShipping")}</p>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div>
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <Truck className="w-5 h-5 text-blue-500" />
-                                            <span className="text-blue-700 font-bold">{t("cart.freeShipping")}</span>
-                                        </div>
-                                        <div className="h-2 bg-blue-100 rounded-full overflow-hidden mb-2">
-                                            <motion.div
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${(getCurrentPrice() / FREE_SHIPPING_THRESHOLD_USD) * 100}%` }}
-                                                transition={{ duration: 0.8 }}
-                                                className="h-full bg-gradient-to-r from-blue-400 to-blue-500 rounded-full"
-                                            />
-                                        </div>
-                                        <p className="text-sm text-blue-600 font-medium">
-                                        {t("cart.addMoreForFreeShip").replace("{amount}", formatPrice(FREE_SHIPPING_THRESHOLD_USD - getCurrentPrice()))}
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Description */}
-                            <div className="prose prose-slate max-w-none">
-                                <p className="text-lg text-slate-600 leading-relaxed font-medium">
-                                    {product.description}
-                                </p>
-                            </div>
-
                             {/* Variant Selector */}
                             {product.variants && product.variants.length > 0 && (
                                 <VariantSelector
@@ -621,99 +557,204 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
                                 />
                             )}
 
-                            {/* Stock Status */}
-                            <div className={`flex items-center gap-3 px-5 py-3 rounded-2xl font-bold ${getCurrentInventory() > 0
-                                    ? 'bg-green-50 text-green-700 border border-green-200'
-                                    : 'bg-red-50 text-red-700 border border-red-200'
-                                }`}>
-                                {getCurrentInventory() > 0 ? (
-                                    <>
-                                        <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
-                                        <span>{t("shop.inStock")}</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <div className="w-3 h-3 rounded-full bg-red-500" />
-                                        <span>{t("shop.outOfStock")}</span>
-                                    </>
+                            {/* Purchase Card: Price + Stock + Quantity + Buttons */}
+                            <div className="bg-white rounded-2xl border border-slate-100 shadow-lg shadow-slate-100/50 overflow-hidden">
+                                {/* Price */}
+                                <div className="p-5 bg-gradient-to-r from-slate-50 to-white">
+                                    <PriceDisplay
+                                        currentPrice={getCurrentPrice()}
+                                        originalPrice={hasDiscount() ? getOriginalPrice() : undefined}
+                                        salePrice={hasDiscount() ? getCurrentPrice() : undefined}
+                                        isOnSale={hasDiscount()}
+                                        size="xl"
+                                        showDiscountBadge={false}
+                                    />
+                                    <p className="mt-1 text-xs font-medium text-slate-400">{formatVndEquivalent(getCurrentPrice())}</p>
+                                    {selectedVariant && selectedVariant.priceAdjustment !== 0 && (
+                                        <p className="mt-1 text-xs font-bold text-emerald-600">
+                                            + {formatPrice(selectedVariant.priceAdjustment)} ({language === "vi" ? "Tuỳ chọn" : "Option"} {selectedVariant.weight || selectedVariant.flavor})
+                                        </p>
+                                    )}
+                                    {/* Sold Progress */}
+                                    {hasDiscount() && product.soldCount != null && product.soldCount > 0 && (
+                                        <div className="mt-3">
+                                            <div className="flex items-center justify-between text-xs mb-1">
+                                                <span className="text-slate-500 font-medium">{t("shop.sold")} {product.soldCount.toLocaleString()}</span>
+                                                <span className="text-slate-400">{t("shop.inStock")}</span>
+                                            </div>
+                                            <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                                <motion.div
+                                                    initial={{ width: 0 }}
+                                                    animate={{ width: `${soldPercentage}%` }}
+                                                    transition={{ duration: 1, ease: "easeOut" }}
+                                                    className="h-full bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 rounded-full"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Freeship mini bar */}
+                                <div className={`mx-5 -mb-2 px-4 py-2.5 flex items-center gap-3 rounded-b-xl ${getCurrentPrice() >= FREE_SHIPPING_THRESHOLD_USD ? 'bg-green-50 border-green-100' : 'bg-blue-50 border-blue-100'} border-x border-t-0`}>
+                                    <Truck className={`w-4 h-4 shrink-0 ${getCurrentPrice() >= FREE_SHIPPING_THRESHOLD_USD ? 'text-green-500' : 'text-blue-500'}`} />
+                                    {getCurrentPrice() >= FREE_SHIPPING_THRESHOLD_USD ? (
+                                        <span className="text-xs font-bold text-green-700">{t("cart.freeShipping")}! ✓</span>
+                                    ) : (
+                                        <div className="flex-1">
+                                            <span className="text-xs font-medium text-blue-600">
+                                                {t("cart.addMoreForFreeShip").replace("{amount}", formatPrice(FREE_SHIPPING_THRESHOLD_USD - getCurrentPrice()))}
+                                            </span>
+                                            <div className="h-1 bg-blue-100 rounded-full overflow-hidden mt-1">
+                                                <div className="h-full bg-blue-400 rounded-full transition-all" style={{ width: `${Math.min((getCurrentPrice() / FREE_SHIPPING_THRESHOLD_USD) * 100, 100)}%` }} />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Quantity + Actions */}
+                                <div className="p-5 space-y-4">
+                                    {/* Stock status inline */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">{t("common.quantity")}:</span>
+                                            <QuantitySelector
+                                                value={quantity}
+                                                min={1}
+                                                max={getCurrentInventory()}
+                                                onChange={(val) => setQuantity(val)}
+                                                size="lg"
+                                            />
+                                        </div>
+                                        <div className={`flex items-center gap-1.5 text-xs font-bold ${getCurrentInventory() > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                                            <div className={`w-2 h-2 rounded-full ${getCurrentInventory() > 0 ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+                                            {getCurrentInventory() > 0 ? t("shop.inStock") : t("shop.outOfStock")}
+                                        </div>
+                                    </div>
+
+                                    {/* Buttons */}
+                                    <div className="flex gap-3 pt-2">
+                                        <Button
+                                            onClick={handleAddToCart}
+                                            disabled={getCurrentInventory() === 0 || isAddingToCart}
+                                            className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-sm shadow-lg shadow-emerald-500/20"
+                                        >
+                                            {isAddingToCart ? (
+                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                            ) : (
+                                                <>
+                                                    <ShoppingCart className="w-4 h-4 mr-2" />
+                                                    {t("shop.addToCart")}
+                                                </>
+                                            )}
+                                        </Button>
+                                        <Button
+                                            onClick={handleBuyNow}
+                                            disabled={getCurrentInventory() === 0}
+                                            className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-900 hover:to-black text-white font-bold text-sm shadow-lg shadow-slate-500/20"
+                                        >
+                                            {t("shop.buyNow")}
+                                        </Button>
+                                    </div>
+
+                                    {/* Secondary actions + Size guide */}
+                                    <div className="flex items-center justify-between pt-2">
+                                        <div className="flex items-center gap-4">
+                                            <button
+                                                type="button"
+                                                onClick={() => toggleWishlist(product.id)}
+                                                className={`flex items-center gap-1.5 text-xs font-semibold transition-all ${isInWishlist(product.id) ? 'text-red-500' : 'text-slate-400 hover:text-red-500'}`}
+                                            >
+                                                <Heart className={`w-4 h-4 ${isInWishlist(product.id) ? "fill-current" : ""}`} />
+                                                {isInWishlist(product.id) ? t("shop.wishlistLiked") : t("shop.wishlistLike")}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={handleShare}
+                                                className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-emerald-500 transition-all"
+                                            >
+                                                <Share2 className="w-4 h-4" />
+                                                {t("shop.share")}
+                                            </button>
+                                        </div>
+                                        <SizeGuideButton onClick={() => setShowSizeGuide(true)} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Trust Badges - Compact Inline */}
+                            <div className="flex items-center justify-between gap-2 py-4 px-5 bg-gradient-to-r from-slate-50 to-blue-50/30 rounded-2xl border border-slate-100/80">
+                                {[
+                                    { icon: Truck, label: t("shop.fastDelivery"), color: "text-orange-500", bg: "bg-orange-50" },
+                                    { icon: Shield, label: t("shop.qualityGuarantee"), color: "text-emerald-500", bg: "bg-emerald-50" },
+                                    { icon: RefreshCw, label: t("shop.easyReturn"), color: "text-blue-500", bg: "bg-blue-50" },
+                                    { icon: CreditCard, label: t("shop.securePayment"), color: "text-violet-500", bg: "bg-violet-50" },
+                                ].map((badge) => (
+                                    <div key={badge.label} className="flex items-center gap-2 px-2">
+                                        <div className={`w-8 h-8 rounded-lg ${badge.bg} flex items-center justify-center`}>
+                                            <badge.icon className={`w-4 h-4 ${badge.color}`} />
+                                        </div>
+                                        <span className="text-[10px] font-bold text-slate-600 whitespace-nowrap">{badge.label}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </motion.div>
+                    </div>
+                    {/* ────────── Description Section ────────── */}
+                    <motion.section
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        className="mb-16"
+                    >
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                                <Info className="w-5 h-5 text-white" />
+                            </div>
+                            <h2 className="text-2xl font-black text-slate-900">
+                                {language === "vi" ? "Mô tả sản phẩm" : "Product Description"}
+                            </h2>
+                        </div>
+
+                        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+                            <div className={`relative ${!descExpanded && descriptionSections.length > 2 ? 'max-h-[320px] overflow-hidden' : ''}`}>
+                                <div className="p-6 lg:p-8 space-y-6">
+                                    {descriptionSections.map((section, idx) => (
+                                        <div key={idx}>
+                                            {section.title && (
+                                                <h3 className="flex items-center gap-2 text-base font-bold text-slate-800 mb-3">
+                                                    <span className="text-lg">{section.emoji}</span>
+                                                    {section.title}
+                                                </h3>
+                                            )}
+                                            <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-line">
+                                                {section.content}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Gradient overlay when collapsed */}
+                                {!descExpanded && descriptionSections.length > 2 && (
+                                    <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent" />
                                 )}
                             </div>
 
-                            {/* Size Guide */}
-                            <SizeGuideButton onClick={() => setShowSizeGuide(true)} />
-
-                            {/* Quantity & Actions */}
-                            <div className="space-y-5 pt-6 border-t border-slate-200">
-                                <div className="flex items-center gap-5">
-                                    <span className="text-sm font-bold uppercase tracking-widest text-slate-400">{t("common.quantity")}:</span>
-                                    <QuantitySelector
-                                        value={quantity}
-                                        min={1}
-                                        max={getCurrentInventory()}
-                                        onChange={(val) => setQuantity(val)}
-                                        size="lg"
-                                    />
-                                </div>
-
-                                {/* Action Buttons */}
-                                <div className="flex flex-col sm:flex-row gap-4">
-                                    <Button
-                                        onClick={handleAddToCart}
-                                        disabled={getCurrentInventory() === 0 || isAddingToCart}
-                                        className="flex-1 h-16 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold uppercase tracking-wider shadow-2xl shadow-emerald-500/30"
-                                    >
-                                        {isAddingToCart ? (
-                                            <Loader2 className="w-6 h-6 animate-spin" />
-                                        ) : (
-                                            <>
-                                                <ShoppingCart className="w-6 h-6 mr-2" />
-                                                {t("shop.addToCart")} {quantity > 1 && `(${quantity})`}
-                                            </>
-                                        )}
-                                    </Button>
-                                    <Button
-                                        onClick={handleBuyNow}
-                                        disabled={getCurrentInventory() === 0}
-                                        className="flex-1 h-16 rounded-2xl bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-900 hover:to-black text-white font-bold uppercase tracking-wider shadow-2xl shadow-slate-500/30"
-                                    >
-                                        {t("shop.buyNow")}
-                                    </Button>
-                                </div>
-
-                                {/* Secondary Actions */}
-                                <div className="flex items-center justify-center gap-6 pt-4">
-                                    <button
-                                        type="button"
-                                        aria-label={isInWishlist(product.id) ? t("shop.wishlistLiked") : t("shop.wishlistLike")}
-                                        onClick={() => toggleWishlist(product.id)}
-                                        className={`flex items-center gap-2 transition-all ${isInWishlist(product.id)
-                                                ? 'text-red-500 scale-110'
-                                                : 'text-slate-400 hover:text-red-500 hover:scale-105'
-                                            }`}
-                                    >
-                                        <Heart className={`w-6 h-6 ${isInWishlist(product.id) ? "fill-current" : ""}`} />
-                                        <span className="text-sm font-semibold">
-                                            {isInWishlist(product.id) ? t("shop.wishlistLiked") : t("shop.wishlistLike")}
-                                        </span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        aria-label={t("shop.share")}
-                                        onClick={handleShare}
-                                        className="flex items-center gap-2 text-slate-400 hover:text-emerald-500 transition-all hover:scale-105"
-                                    >
-                                        <Share2 className="w-6 h-6" />
-                                        <span className="text-sm font-semibold">{t("shop.share")}</span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Trust Badges */}
-                            <TrustBadgesRow t={t} />
-                        </motion.div>
-                    </div>
-
-
+                            {/* Expand/Collapse button */}
+                            {descriptionSections.length > 2 && (
+                                <button
+                                    type="button"
+                                    onClick={() => setDescExpanded(!descExpanded)}
+                                    className="w-full py-4 flex items-center justify-center gap-2 text-sm font-bold text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50/50 transition-colors border-t border-slate-100"
+                                >
+                                    {descExpanded
+                                        ? (language === "vi" ? "Thu gọn" : "Show less")
+                                        : (language === "vi" ? "Xem thêm" : "Show more")
+                                    }
+                                    <ChevronDown className={`w-4 h-4 transition-transform ${descExpanded ? 'rotate-180' : ''}`} />
+                                </button>
+                            )}
+                        </div>
+                    </motion.section>
 
 
                     {/* Specifications */}
@@ -721,122 +762,11 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        className="mb-12"
+                        className="mb-16"
                     >
                         <ProductSpecifications slug={slug} />
                     </motion.div>
 
-                    {/* Reviews Section */}
-                    {product.reviews && product.reviews.length > 0 && (
-                        <motion.section
-                            initial={{ opacity: 0, y: 30 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            className="mb-20"
-                        >
-                            <div className="flex items-center gap-4 mb-8">
-                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
-                                    <Star className="w-7 h-7 text-white fill-white" />
-                                </div>
-                                <div>
-                                    <h2 className="text-3xl font-black uppercase tracking-tight text-slate-900">
-                                        {t("shop.customerReviews")} ({product.reviewCount})
-                                    </h2>
-                                    <p className="text-base text-slate-500 font-medium">
-                                        {product.avgRating.toFixed(1)} / 5.0 {t("shop.ratingAverage")}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Rating Distribution */}
-                            <div className="bg-white rounded-3xl border border-slate-100 p-6 sm:p-8 mb-8 shadow-xl shadow-slate-100/50">
-                                <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-8 items-center">
-                                    <div className="text-center lg:pr-8 lg:border-r border-slate-100">
-                                        <div className="text-6xl font-black bg-gradient-to-r from-slate-800 to-slate-900 bg-clip-text text-transparent">
-                                            {product.avgRating.toFixed(1)}
-                                        </div>
-                                        <div className="flex items-center justify-center gap-1 mt-3">
-                                            {[...Array(5)].map((_, i) => (
-                                                <Star
-                                                    key={i}
-                                                    className={`w-5 h-5 ${i < Math.round(product.avgRating)
-                                                            ? "fill-amber-400 text-amber-400"
-                                                            : "text-slate-200"
-                                                        }`}
-                                                />
-                                            ))}
-                                        </div>
-                                        <div className="text-sm text-slate-500 font-medium mt-2">{product.reviewCount} {t("shop.rating").toLowerCase()}</div>
-                                    </div>
-                                    <div className="space-y-3">
-                                        {[5, 4, 3, 2, 1].map((star) => {
-                                            const count = product.reviews?.filter(r => Math.round(r.rating) === star).length || 0;
-                                            const pct = product.reviewCount > 0 ? (count / product.reviewCount) * 100 : 0;
-                                            return (
-                                                <div key={star} className="flex items-center gap-3">
-                                                    <span className="text-sm font-bold text-slate-500 w-6">{star}</span>
-                                                    <Star className="w-4 h-4 fill-amber-400 text-amber-400 shrink-0" />
-                                                    <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
-                                                        <motion.div
-                                                            initial={{ width: 0 }}
-                                                            whileInView={{ width: `${pct}%` }}
-                                                            transition={{ duration: 0.8, delay: 0.1 }}
-                                                            className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500"
-                                                        />
-                                                    </div>
-                                                    <span className="text-xs font-bold text-slate-400 w-8 text-right">{count}</span>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Review Cards */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {product.reviews.slice(0, 6).map((review, idx) => (
-                                    <motion.div
-                                        key={review.id}
-                                        initial={{ opacity: 0, y: 20 }}
-                                        whileInView={{ opacity: 1, y: 0 }}
-                                        viewport={{ once: true }}
-                                        transition={{ delay: idx * 0.1 }}
-                                        className="bg-white rounded-2xl border border-slate-100 p-5 hover:shadow-lg transition-all"
-                                    >
-                                        <div className="flex items-start gap-4">
-                                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-black text-lg shadow-lg shrink-0">
-                                                {review.user.name?.[0]?.toUpperCase() || "U"}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <div>
-                                                        <p className="font-bold text-slate-900">{review.user.name || t("shop.customer")}</p>
-                                                        <div className="flex items-center gap-1 mt-1">
-                                                            {[...Array(5)].map((_, i) => (
-                                                                <Star
-                                                                    key={i}
-                                                                    className={`w-3.5 h-3.5 ${i < review.rating
-                                                                            ? "fill-amber-400 text-amber-400"
-                                                                            : "text-slate-200"
-                                                                        }`}
-                                                                />
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                    <span className="text-xs font-medium text-slate-400">
-                                                        {new Date(review.createdAt).toLocaleDateString(language === "vi" ? "vi-VN" : "en-US")}
-                                                    </span>
-                                                </div>
-                                                {review.comment && (
-                                                    <p className="text-sm text-slate-600 mt-3 leading-relaxed">{review.comment}</p>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </motion.div>
-                                ))}
-                            </div>
-                        </motion.section>
-                    )}
 
                     {/* Frequently Bought Together */}
                     <motion.div
@@ -845,6 +775,14 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
                         viewport={{ once: true }}
                         className="mb-16"
                     >
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-orange-400 to-amber-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
+                                <ShoppingBag className="w-6 h-6 text-white" />
+                            </div>
+                            <h2 className="text-2xl font-black text-slate-900">
+                                {language === "vi" ? "Thường mua cùng nhau" : "Frequently Bought Together"}
+                            </h2>
+                        </div>
                         <FrequentlyBoughtTogether
                             currentProduct={{
                                 id: product.id,
@@ -868,14 +806,14 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
                         className="mb-16"
                     >
                         <div className="flex items-center gap-4 mb-8">
-                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
-                                <Star className="w-7 h-7 text-white" />
+                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
+                                <Star className="w-6 h-6 text-white" />
                             </div>
                             <div className="flex-1">
-                                <h2 className="text-3xl font-black uppercase tracking-tight text-slate-900">
+                                <h2 className="text-2xl font-black text-slate-900">
                                     {t("shop.customerReviews")}
                                 </h2>
-                                <p className="text-slate-500 text-sm font-medium mt-1">
+                                <p className="text-slate-500 text-sm font-medium mt-0.5">
                                     {t("shop.beFirstReview")}
                                 </p>
                             </div>
@@ -903,16 +841,17 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
                             initial={{ opacity: 0, y: 30 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
+                            className="pb-8"
                         >
                             <div className="flex items-center gap-4 mb-8">
-                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
-                                    <Package className="w-7 h-7 text-white" />
+                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                                    <Package className="w-6 h-6 text-white" />
                                 </div>
-                                <h2 className="text-3xl font-black uppercase tracking-tight text-slate-900">
+                                <h2 className="text-2xl font-black text-slate-900">
                                     {t("shop.relatedProducts")}
                                 </h2>
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
                                 {relatedProducts.map((product) => (
                                     <ProductCard key={product.id} product={product} />
                                 ))}

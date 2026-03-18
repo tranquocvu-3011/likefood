@@ -23,31 +23,92 @@ const outfit = Outfit({ subsets: ["latin"], variable: '--font-outfit' });
 
 export const metadata: Metadata = {
   title: {
-    default: "LIKEFOOD - Đặc Sản Việt Nam Chính Gốc Tại Mỹ | Vietnamese Specialty Food in USA",
+    default: "LIKEFOOD - Đặc Sản Việt Nam Chính Gốc Tại Mỹ | Like Food Vietnamese Specialty Store USA",
     template: "%s | LIKEFOOD"
   },
-  description: "LIKEFOOD - Cửa hàng đặc sản Việt Nam uy tín #1 tại Mỹ. 100+ sản phẩm chính gốc: cá khô miền Tây, tôm khô Cà Mau, mực khô, trái cây sấy, mắm truyền thống, gia vị Việt. Giao hàng nhanh 2-3 ngày toàn nước Mỹ. Miễn phí ship đơn từ $500. Đảm bảo chất lượng FDA. Hỗ trợ 24/7.",
+  description: "LIKEFOOD (Like Food) - Cửa hàng đặc sản Việt Nam uy tín #1 tại Mỹ. 100+ sản phẩm chính gốc: cá khô miền Tây, tôm khô Cà Mau, mực khô, khô bò, trái cây sấy, mắm truyền thống, gia vị Việt. Giao hàng nhanh 2-3 ngày toàn nước Mỹ. Miễn phí ship đơn từ $500. Chất lượng FDA. Like Food - Vietnamese food you love!",
   keywords: [
-    // Từ khóa chính tiếng Việt
+    // ★ THƯƠNG HIỆU — "like food" variations (QUAN TRỌNG NHẤT)
+    "LIKEFOOD", "like food", "likefood app", "likefood.app", "like food store",
+    "like food vietnamese", "like food USA", "like food online", "like food shop",
+    "like food delivery", "like food market", "likefood là gì",
+    "likefood đặc sản", "likefood cá khô", "likefood tôm khô",
+    "like food near me", "like food restaurant", "like food order",
+    "likefood review", "like food vietnamese store",
+
+    // ★ ĐẶC SẢN VIỆT NAM — Từ khóa chính (VI)
     "đặc sản Việt Nam", "đặc sản Việt Nam tại Mỹ", "mua đặc sản Việt Nam online",
     "ship đặc sản Việt Nam sang Mỹ", "đặc sản miền Tây", "đặc sản Cà Mau",
-    // Sản phẩm cụ thể
-    "cá khô miền Tây", "cá khô miền Tây mua ở đâu", "tôm khô Cà Mau",
-    "mực khô nguyên con", "khô bò", "mắm cá linh", "mắm tép",
+    "đặc sản miền Trung", "đặc sản miền Bắc", "đặc sản Việt giao tận nhà Mỹ",
+    "cửa hàng đặc sản Việt Nam", "đặc sản quê hương",
+
+    // ★ CÁ KHÔ — Sản phẩm chủ lực
+    "cá khô miền Tây", "cá khô miền Tây mua ở đâu", "khô cá lóc",
+    "khô cá sặc", "khô cá tra", "khô cá chạch", "khô cá kèo",
+    "khô cá thiểu", "khô cá dứa", "khô cá sặc bổi", "khô cá lóc Cà Mau",
+    "cá khô ngon", "cá khô Việt Nam", "dried fish Vietnamese",
+    "mua cá khô ở Mỹ", "cá khô ship Mỹ", "cá khô giá rẻ",
+
+    // ★ TÔM KHÔ & HẢI SẢN KHÔ
+    "tôm khô Cà Mau", "tôm khô nguyên con", "tôm khô loại 1",
+    "mực khô nguyên con", "mực khô Việt Nam", "khô mực",
+    "cá cơm khô", "tép khô", "dried shrimp Vietnamese", "dried squid",
+    "tôm khô ship sang Mỹ", "hải sản khô Việt Nam",
+
+    // ★ KHÔ BÒ & ĐỒ KHÔ KHÁC
+    "khô bò", "khô bò miếng", "khô bò sợi", "khô gà", "khô heo",
+    "đồ khô Việt Nam", "đồ khô Việt Nam tại Mỹ", "thực phẩm khô",
+
+    // ★ MẮM & GIA VỊ
+    "nước mắm Phú Quốc", "mắm cá linh", "mắm tôm", "mắm tép",
+    "mắm ruốc", "nước mắm Việt Nam", "tương ớt", "sa tế",
+    "gia vị Việt Nam", "bột ngọt", "bột nêm", "hạt nêm Việt",
+    "gia vị phở", "gia vị bún bò", "muối tôm", "muối ớt",
+
+    // ★ TRÁI CÂY SẤY & BÁNH KẸO
     "trái cây sấy Việt Nam", "xoài sấy", "mít sấy", "chuối sấy",
-    "gia vị Việt Nam", "nước mắm Phú Quốc", "tương ớt", "sa tế",
-    "trà Việt Nam", "trà ổi", "bánh tráng", "bánh phồng tôm",
-    // Từ khóa thương hiệu
-    "LIKEFOOD", "likefood là gì", "like food", "likefood app", "likefood.app",
-    // Từ khóa English (quan trọng cho Việt kiều search bằng tiếng Anh)
+    "khoai lang sấy", "trái cây sấy dẻo", "snack Việt Nam",
+    "bánh tráng", "bánh phồng tôm", "bánh tráng trộn", "bánh pía",
+    "kẹo dừa Bến Tre", "mứt Tết", "hạt điều", "đậu phộng",
+
+    // ★ TRÀ & ĐỒ UỐNG
+    "trà Việt Nam", "trà ổi", "trà atiso", "cà phê Việt Nam",
+    "trà sen", "trà hoa", "nước sâm", "đồ uống Việt Nam",
+
+    // ★ ENGLISH — Vietnamese Food Keywords (QUAN TRỌNG cho Mỹ)
     "Vietnamese specialty food", "Vietnamese food in USA", "Vietnamese grocery online",
     "buy Vietnamese food in America", "Vietnamese dried fish", "Vietnamese dried shrimp",
     "Vietnamese snacks USA", "Asian food delivery USA", "dried seafood Vietnamese",
     "Vietnamese food store online", "authentic Vietnamese food USA",
     "Vietnamese food near me", "order Vietnamese food online",
-    // Từ khóa long-tail (dễ lên top)
-    "mua cá khô ở Mỹ", "tôm khô ship sang Mỹ", "đồ khô Việt Nam tại Mỹ",
-    "cửa hàng Việt Nam online", "thực phẩm Việt tại Hoa Kỳ",
+    "Vietnamese pantry staples", "Vietnamese cooking ingredients",
+    "Vietnamese fish sauce", "Vietnamese condiments",
+    "Asian grocery store online", "Southeast Asian food USA",
+    "Vietnamese food delivery", "best Vietnamese food online",
+    "Vietnamese food gift", "Vietnamese food box",
+    "Vietnamese food subscription", "authentic Asian food online",
+
+    // ★ ENGLISH — Product Keywords
+    "dried fish from Vietnam", "Ca Mau shrimp", "Phu Quoc fish sauce",
+    "Vietnamese beef jerky", "dried mango Vietnam", "dried jackfruit",
+    "rice paper Vietnamese", "shrimp chips", "Vietnamese spices",
+    "Vietnamese seasoning", "Asian dried seafood", "Vietnamese snack box",
+
+    // ★ ĐỊA ĐIỂM MỸ — Local SEO
+    "Vietnamese food Omaha", "Vietnamese store Nebraska",
+    "Vietnamese food California", "Vietnamese food Texas",
+    "Vietnamese food New York", "Vietnamese food Florida",
+    "Vietnamese grocery California", "Asian food store USA",
+    "Vietnamese food Houston", "Vietnamese food San Jose",
+    "Vietnamese food Orange County", "đặc sản Việt California",
+
+    // ★ LONG-TAIL — Dễ lên top
+    "mua cá khô ở đâu tại Mỹ", "tôm khô ship đi Mỹ giá bao nhiêu",
+    "đặc sản Việt Nam ship nhanh ở Mỹ", "quà biếu đặc sản Việt Nam tại Mỹ",
+    "cửa hàng Việt Nam online uy tín", "thực phẩm Việt tại Hoa Kỳ",
+    "mua đồ Việt Nam ở Mỹ", "ship hàng Việt Nam sang Mỹ",
+    "quà Tết Việt Nam tại Mỹ", "đồ ăn vặt Việt Nam ship Mỹ",
+    "nước mắm Việt Nam mua ở đâu tại Mỹ", "gia vị nấu phở mua ở Mỹ",
   ],
   authors: [{ name: "Trần Quốc Vũ", url: "https://www.facebook.com/profile.php?id=100076170558548" }],
   creator: "Trần Quốc Vũ",
@@ -81,22 +142,22 @@ export const metadata: Metadata = {
     type: "website",
     locale: "vi_VN",
     url: process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.app",
-    siteName: "LIKEFOOD - Đặc Sản Việt Nam Tại Mỹ",
-    title: "LIKEFOOD - Đặc Sản Việt Nam Chính Gốc Tại Mỹ | 100+ Sản Phẩm | Ship Toàn Mỹ",
-    description: "Cửa hàng đặc sản Việt Nam uy tín #1 tại Mỹ. 100+ sản phẩm chính gốc miền Tây: cá khô, tôm khô, mực khô, trái cây sấy, mắm truyền thống. Giao hàng 2-3 ngày. Miễn phí ship từ $500. Chất lượng FDA.",
+    siteName: "LIKEFOOD (Like Food) - Đặc Sản Việt Nam Tại Mỹ",
+    title: "LIKEFOOD (Like Food) - Đặc Sản Việt Nam Chính Gốc Tại Mỹ | 100+ Sản Phẩm | Ship Toàn Mỹ",
+    description: "LIKEFOOD (Like Food) - Cửa hàng đặc sản Việt Nam uy tín #1 tại Mỹ. 100+ sản phẩm chính gốc miền Tây: cá khô, tôm khô, mực khô, trái cây sấy, mắm truyền thống. Giao hàng 2-3 ngày. Miễn phí ship từ $500. Like Food — Vietnamese food you love!",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "LIKEFOOD - Đặc sản Việt Nam chính gốc tại Mỹ | Vietnamese Specialty Food USA",
+        alt: "LIKEFOOD (Like Food) - Đặc sản Việt Nam chính gốc tại Mỹ | Like Food Vietnamese Specialty Store USA",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "LIKEFOOD - Đặc Sản Việt Nam Chính Gốc Tại Mỹ | 100+ Sản Phẩm",
-    description: "Cửa hàng đặc sản Việt Nam uy tín #1 tại Mỹ. Cá khô, tôm khô, mực khô, trái cây sấy, gia vị Việt. Giao 2-3 ngày toàn nước Mỹ. Miễn phí ship từ $500.",
+    title: "LIKEFOOD (Like Food) - Đặc Sản Việt Nam Chính Gốc Tại Mỹ | Like Food Store",
+    description: "LIKEFOOD (Like Food) - Cửa hàng đặc sản Việt Nam uy tín #1 tại Mỹ. Cá khô, tôm khô, mực khô, trái cây sấy, gia vị Việt. Giao 2-3 ngày. Like Food — Vietnamese food you love!",
     images: ["/og-image.png"],
     creator: "@likefood",
   },

@@ -7,11 +7,12 @@
  * https://github.com/tranquocvu-3011/likefood
  */
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import ImageWithFallback from "@/components/shared/ImageWithFallback";
 import { X, ChevronLeft, ChevronRight, ZoomIn } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/lib/i18n/context";
+import { createPortal } from "react-dom";
 
 interface ProductImage {
     id: number;
@@ -31,6 +32,7 @@ export default function ImageGallery({ images, productName }: ImageGalleryProps)
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [isLightboxOpen, setIsLightboxOpen] = useState(false);
     const [direction, setDirection] = useState(0);
+    const [isMounted, setIsMounted] = useState(false);
 
     const sortedImages = [...images].sort((a, b) => {
         if (a.isPrimary) return -1;
@@ -39,6 +41,19 @@ export default function ImageGallery({ images, productName }: ImageGalleryProps)
     });
 
     const currentImage = sortedImages[selectedIndex];
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    useEffect(() => {
+        if (!isLightboxOpen || typeof document === "undefined") return;
+        const prevOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => {
+            document.body.style.overflow = prevOverflow;
+        };
+    }, [isLightboxOpen]);
 
     const handlePrevious = useCallback(() => {
         setDirection(-1);
@@ -50,11 +65,18 @@ export default function ImageGallery({ images, productName }: ImageGalleryProps)
         setSelectedIndex((prev) => (prev === sortedImages.length - 1 ? 0 : prev + 1));
     }, [sortedImages.length]);
 
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === "ArrowLeft") handlePrevious();
-        if (e.key === "ArrowRight") handleNext();
-        if (e.key === "Escape") setIsLightboxOpen(false);
-    };
+    useEffect(() => {
+        if (!isLightboxOpen || typeof window === "undefined") return;
+
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "ArrowLeft") handlePrevious();
+            if (e.key === "ArrowRight") handleNext();
+            if (e.key === "Escape") setIsLightboxOpen(false);
+        };
+
+        window.addEventListener("keydown", onKeyDown);
+        return () => window.removeEventListener("keydown", onKeyDown);
+    }, [isLightboxOpen, handlePrevious, handleNext]);
 
     const slideVariants: any = {
         enter: (direction: number) => ({
@@ -181,87 +203,75 @@ export default function ImageGallery({ images, productName }: ImageGalleryProps)
             )}
 
             {/* Lightbox Modal */}
-            <AnimatePresence>
-                {isLightboxOpen && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={() => setIsLightboxOpen(false)}
-                        onKeyDown={handleKeyDown}
-                        tabIndex={0}
-                        className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4"
-                    >
-                        {/* Close */}
-                        <button
-                            onClick={(e) => { e.stopPropagation(); setIsLightboxOpen(false); }}
-                            className="absolute top-6 right-6 w-11 h-11 rounded-2xl bg-white/10 backdrop-blur-md hover:bg-white/20 flex items-center justify-center transition-all z-10"
+            {isMounted && createPortal(
+                <AnimatePresence>
+                    {isLightboxOpen && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsLightboxOpen(false)}
+                            className="fixed inset-0 z-[10000] bg-black flex items-center justify-center p-4"
                         >
-                            <X className="w-5 h-5 text-white" />
-                        </button>
-
-                        {/* Navigation */}
-                        {sortedImages.length > 1 && (
-                            <>
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); handlePrevious(); }}
-                                    className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md hover:bg-white/20 flex items-center justify-center transition-all z-10"
-                                >
-                                    <ChevronLeft className="w-6 h-6 text-white" />
-                                </button>
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); handleNext(); }}
-                                    className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md hover:bg-white/20 flex items-center justify-center transition-all z-10"
-                                >
-                                    <ChevronRight className="w-6 h-6 text-white" />
-                                </button>
-                            </>
-                        )}
-
-                        {/* Lightbox Image with slide animation */}
-                        <AnimatePresence mode="wait" custom={direction}>
-                            <motion.div
-                                key={selectedIndex}
-                                custom={direction}
-                                variants={slideVariants}
-                                initial="enter"
-                                animate="center"
-                                exit="exit"
-                                transition={{ duration: 0.3, ease: "easeInOut" }}
-                                onClick={(e) => e.stopPropagation()}
-                                className="relative w-full max-w-5xl aspect-square"
+                            {/* Close */}
+                            <button
+                                onClick={(e) => { e.stopPropagation(); setIsLightboxOpen(false); }}
+                                className="absolute top-5 right-5 sm:top-6 sm:right-6 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all z-20"
+                                aria-label={t("common.close")}
                             >
-                                {currentImage && (
-                                    <ImageWithFallback
-                                        src={currentImage.imageUrl}
-                                        alt={currentImage.altText || productName}
-                                        fill
-                                        className="object-contain"
-                                        quality={100}
-                                        sizes="100vw"
-                                    />
-                                )}
-                            </motion.div>
-                        </AnimatePresence>
+                                <X className="w-5 h-5 text-white" />
+                            </button>
 
-                        {/* Counter + Thumbnail strip */}
-                        {sortedImages.length > 1 && (
-                            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3">
-                                {sortedImages.map((_, idx) => (
+                            {/* Navigation */}
+                            {sortedImages.length > 1 && (
+                                <>
                                     <button
-                                        key={idx}
-                                        onClick={(e) => { e.stopPropagation(); setDirection(idx > selectedIndex ? 1 : -1); setSelectedIndex(idx); }}
-                                        className={`transition-all duration-200 rounded-full ${idx === selectedIndex
-                                                ? "w-8 h-2 bg-white"
-                                                : "w-2 h-2 bg-white/40 hover:bg-white/60"
-                                            }`}
-                                    />
-                                ))}
-                            </div>
-                        )}
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                                        onClick={(e) => { e.stopPropagation(); handlePrevious(); }}
+                                        className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all z-20"
+                                        aria-label={t("imageGallery.previousImage")}
+                                    >
+                                        <ChevronLeft className="w-6 h-6 text-white" />
+                                    </button>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); handleNext(); }}
+                                        className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all z-20"
+                                        aria-label={t("imageGallery.nextImage")}
+                                    >
+                                        <ChevronRight className="w-6 h-6 text-white" />
+                                    </button>
+                                </>
+                            )}
+
+                            {/* Image only */}
+                            <AnimatePresence mode="wait" custom={direction}>
+                                <motion.div
+                                    key={selectedIndex}
+                                    custom={direction}
+                                    variants={slideVariants}
+                                    initial="enter"
+                                    animate="center"
+                                    exit="exit"
+                                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="relative w-[min(96vw,1400px)] h-[92vh]"
+                                >
+                                    {currentImage && (
+                                        <ImageWithFallback
+                                            src={currentImage.imageUrl}
+                                            alt={currentImage.altText || productName}
+                                            fill
+                                            className="object-contain"
+                                            quality={100}
+                                            sizes="100vw"
+                                        />
+                                    )}
+                                </motion.div>
+                            </AnimatePresence>
+                        </motion.div>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
         </div>
     );
 }

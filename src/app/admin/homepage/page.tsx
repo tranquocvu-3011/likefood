@@ -2,7 +2,7 @@
 
 /**
  * LIKEFOOD - Admin Homepage Sections Management
- * Manage homepage sections (hero, featured products, etc.)
+ * Manage homepage sections (hero, product suggestions, etc.)
  */
 
 import { useState, useEffect, useCallback } from "react";
@@ -43,7 +43,7 @@ const SECTION_TYPES = [
   { value: "hero", label: "Hero Banner", description: "Banner lớn đầu trang" },
   { value: "carousel", label: "Carousel", description: "Banner chạy ngang" },
   { value: "flash-sale", label: "Flash Sale", description: "Section giảm giá sốc" },
-  { value: "featured-products", label: "Sản phẩm nổi bật", description: "Danh sách sản phẩm nổi bật" },
+  { value: "featured-products", label: "Gợi ý sản phẩm", description: "Danh sách sản phẩm gợi ý" },
   { value: "categories", label: "Danh mục", description: "Hiển thị danh mục sản phẩm" },
   { value: "grid", label: "Lưới sản phẩm", description: "Lưới sản phẩm thường" },
   { value: "list", label: "Danh sách", description: "Danh sách sản phẩm" },
@@ -414,7 +414,7 @@ export default function AdminHomepagePage() {
                 className="bg-zinc-900 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 focus:border-teal-500/50"
                 value={newSection.title}
                 onChange={(e) => setNewSection({ ...newSection, title: e.target.value })}
-                placeholder="Sản phẩm nổi bật"
+                placeholder="Gợi ý sản phẩm"
               />
             </div>
             <div>

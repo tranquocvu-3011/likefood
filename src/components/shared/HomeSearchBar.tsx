@@ -7,7 +7,7 @@
  * https://github.com/tranquocvu-3011/likefood
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Search, TrendingUp, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -41,6 +41,25 @@ export default function HomeSearchBar() {
     const [isFocused, setIsFocused] = useState(false);
     const [suggestions, setSuggestions] = useState<SearchHint[]>([]);
     const debouncedQuery = useDebounce(query, 300);
+    const searchContainerRef = useRef<HTMLDivElement>(null);
+
+    // Click outside handler - đóng dropdown khi click ra ngoài
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+            if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+                setIsFocused(false);
+                setSuggestions([]);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        document.addEventListener("touchstart", handleClickOutside, { passive: true });
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("touchstart", handleClickOutside);
+        };
+    }, []);
 
     const fetchSuggestions = useCallback(async (searchQuery: string) => {
         try {
@@ -68,11 +87,33 @@ export default function HomeSearchBar() {
         return () => cancelAnimationFrame(raf);
     }, [debouncedQuery, fetchSuggestions]);
 
-    const handleSearch = (searchQuery: string) => {
-        if (searchQuery.trim()) {
-            router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+    // Handle click vào suggestion → đi đến trang chi tiết sản phẩm
+    const handleSuggestionClick = (suggestion: SearchHint) => {
+        if (suggestion.slug) {
+            // Navigate đến trang chi tiết sản phẩm
+            router.push(`/products/${suggestion.slug}`);
+        } else {
+            // Fallback: search theo tên
+            handleSearch(suggestion.name);
+        }
+        // Đóng dropdown
+        setTimeout(() => {
             setQuery("");
             setIsFocused(false);
+            setSuggestions([]);
+        }, 100);
+    };
+
+    // Handle search từ khóa → đi đến trang danh sách sản phẩm
+    const handleSearch = (searchQuery: string) => {
+        if (searchQuery.trim()) {
+            const encodedQuery = encodeURIComponent(searchQuery.trim());
+            router.push(`/products?search=${encodedQuery}`);
+            setTimeout(() => {
+                setQuery("");
+                setIsFocused(false);
+                setSuggestions([]);
+            }, 100);
         }
     };
 
@@ -84,7 +125,7 @@ export default function HomeSearchBar() {
     const popularSearches = isVietnamese ? POPULAR_SEARCHES_VI : POPULAR_SEARCHES_EN;
 
     return (
-        <div className="relative max-w-3xl mx-auto mt-0 z-20 px-4 py-4 md:py-5">
+        <div ref={searchContainerRef} className="relative max-w-3xl mx-auto mt-0 z-20 px-4 py-4 md:py-5">
             <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -103,7 +144,10 @@ export default function HomeSearchBar() {
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             onFocus={() => setIsFocused(true)}
-                            onBlur={() => setTimeout(() => setIsFocused(false), 200)}
+                            onBlur={() => {
+                                // Delay blur để click vào suggestions có thể xử lý trước
+                                setTimeout(() => setIsFocused(false), 150);
+                            }}
                             placeholder={isVietnamese ? "Tìm cá khô, tôm khô, đặc sản Việt Nam..." : "Search dried fish, dried shrimp, Vietnamese specialties..."}
                             className="w-full pl-12 md:pl-14 pr-24 md:pr-36 py-3.5 md:py-4 rounded-full text-sm md:text-base font-semibold outline-none placeholder:text-slate-400 bg-transparent text-slate-800"
                         />
@@ -143,7 +187,10 @@ export default function HomeSearchBar() {
                                     <button
                                         key={suggestion.id}
                                         type="button"
-                                        onClick={() => handleSearch(suggestion.name)}
+                                        onMouseDown={(e) => {
+                                            e.preventDefault();
+                                            handleSuggestionClick(suggestion);
+                                        }}
                                         className="w-full px-6 py-4 text-left hover:bg-emerald-50 transition-colors flex items-center gap-4 border-b border-slate-50 last:border-0 group"
                                     >
                                         <Search className="w-5 h-5 text-slate-400 group-hover:text-emerald-500 transition-colors" />
@@ -177,7 +224,10 @@ export default function HomeSearchBar() {
                                 <button
                                     key={search}
                                     type="button"
-                                    onClick={() => handleSearch(search)}
+                                    onMouseDown={(e) => {
+                                        e.preventDefault();
+                                        handleSearch(search);
+                                    }}
                                     className="px-3 py-2 bg-white/80 hover:bg-emerald-600 hover:text-white text-sm md:text-base font-semibold text-slate-700 rounded-full border border-slate-200 hover:border-emerald-600 transition-all hover:scale-105 shadow-sm hover:shadow-emerald-200/50"
                                 >
                                     {search}

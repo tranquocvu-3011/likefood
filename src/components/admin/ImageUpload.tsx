@@ -33,9 +33,14 @@ export default function ImageUpload({
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [dragIndex, setDragIndex] = useState<number | null>(null);
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+    const dragCounterRef = useRef(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const validUrls = value.filter((url) => typeof url === "string" && url.trim() !== "");
+
+    const isFileDrag = useCallback((e: React.DragEvent) => {
+        return e.dataTransfer.types.includes("Files");
+    }, []);
 
     // Upload handler
     const uploadFiles = useCallback(
@@ -96,28 +101,48 @@ export default function ImageUpload({
     // Drag-drop zone handlers
     const handleDragOver = useCallback(
         (e: React.DragEvent) => {
-            e.preventDefault();
-            e.stopPropagation();
             if (disabled) return;
 
             // Only set drag over for file drops, not reordering
-            if (e.dataTransfer.types.includes("Files")) {
+            if (isFileDrag(e)) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.dataTransfer.dropEffect = "copy";
                 setIsDragOver(true);
             }
         },
-        [disabled]
+        [disabled, isFileDrag]
     );
 
-    const handleDragLeave = useCallback((e: React.DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragOver(false);
-    }, []);
+    const handleDragEnter = useCallback(
+        (e: React.DragEvent) => {
+            if (disabled || !isFileDrag(e)) return;
+            e.preventDefault();
+            e.stopPropagation();
+            dragCounterRef.current += 1;
+            setIsDragOver(true);
+        },
+        [disabled, isFileDrag]
+    );
+
+    const handleDragLeave = useCallback(
+        (e: React.DragEvent) => {
+            if (!isFileDrag(e)) return;
+            e.preventDefault();
+            e.stopPropagation();
+            dragCounterRef.current = Math.max(0, dragCounterRef.current - 1);
+            if (dragCounterRef.current === 0) {
+                setIsDragOver(false);
+            }
+        },
+        [isFileDrag]
+    );
 
     const handleDrop = useCallback(
         async (e: React.DragEvent) => {
             e.preventDefault();
             e.stopPropagation();
+            dragCounterRef.current = 0;
             setIsDragOver(false);
             if (disabled) return;
 
@@ -135,6 +160,9 @@ export default function ImageUpload({
     };
 
     const handleItemDragOver = (e: React.DragEvent, index: number) => {
+        if (isFileDrag(e)) {
+            return;
+        }
         e.preventDefault();
         e.stopPropagation();
         if (dragIndex !== null && dragIndex !== index) {
@@ -142,7 +170,19 @@ export default function ImageUpload({
         }
     };
 
-    const handleItemDrop = (e: React.DragEvent, toIndex: number) => {
+    const handleItemDrop = async (e: React.DragEvent, toIndex: number) => {
+        if (isFileDrag(e)) {
+            e.preventDefault();
+            e.stopPropagation();
+            const files = e.dataTransfer.files;
+            if (files && files.length > 0 && !disabled) {
+                dragCounterRef.current = 0;
+                setIsDragOver(false);
+                await uploadFiles(files);
+            }
+            return;
+        }
+
         e.preventDefault();
         e.stopPropagation();
         if (dragIndex === null || dragIndex === toIndex) {
@@ -179,6 +219,7 @@ export default function ImageUpload({
         <div className="space-y-4 w-full">
             {/* Drop zone area */}
             <div
+                onDragEnter={handleDragEnter}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
@@ -193,7 +234,7 @@ export default function ImageUpload({
             >
                 {/* Drag overlay */}
                 {isDragOver && (
-                    <div className="absolute inset-0 z-20 flex items-center justify-center rounded-2xl bg-teal-500/15 backdrop-blur-sm">
+                    <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-2xl bg-teal-500/15 backdrop-blur-sm">
                         <div className="text-center">
                             <Upload className="w-10 h-10 text-teal-400 mx-auto mb-2 animate-bounce" />
                             <p className="text-sm font-black uppercase tracking-widest text-teal-300">

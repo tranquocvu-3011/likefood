@@ -9,7 +9,7 @@
  */
 
 const SITE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.app";
-const SITE_NAME = "LIKEFOOD - Đặc Sản Việt Nam Tại Mỹ";
+const SITE_NAME = "LIKEFOOD (Like Food) - Đặc Sản Việt Nam Tại Mỹ";
 
 export default function StructuredData() {
     // Merged Organization + LocalBusiness into a single entity (Google recommended)
@@ -18,13 +18,15 @@ export default function StructuredData() {
         "@type": ["Organization", "LocalBusiness"],
         "@id": `${SITE_URL}/#organization`,
         name: SITE_NAME,
+        alternateName: ["Like Food", "LIKEFOOD", "Like Food Store", "Like Food Vietnamese", "LikeFood App"],
         url: SITE_URL,
         logo: {
             "@type": "ImageObject",
             url: `${SITE_URL}/logo.png`,
         },
         image: `${SITE_URL}/og-image.png`,
-        description: "LIKEFOOD - Cửa hàng đặc sản Việt Nam uy tín #1 tại Mỹ. 100+ sản phẩm chính gốc miền Tây: cá khô, tôm khô Cà Mau, mực khô, trái cây sấy, mắm truyền thống. Giao hàng nhanh 2-3 ngày toàn nước Mỹ. Chất lượng FDA.",
+        description: "LIKEFOOD (Like Food) - Cửa hàng đặc sản Việt Nam uy tín #1 tại Mỹ. 100+ sản phẩm chính gốc miền Tây: cá khô, tôm khô Cà Mau, mực khô, trái cây sấy, mắm truyền thống. Like Food — Vietnamese food you love! Giao hàng nhanh 2-3 ngày toàn nước Mỹ. Chất lượng FDA.",
+        keywords: "like food, likefood, đặc sản Việt Nam, Vietnamese food USA, cá khô miền Tây, tôm khô Cà Mau, Vietnamese specialty food",
         telephone: "+1-402-315-8105",
         email: "tranquocvu3011@gmail.com",
         contactPoint: {
