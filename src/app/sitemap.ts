@@ -14,11 +14,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
   // Helper to generate alternate URLs for hreflang in sitemap
+  // Note: XML requires & to be escaped as &amp; in attribute values
   const generateAlternates = (url: string) => ({
     alternates: {
       languages: {
         'vi': url,
-        'en': `${url}${url.includes('?') ? '&' : '?'}lang=en`,
+        'en': `${url}${url.includes('?') ? '&amp;' : '?'}lang=en`,
         'x-default': url,
       },
     },

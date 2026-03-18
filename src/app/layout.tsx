@@ -23,11 +23,32 @@ const outfit = Outfit({ subsets: ["latin"], variable: '--font-outfit' });
 
 export const metadata: Metadata = {
   title: {
-    default: "LIKEFOOD | Đặc sản Việt Nam tại Mỹ",
-    template: "%s | LIKEFOOD"
+    default: "LIKEFOOD - Đặc Sản Việt Nam Chính Gốc Tại Mỹ | Vietnamese Specialty Food in USA",
+    template: "%s | LIKEFOOD - Đặc Sản Việt Nam Tại Mỹ"
   },
-  description: "Nền tảng thương mại điện tử chuyên cung cấp đặc sản Việt Nam chất lượng cao tại Hoa Kỳ. Giao hàng nhanh, đảm bảo vệ sinh ATTP, hỗ trợ tư vấn 24/7.",
-  keywords: ["đặc sản Việt Nam", "Vietnamese specialty food", "LIKEFOOD", "likefood là gì", "like food", "cá khô miền tây", "tôm khô cà mau", "mực khô", "khô bò", "thực phẩm Việt tại Mỹ", "Vietnamese food in USA", "dried fish", "dried shrimp", "đặc sản Việt Nam tại Mỹ", "mua đặc sản Việt Nam online", "ship đặc sản Việt Nam sang Mỹ", "Vietnamese grocery online", "đồ khô Việt Nam", "trái cây sấy Việt Nam", "gia vị Việt"],
+  description: "LIKEFOOD - Cửa hàng đặc sản Việt Nam uy tín #1 tại Mỹ. 100+ sản phẩm chính gốc: cá khô miền Tây, tôm khô Cà Mau, mực khô, trái cây sấy, mắm truyền thống, gia vị Việt. Giao hàng nhanh 2-3 ngày toàn nước Mỹ. Miễn phí ship đơn từ $500. Đảm bảo chất lượng FDA. Hỗ trợ 24/7.",
+  keywords: [
+    // Từ khóa chính tiếng Việt
+    "đặc sản Việt Nam", "đặc sản Việt Nam tại Mỹ", "mua đặc sản Việt Nam online",
+    "ship đặc sản Việt Nam sang Mỹ", "đặc sản miền Tây", "đặc sản Cà Mau",
+    // Sản phẩm cụ thể
+    "cá khô miền Tây", "cá khô miền Tây mua ở đâu", "tôm khô Cà Mau",
+    "mực khô nguyên con", "khô bò", "mắm cá linh", "mắm tép",
+    "trái cây sấy Việt Nam", "xoài sấy", "mít sấy", "chuối sấy",
+    "gia vị Việt Nam", "nước mắm Phú Quốc", "tương ớt", "sa tế",
+    "trà Việt Nam", "trà ổi", "bánh tráng", "bánh phồng tôm",
+    // Từ khóa thương hiệu
+    "LIKEFOOD", "likefood là gì", "like food", "likefood app", "likefood.app",
+    // Từ khóa English (quan trọng cho Việt kiều search bằng tiếng Anh)
+    "Vietnamese specialty food", "Vietnamese food in USA", "Vietnamese grocery online",
+    "buy Vietnamese food in America", "Vietnamese dried fish", "Vietnamese dried shrimp",
+    "Vietnamese snacks USA", "Asian food delivery USA", "dried seafood Vietnamese",
+    "Vietnamese food store online", "authentic Vietnamese food USA",
+    "Vietnamese food near me", "order Vietnamese food online",
+    // Từ khóa long-tail (dễ lên top)
+    "mua cá khô ở Mỹ", "tôm khô ship sang Mỹ", "đồ khô Việt Nam tại Mỹ",
+    "cửa hàng Việt Nam online", "thực phẩm Việt tại Hoa Kỳ",
+  ],
   authors: [{ name: "Trần Quốc Vũ", url: "https://www.facebook.com/profile.php?id=100076170558548" }],
   creator: "Trần Quốc Vũ",
   publisher: "LIKEFOOD",
@@ -60,22 +81,22 @@ export const metadata: Metadata = {
     type: "website",
     locale: "vi_VN",
     url: process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.app",
-    siteName: "LIKEFOOD",
-    title: "LIKEFOOD | Đặc sản Việt Nam tại Mỹ",
-    description: "Nền tảng thương mại điện tử chuyên cung cấp đặc sản Việt Nam chất lượng cao tại Hoa Kỳ. Giao hàng nhanh, đảm bảo vệ sinh ATTP.",
+    siteName: "LIKEFOOD - Đặc Sản Việt Nam Tại Mỹ",
+    title: "LIKEFOOD - Đặc Sản Việt Nam Chính Gốc Tại Mỹ | 100+ Sản Phẩm | Ship Toàn Mỹ",
+    description: "Cửa hàng đặc sản Việt Nam uy tín #1 tại Mỹ. 100+ sản phẩm chính gốc miền Tây: cá khô, tôm khô, mực khô, trái cây sấy, mắm truyền thống. Giao hàng 2-3 ngày. Miễn phí ship từ $500. Chất lượng FDA.",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "LIKEFOOD - Đặc sản Việt Nam",
+        alt: "LIKEFOOD - Đặc sản Việt Nam chính gốc tại Mỹ | Vietnamese Specialty Food USA",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "LIKEFOOD | Đặc sản Việt Nam tại Mỹ",
-    description: "Nền tảng thương mại điện tử chuyên cung cấp đặc sản Việt Nam chất lượng cao tại Hoa Kỳ.",
+    title: "LIKEFOOD - Đặc Sản Việt Nam Chính Gốc Tại Mỹ | 100+ Sản Phẩm",
+    description: "Cửa hàng đặc sản Việt Nam uy tín #1 tại Mỹ. Cá khô, tôm khô, mực khô, trái cây sấy, gia vị Việt. Giao 2-3 ngày toàn nước Mỹ. Miễn phí ship từ $500.",
     images: ["/og-image.png"],
     creator: "@likefood",
   },
