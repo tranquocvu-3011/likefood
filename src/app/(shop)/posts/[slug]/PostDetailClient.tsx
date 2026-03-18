@@ -211,7 +211,7 @@ export default function PostDetailClient({ slug }: { slug: string }) {
                         <BookOpen className="w-6 h-6 text-emerald-600 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
                     </div>
                     <p className="text-slate-500 font-semibold text-sm animate-pulse">
-                        {isVi ? "Đang tải bài viết..." : "Loading article..."}
+                        {language === "vi" ? "Đang tải bài viết..." : "Loading article..."}
                     </p>
                 </motion.div>
             </div>
