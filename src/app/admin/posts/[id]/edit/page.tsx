@@ -6,35 +6,53 @@ import { Loader2 } from "lucide-react";
 import { useParams } from "next/navigation";
 
 export default function EditPostPage() {
-    const params = useParams();
+    const { id } = useParams<{ id: string }>();
     const [post, setPost] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!params?.id) return;
+        if (!id) {
+            setError("Không tìm thấy ID bài viết trong URL");
+            setIsLoading(false);
+            return;
+        }
 
-        const fetchPost = async () => {
+        const controller = new AbortController();
+
+        (async () => {
             try {
-                const res = await fetch(`/api/admin/posts/${params.id}`);
-                const data = await res.json();
-                
+                const res = await fetch(`/api/admin/posts/${id}`, {
+                    signal: controller.signal,
+                    credentials: "same-origin",
+                });
+
                 if (!res.ok) {
-                    setError(data.error || "Không thể tải dữ liệu bài viết");
-                    setPost(null);
-                } else {
-                    setPost(data);
+                    const errData = await res.json().catch(() => ({}));
+                    setError(errData.error || `Lỗi ${res.status}: Không thể tải bài viết`);
+                    return;
                 }
-            } catch (err) {
-                console.error("Fetch post error:", err);
-                setError("Lỗi kết nối máy chủ");
+
+                const data = await res.json();
+
+                if (!data || !data.id) {
+                    setError("Dữ liệu bài viết không hợp lệ (thiếu ID)");
+                    return;
+                }
+
+                setPost(data);
+            } catch (err: any) {
+                if (err.name !== "AbortError") {
+                    console.error("Fetch post error:", err);
+                    setError("Lỗi kết nối máy chủ");
+                }
             } finally {
                 setIsLoading(false);
             }
-        };
+        })();
 
-        fetchPost();
-    }, [params?.id]);
+        return () => controller.abort();
+    }, [id]);
 
     if (isLoading) {
         return (
@@ -46,13 +64,17 @@ export default function EditPostPage() {
 
     if (error || !post) {
         return (
-            <div className="h-96 flex items-center justify-center text-zinc-400 font-bold bg-zinc-900 rounded-3xl mt-4 border border-zinc-800">
-                {error || "Không tìm thấy bài viết"}
+            <div className="space-y-4 mt-8">
+                <div className="h-96 flex flex-col items-center justify-center text-zinc-400 font-bold bg-zinc-900 rounded-3xl border border-zinc-800 gap-4">
+                    <p className="text-red-400 text-lg">{error || "Không tìm thấy bài viết"}</p>
+                    <p className="text-zinc-500 text-sm">Post ID: {id}</p>
+                    <a href="/admin/posts" className="mt-4 px-6 py-2 bg-zinc-700 rounded-xl text-zinc-200 hover:bg-zinc-600 transition-colors text-sm font-medium">
+                        ← Quay lại danh sách
+                    </a>
+                </div>
             </div>
         );
     }
 
-    console.log("EditPostPage rendered with post data:", post);
-
-    return <PostForm key={post.id || "new"} initialData={post} />;
+    return <PostForm key={`edit-post-${post.id}`} initialData={post} />;
 }

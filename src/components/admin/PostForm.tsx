@@ -163,10 +163,9 @@ export default function PostForm({ initialData }: PostFormProps) {
                                     className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3 text-zinc-100 outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-semibold"
                                 >
                                     <option value="Tin tức">Tin tức</option>
-                                    <option value="Khuyến mãi">Khuyến mãi</option>
                                     <option value="Cẩm nang">Cẩm nang</option>
-                                    <option value="Sức khỏe">Sức khỏe</option>
-                                    <option value="Hậu trường vận hành">Hậu trường vận hành</option>
+                                    <option value="Ưu đãi">Ưu đãi</option>
+                                    <option value="Tuyển dụng">Tuyển dụng</option>
                                 </select>
                             </div>
 
