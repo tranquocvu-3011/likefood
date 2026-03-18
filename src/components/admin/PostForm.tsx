@@ -85,23 +85,23 @@ export default function PostForm({ initialData }: PostFormProps) {
                 <div>
                     <Link
                         href="/admin/posts"
-                        className="inline-flex items-center gap-2 text-slate-400 hover:text-primary transition-colors mb-4"
+                        className="inline-flex items-center gap-2 text-zinc-300 hover:text-emerald-400 transition-colors mb-4"
                     >
                         <ArrowLeft className="w-4 h-4" />
                         <span className="text-sm font-bold">Quay lại danh sách</span>
                     </Link>
-                    <h1 className="text-4xl font-black uppercase tracking-tighter">
+                    <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tighter text-zinc-100">
                         {initialData?.id ? "Chỉnh sửa bài viết" : "Thêm bài viết mới"}
                     </h1>
                 </div>
             </div>
 
             <form onSubmit={handleSubmit}>
-                <Card className="border-none shadow-lg">
+                <Card className="border border-zinc-700 bg-zinc-900/95 shadow-2xl shadow-black/30">
                     <CardContent className="p-8 lg:p-12">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="md:col-span-2 space-y-2">
-                                <label className="text-xs font-black uppercase tracking-widest text-slate-400">
+                                <label className="text-xs font-black uppercase tracking-widest text-zinc-300">
                                     Tiêu đề bài viết *
                                 </label>
                                 <input
@@ -115,7 +115,7 @@ export default function PostForm({ initialData }: PostFormProps) {
                             </div>
 
                             <div className="md:col-span-2 space-y-2">
-                                <label className="text-xs font-black uppercase tracking-widest text-slate-400">
+                                <label className="text-xs font-black uppercase tracking-widest text-zinc-300">
                                     Tóm tắt ngắn gọn
                                 </label>
                                 <textarea
@@ -128,7 +128,7 @@ export default function PostForm({ initialData }: PostFormProps) {
                             </div>
 
                             <div className="md:col-span-2 space-y-2">
-                                <label className="text-xs font-black uppercase tracking-widest text-slate-400">
+                                <label className="text-xs font-black uppercase tracking-widest text-zinc-300">
                                     Nội dung chi tiết *
                                 </label>
                                 <textarea
@@ -142,7 +142,7 @@ export default function PostForm({ initialData }: PostFormProps) {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-xs font-black uppercase tracking-widest text-slate-400">
+                                <label className="text-xs font-black uppercase tracking-widest text-zinc-300">
                                     Tác giả
                                 </label>
                                 <input
@@ -154,7 +154,7 @@ export default function PostForm({ initialData }: PostFormProps) {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-xs font-black uppercase tracking-widest text-slate-400">
+                                <label className="text-xs font-black uppercase tracking-widest text-zinc-300">
                                     Danh mục
                                 </label>
                                 <select
@@ -171,7 +171,7 @@ export default function PostForm({ initialData }: PostFormProps) {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-xs font-black uppercase tracking-widest text-slate-400">
+                                <label className="text-xs font-black uppercase tracking-widest text-zinc-300">
                                     Ngày đăng
                                 </label>
                                 <input
@@ -183,7 +183,7 @@ export default function PostForm({ initialData }: PostFormProps) {
                             </div>
 
                             <div className="space-y-2 flex flex-col justify-center">
-                                <label className="text-xs font-black uppercase tracking-widest text-slate-400 mb-2">
+                                <label className="text-xs font-black uppercase tracking-widest text-zinc-300 mb-2">
                                     Trạng thái
                                 </label>
                                 <div className="flex items-center gap-3">
@@ -194,7 +194,7 @@ export default function PostForm({ initialData }: PostFormProps) {
                                         onChange={(e) => setFormData({ ...formData, isPublished: e.target.checked })}
                                         className="w-5 h-5 rounded border-zinc-600 bg-zinc-900 text-teal-500 focus:ring-teal-500 cursor-pointer"
                                     />
-                                    <label htmlFor="isPublished" className="text-sm font-medium text-zinc-400 cursor-pointer">
+                                    <label htmlFor="isPublished" className="text-sm font-medium text-zinc-200 cursor-pointer">
                                         Công khai bài viết
                                     </label>
                                 </div>
@@ -202,7 +202,7 @@ export default function PostForm({ initialData }: PostFormProps) {
 
                             {/* Cover Image */}
                             <div className="md:col-span-2 space-y-4">
-                                <label className="text-xs font-black uppercase tracking-widest text-slate-400">
+                                <label className="text-xs font-black uppercase tracking-widest text-zinc-300">
                                     Ảnh bìa bài viết *
                                 </label>
                                 <ImageUpload
@@ -217,11 +217,11 @@ export default function PostForm({ initialData }: PostFormProps) {
                             <div className="md:col-span-2 space-y-4">
                                 <div className="flex items-center gap-3">
                                     <ImagePlus className="w-5 h-5 text-emerald-600" />
-                                    <label className="text-xs font-black uppercase tracking-widest text-slate-400">
+                                    <label className="text-xs font-black uppercase tracking-widest text-zinc-300">
                                         Thư viện ảnh bài viết (nhiều ảnh)
                                     </label>
                                 </div>
-                                <p className="text-xs text-slate-400 -mt-2">
+                                <p className="text-xs text-zinc-400 -mt-2">
                                     Thêm nhiều ảnh minh họa cho bài viết. Ảnh sẽ hiển thị dưới dạng gallery trong trang chi tiết.
                                 </p>
                                 <ImageUpload
@@ -239,7 +239,7 @@ export default function PostForm({ initialData }: PostFormProps) {
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    className="w-full h-16 rounded-full"
+                                    className="w-full h-16 rounded-full border-zinc-700 bg-zinc-800 text-zinc-100 hover:bg-zinc-700 hover:text-white"
                                 >
                                     Hủy
                                 </Button>

@@ -8,11 +8,11 @@
  */
 
 import { useState, useEffect } from "react";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-    Loader2, LogOut, Package, Sparkles, Ticket,
+    Loader2, Package, Sparkles, Ticket,
     LayoutDashboard, ChevronRight, RefreshCw, MapPin,
     Bell, Lock, Heart, User, Camera, Trash2, Mail, Phone, Edit, UserPlus
 } from "lucide-react";
@@ -205,9 +205,9 @@ export default function ProfilePage() {
                 fetchProfile();
             } else {
                 const err = await res.json();
-                toast.error(err.error || "Failed to upload avatar");
+                toast.error(err.error || profileT("uploadAvatarFailed", "Tải ảnh đại diện thất bại", "Failed to upload avatar"));
             }
-        } catch { toast.error("Failed to upload avatar."); }
+        } catch { toast.error(profileT("uploadAvatarFailed", "Tải ảnh đại diện thất bại", "Failed to upload avatar")); }
         finally { setIsUploadingAvatar(false); }
     };
 
@@ -450,10 +450,6 @@ export default function ProfilePage() {
                                 </div>
                             )}
                         </div>
-                        {/* Sign out */}
-                        <button onClick={() => signOut()} className="flex items-center gap-2 px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-full text-sm font-bold transition-all border border-white/20 shrink-0">
-                            <LogOut className="w-4 h-4" /> {profileT("signOut", "Đăng xuất", "Sign out")}
-                        </button>
                     </div>
 
                         {/* Stats row */}

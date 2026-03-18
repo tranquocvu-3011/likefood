@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1,
+    "title": "Cá Khô Tộ – Đặc Sản Miền Tây Chính Gốc Tại Nhà Bạn",
+    "category": "Ẩm thực",
+    "image": "/images/dacsan.png"
+  },
+  {
+    "id": 2,
+    "title": "Quy Trình Đóng Gói Sản Phẩm LIKEFOOD: Từ Xưởng Tại Việt Nam Đến Tận Tay Khách Hàng Tại Mỹ",
+    "category": "Hậu trường vận hành",
+    "image": "/donggoi/z7505564684692_d6276e4ba8c26d027fd3b44ae5a0fa92.jpg"
+  },
+  {
+    "id": 3,
+    "title": "Top 10 Đặc Sản Việt Nam Được Yêu Thích Nhất Tại Mỹ 2026",
+    "category": "Đặc sản",
+    "image": null
+  },
+  {
+    "id": 4,
+    "title": "Cách Chế Biến Cá Khô Miền Tây Ngon Nhất — 5 Món Đơn Giản",
+    "category": "Công thức",
+    "image": null
+  },
+  {
+    "id": 5,
+    "title": "Tôm Khô Cà Mau — Cách Phân Biệt Hàng Thật Giả và Mẹo Bảo Quản",
+    "category": "Kiến thức",
+    "image": null
+  },
+  {
+    "id": 6,
+    "title": "Nước Mắm Phú Quốc Chính Gốc — Tại Sao Đặc Biệt Đến Vậy?",
+    "category": "Kiến thức",
+    "image": null
+  },
+  {
+    "id": 7,
+    "title": "Quà Biếu Đặc Sản Việt Nam Tại Mỹ — 8 Set Quà Ý Nghĩa Cho Mọi Dịp",
+    "category": "Gợi ý",
+    "image": null
+  },
+  {
+    "id": 8,
+    "title": "Vietnamese Food Near Me — Mua Đặc Sản Việt Nam Online Tại Mỹ",
+    "category": "Guide",
+    "image": null
+  },
+  {
+    "id": 9,
+    "title": "Like Food — Câu Chuyện Thương Hiệu LIKEFOOD Và Hành Trình Từ Việt Nam Đến Mỹ",
+    "category": "Về chúng tôi",
+    "image": null
+  },
+  {
+    "id": 10,
+    "title": "Hướng Dẫn Mua Đồ Việt Nam Online Ở Mỹ — Đầy Đủ Và Chi Tiết Nhất",
+    "category": "Hướng dẫn",
+    "image": null
+  },
+  {
+    "id": 11,
+    "title": "So Sánh Các Loại Cá Khô Miền Tây — Loại Nào Ngon Nhất?",
+    "category": "So sánh",
+    "image": null
+  },
+  {
+    "id": 12,
+    "title": "5 Combo Đặc Sản Việt Nam Tiết Kiệm Nhất — FREE Ship Toàn Mỹ",
+    "category": "Khuyến mãi",
+    "image": null
+  }
+]

@@ -135,19 +135,15 @@ export default async function LikefoodLaGiPage() {
             />
 
             <article className="min-h-screen bg-gradient-to-b from-orange-50/40 via-white to-amber-50/30">
-                {/* Breadcrumb */}
-                <div className="page-container-wide pt-6 pb-2">
-                    <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-slate-500">
+                {/* Hero */}
+                <header className="page-container-wide pt-3 pb-8 md:pt-4 md:pb-12">
+                    <nav aria-label="Breadcrumb" className="mb-4 flex items-center gap-2 text-sm text-slate-500">
                         <Link href="/" className="hover:text-primary transition-colors">
                             {isVi ? "Trang chủ" : "Home"}
                         </Link>
                         <span>/</span>
                         <span className="text-primary font-semibold">LIKEFOOD {isVi ? "là gì?" : "- What is?"}</span>
                     </nav>
-                </div>
-
-                {/* Hero */}
-                <header className="page-container-wide py-8 md:py-12">
                     <div className="max-w-4xl mx-auto text-center">
                         <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/10 rounded-full mb-6">
                             <span className="text-xs font-bold uppercase tracking-wider text-primary">

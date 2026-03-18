@@ -51,24 +51,24 @@ export default function AdminBreadcrumbs() {
   });
 
   return (
-    <nav className="mb-2 flex flex-wrap items-center gap-1 text-xs">
+    <nav className="mb-3 flex flex-wrap items-center gap-1 text-xs">
       <Link
         href="/admin/dashboard"
-        className="inline-flex h-6 w-6 items-center justify-center rounded border border-slate-700/60 bg-slate-800 text-slate-500 transition hover:text-slate-300"
+        className="inline-flex h-6 w-6 items-center justify-center rounded border border-zinc-700 bg-zinc-900 text-zinc-300 transition hover:bg-zinc-800 hover:text-white"
       >
         <Home className="h-3 w-3" />
       </Link>
       {breadcrumbs.map((crumb) => (
         <span key={crumb.href} className="inline-flex items-center gap-1">
-          <ChevronRight className="h-2.5 w-2.5 text-slate-600" />
+          <ChevronRight className="h-2.5 w-2.5 text-zinc-500" />
           {crumb.isLast ? (
-            <span className="rounded border border-slate-700/60 bg-slate-800 px-2 py-1 font-semibold text-slate-300">
+            <span className="rounded border border-zinc-700 bg-zinc-900 px-2 py-1 font-semibold text-zinc-100">
               {crumb.label}
             </span>
           ) : (
             <Link
               href={crumb.href}
-              className="rounded px-2 py-1 font-medium text-slate-500 transition hover:bg-slate-800 hover:text-slate-300"
+              className="rounded px-2 py-1 font-medium text-zinc-300 transition hover:bg-zinc-800 hover:text-white"
             >
               {crumb.label}
             </Link>

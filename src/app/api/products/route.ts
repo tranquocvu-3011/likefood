@@ -127,7 +127,7 @@ export async function GET(req: Request) {
                 SELECT id FROM product
                 WHERE (
                     LOWER(name) COLLATE utf8mb4_bin LIKE ${likeLower}
-                    OR searchKeywords LIKE ${likeLower}
+                    OR LOWER(searchKeywords) COLLATE utf8mb4_bin LIKE ${likeLower}
                 )
                 AND isDeleted = 0 AND isVisible = 1
             `);
@@ -138,8 +138,8 @@ export async function GET(req: Request) {
                     SELECT id FROM product
                     WHERE (
                         name COLLATE utf8mb4_general_ci LIKE ${like}
-                        OR slug LIKE ${like}
-                        OR searchKeywords LIKE ${like}
+                        OR slug COLLATE utf8mb4_general_ci LIKE ${like}
+                        OR searchKeywords COLLATE utf8mb4_general_ci LIKE ${like}
                     )
                     AND isDeleted = 0 AND isVisible = 1
                     LIMIT 50

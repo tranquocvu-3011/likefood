@@ -12,8 +12,6 @@ import Image from "next/image";
 import Link from "next/link";
 import {
     ChevronLeft,
-    Calendar,
-    User,
     Facebook,
     Twitter,
     Sparkles,
@@ -22,7 +20,6 @@ import {
     X,
     ChevronRight as RightArrow,
     Images,
-    Clock,
     Share2,
     BookOpen,
     ArrowUp,
@@ -271,7 +268,7 @@ export default function PostDetailClient({ slug }: { slug: string }) {
             {/* Full-width Hero Banner with Parallax */}
             <div
                 ref={heroRef}
-                className="relative h-[55vh] lg:h-[70vh] w-full overflow-hidden bg-slate-900 flex items-center justify-center"
+                className="relative h-[58vh] lg:h-[76vh] w-full overflow-hidden bg-slate-900 flex items-center justify-center"
             >
                 {post.image ? (
                     <motion.div
@@ -305,7 +302,7 @@ export default function PostDetailClient({ slug }: { slug: string }) {
                     <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-amber-500/10 rounded-full blur-[100px]" />
                 </div>
 
-                <div className="absolute inset-0 flex flex-col items-center justify-center px-4 md:px-10 text-center z-10 pb-16">
+                <div className="absolute inset-0 flex flex-col items-center justify-center px-4 md:px-10 text-center z-10 pb-20 md:pb-24 lg:pb-28">
                     {/* Category badge */}
                     <motion.div
                         initial={{ opacity: 0, y: -20, scale: 0.9 }}
@@ -327,35 +324,11 @@ export default function PostDetailClient({ slug }: { slug: string }) {
                         {post.title}
                     </motion.h1>
 
-                    {/* Meta info */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 15 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3, duration: 0.5 }}
-                        className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-sm font-semibold text-slate-200 mt-8"
-                    >
-                        <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/15">
-                            <div className="w-7 h-7 rounded-full bg-emerald-500/80 flex items-center justify-center">
-                                <User className="w-3.5 h-3.5 text-white" />
-                            </div>
-                            <span className="text-xs sm:text-sm">{post.authorName || "LIKEFOOD TEAM"}</span>
-                        </div>
-                        <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/15">
-                            <Calendar className="w-4 h-4 text-emerald-300" />
-                            <span className="text-xs sm:text-sm">
-                                {new Date(post.publishedAt).toLocaleDateString(isVi ? "vi-VN" : "en-US", { year: "numeric", month: "long", day: "numeric" })}
-                            </span>
-                        </div>
-                        <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/15">
-                            <Clock className="w-4 h-4 text-amber-300" />
-                            <span className="text-xs sm:text-sm">{readTime} {t("shopPage.readingTime")}</span>
-                        </div>
-                    </motion.div>
                 </div>
             </div>
 
             {/* Main Content */}
-            <div className="relative z-20 w-full mx-auto px-4 sm:px-6 lg:px-10 max-w-[1600px] -mt-20 md:-mt-28 lg:-mt-36">
+            <div className="relative z-20 w-full mx-auto px-4 sm:px-6 lg:px-10 max-w-[1600px] -mt-10 md:-mt-14 lg:-mt-20">
                 <main className="bg-white rounded-[2rem] lg:rounded-[3rem] shadow-2xl shadow-slate-900/10 border border-slate-100 flex flex-col lg:flex-row p-6 md:p-10 lg:p-14 xl:p-16 overflow-hidden">
 
                     {/* Left/Main Column: Article */}

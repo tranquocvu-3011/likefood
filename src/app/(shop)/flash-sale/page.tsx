@@ -163,25 +163,12 @@ export default function FlashSalePage() {
     });
 
     return (
-        <div className="min-h-screen bg-[#fefcfd]">
-            {/* Breadcrumb */}
-            <div className="page-container-wide pt-3 pb-1">
-                <div className="flex items-center gap-2 text-sm">
-                    <Link href="/" className="text-slate-400 hover:text-rose-400 transition-colors">
-                        {flashT("goHome", "Trang chủ", "Home")}
-                    </Link>
-                    <span className="text-slate-300">/</span>
-                    <span className="text-rose-400 font-semibold flex items-center gap-1">
-                        <Zap className="w-3.5 h-3.5" />
-                        Flash Sale
-                    </span>
-                </div>
-            </div>
+        <div className="min-h-screen bg-white">
 
             {/* ═══════════════════════════════════════════════════════
                 HERO SECTION — Soft Pastel Pink
             ═══════════════════════════════════════════════════════ */}
-            <section className="relative overflow-hidden">
+            <section className="relative overflow-hidden bg-gradient-to-b from-rose-50 via-pink-50/70 to-white">
                 {/* Soft pastel background */}
                 <div className="absolute inset-0 bg-gradient-to-b from-rose-50 via-pink-50/70 to-white" />
 
@@ -190,7 +177,17 @@ export default function FlashSalePage() {
                 <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-pink-100/50 to-transparent rounded-full blur-3xl translate-y-1/3 -translate-x-1/4" />
 
                 {/* Content */}
-                <div className="relative page-container-wide py-4 lg:py-5">
+                <div className="relative page-container-wide pt-2 lg:pt-3 pb-4 lg:pb-5">
+                    <div className="mb-3 flex items-center gap-2 text-sm">
+                        <Link href="/" className="text-slate-400 hover:text-rose-400 transition-colors">
+                            {flashT("goHome", "Trang chủ", "Home")}
+                        </Link>
+                        <span className="text-slate-300">/</span>
+                        <span className="text-rose-400 font-semibold flex items-center gap-1">
+                            <Zap className="w-3.5 h-3.5" />
+                            Flash Sale
+                        </span>
+                    </div>
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}

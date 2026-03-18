@@ -8,7 +8,8 @@
  */
 
 import Link from "next/link";
-import Image from "next/image";import {
+import Image from "next/image";
+import {
     ShoppingCart, User, Search, Menu, X, ChevronDown,
     Heart, Phone, Home, Flame,
     Settings, FileText, ShoppingBag, Info,

@@ -266,7 +266,7 @@ export default function VoucherPickerModal({
                                                             <p className="font-black text-lg text-slate-900">{voucher.code}</p>
                                                             {selectedVoucher?.id === voucher.id && (
                                                                 <span className="bg-primary text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase">
-                                                                    Selected
+                                                                    {t('checkout.selected')}
                                                                 </span>
                                                             )}
                                                         </div>

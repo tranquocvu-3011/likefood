@@ -10,7 +10,7 @@
 import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Calendar, User, ArrowRight, Loader2, Search, Sparkles, Clock, ChevronRight } from "lucide-react";
+import { User, ArrowRight, Loader2, Search, Sparkles, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/lib/i18n/context";
 
@@ -25,14 +25,6 @@ interface Post {
     publishedAt: string;
     content?: string; // For read time calculation
 }
-
-// Calculate read time based on content (avg 200 words/minute)
-const calculateReadTime = (content?: string): string => {
-    if (!content) return "5";
-    const words = content.trim().split(/\s+/).length;
-    const minutes = Math.ceil(words / 200);
-    return minutes.toString();
-};
 
 export default function PostsPage() {
     const { t, language } = useLanguage();
@@ -216,16 +208,6 @@ export default function PostsPage() {
                                         </div>
 
                                         <div className="p-4 sm:p-6 md:p-8 flex flex-col flex-1">
-                                            <div className="flex items-center gap-4 text-xs font-semibold text-slate-500 mb-4 pb-4 border-b border-slate-50">
-                                                <div className="flex items-center gap-1.5">
-                                                    <Calendar className="w-3.5 h-3.5 text-emerald-600" />
-                                                    <span>{new Date(post.publishedAt).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US')}</span>
-                                                </div>
-                                                <div className="flex items-center gap-1.5">
-                                                    <Clock className="w-3.5 h-3.5 text-emerald-600" />
-                                                    <span>{calculateReadTime(post.content)} {isVi ? "phút" : "min"}</span>
-                                                </div>
-                                            </div>
 
                                             <h3 className="text-xl font-bold text-slate-900 leading-snug group-hover:text-emerald-700 transition-colors mb-3 line-clamp-2">
                                                 {post.title}

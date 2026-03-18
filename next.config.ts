@@ -80,10 +80,15 @@ const nextConfig: NextConfig = {
             //     protocol: "https",
             //     hostname: "**.s3.amazonaws.com",
             // },
+            {
+                protocol: "https",
+                hostname: "images.unsplash.com",
+            },
         ],
         // SEC-06: Allow local images from public folder subpaths
         localPatterns: [
             { pathname: "/uploads/**" },
+            { pathname: "/api/uploads/**" },
             { pathname: "/images/**" },
             { pathname: "/categories/**" },
             { pathname: "/donggoi/**" },
@@ -211,6 +216,18 @@ const nextConfig: NextConfig = {
                     },
                 ],
             }
+        ];
+    },
+
+    // ═══════════════════════════════════════════════════
+    // 🔄 REWRITES
+    // ═══════════════════════════════════════════════════
+    async rewrites() {
+        return [
+            {
+                source: "/uploads/:path*",
+                destination: "/api/uploads/:path*",
+            },
         ];
     },
 };

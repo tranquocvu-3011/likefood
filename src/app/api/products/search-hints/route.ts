@@ -51,8 +51,7 @@ export async function GET(req: NextRequest) {
         const strippedQuery = stripDiacritics(q.toLowerCase());
         const likeStripped = `%${strippedQuery}%`;
 
-        // Strategy 1: Direct match (accent-sensitive, case-insensitive)
-        // Using utf8mb4_general_ci which is case+accent insensitive for Vietnamese
+        // Strategy 1: Exact direct match with diacritics using BINARY collation (Accent-Sensitive & Case-Insensitive via LOWER)
         let products = await prisma.$queryRaw<Array<{
             id: number;
             name: string;
@@ -63,22 +62,22 @@ export async function GET(req: NextRequest) {
         }>>(Prisma.sql`
             SELECT id, name, category, price, image, COALESCE(slug, CAST(id AS CHAR)) AS slug
             FROM product
-            WHERE (
-                name COLLATE utf8mb4_general_ci LIKE ${like}
-                OR category COLLATE utf8mb4_general_ci LIKE ${like}
-                OR description COLLATE utf8mb4_general_ci LIKE ${like}
-            )
+            WHERE
+                LOWER(name) COLLATE utf8mb4_bin LIKE ${likeLower}
             AND inventory > 0
             AND isDeleted = 0
             AND isVisible = 1
             ORDER BY 
-                CASE WHEN name COLLATE utf8mb4_general_ci LIKE ${`${q}%`} THEN 0 ELSE 1 END,
+                CASE WHEN LOWER(name) COLLATE utf8mb4_bin LIKE ${`${q.toLowerCase()}%`} THEN 0 ELSE 1 END,
                 soldCount DESC
             LIMIT 10
         `);
 
-        // Strategy 2: Fuzzy fallback — strip diacritics for "ca" → "Cá", "tom" → "Tôm"
-        if (products.length === 0 && q.length >= 2) {
+        // Detect if query contains Vietnamese diacritics
+        const hasDiacritics = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]/.test(q);
+
+        // Strategy 2: Fuzzy fallback — ONLY IF NO DIACRITICS IN QUERY (User typed "ca kho", not "cá khô")
+        if (products.length === 0 && !hasDiacritics && q.length >= 2) {
             products = await prisma.$queryRaw<Array<{
                 id: number;
                 name: string;
@@ -89,10 +88,8 @@ export async function GET(req: NextRequest) {
             }>>(Prisma.sql`
                 SELECT id, name, category, price, image, COALESCE(slug, CAST(id AS CHAR)) AS slug
                 FROM product
-                WHERE (
-                    LOWER(name) COLLATE utf8mb4_general_ci LIKE ${likeLower}
-                    OR name COLLATE utf8mb4_unicode_ci LIKE ${like}
-                )
+                WHERE
+                    name COLLATE utf8mb4_general_ci LIKE ${like}
                 AND inventory > 0
                 AND isDeleted = 0
                 AND isVisible = 1
