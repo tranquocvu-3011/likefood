@@ -46,7 +46,7 @@ export default function LanguageToggle() {
                 whileTap={{ scale: 0.95 }}
                 className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm text-slate-700 select-none"
             >
-                <Image src={current.flag} alt={current.name} width={20} height={14} className="rounded-sm object-contain flex-shrink-0" style={{ width: "auto", height: "auto" }} />
+                <Image src={current.flag} alt={current.name} width={20} height={14} className="w-[20px] h-[14px] rounded-sm object-cover flex-shrink-0" />
                 <span className="text-[10px] font-black tracking-wider">{current.short}</span>
                 <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${isOpen ? "-rotate-180" : ""}`} />
             </motion.button>
@@ -71,7 +71,7 @@ export default function LanguageToggle() {
                                         : "hover:bg-slate-50 text-slate-700"
                                         }`}
                                 >
-                                    <Image src={lang.flag} alt={lang.name} width={24} height={17} className="rounded-sm object-contain flex-shrink-0" style={{ width: "auto", height: "auto" }} />
+                                    <Image src={lang.flag} alt={lang.name} width={24} height={17} className="w-[24px] h-[17px] rounded-sm object-cover flex-shrink-0" />
                                     <span className="flex-1 text-[13px] font-semibold">{lang.name}</span>
                                     {language === lang.code && (
                                         <Check className="w-4 h-4 text-primary flex-shrink-0" />
