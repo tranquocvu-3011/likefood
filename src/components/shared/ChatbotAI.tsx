@@ -604,6 +604,16 @@ export default function ChatbotAI() {
         // Message đã được gửi về server → Telegram notification tự động
       } else {
         // ─── AI Chat Mode: SSE Streaming ──────────────
+        const currentMsgId = Number(Date.now()) + 1;
+        // Add an empty model message that will be filled by streaming
+        setMessages((prev) => [...prev, {
+          id: currentMsgId,
+          role: "model" as const,
+          content: "",
+          timestamp: new Date(),
+          senderType: "AI" as const,
+        }]);
+
         const response = await fetch("/api/ai/chat/stream", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -614,22 +624,70 @@ export default function ChatbotAI() {
           }),
         });
 
-        const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          throw new Error(data?.error || (isVietnamese ? "Không thể kết nối. Vui lòng thử lại!" : "Connection failed. Please try again!"));
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData?.error || errData?.message || (isVietnamese ? "Không thể kết nối. Vui lòng thử lại!" : "Connection failed. Please try again!"));
         }
 
-        const replyContent = data.content ?? data.response ?? (isVietnamese ? "Mình chưa có câu trả lời phù hợp. Bạn thử hỏi lại cụ thể hơn nhé! 😊" : "I don't have a suitable answer. Try asking more specifically! 😊");
+        // Parse SSE stream
+        if (response.body) {
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let fullContent = "";
 
-        const modelMessage: Message = {
-          id: Number(Date.now() + 1),
-          role: "model",
-          content: replyContent,
-          timestamp: new Date(),
-          senderType: "AI",
-        };
+          try {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
 
-        setMessages((prev) => [...prev, modelMessage]);
+              const text = decoder.decode(value, { stream: true });
+              const lines = text.split("\n");
+
+              for (const line of lines) {
+                const trimmedLine = line.trim();
+                if (!trimmedLine || !trimmedLine.startsWith("data: ")) continue;
+
+                try {
+                  const dataStr = trimmedLine.slice(6);
+                  const evt = JSON.parse(dataStr);
+                  const content = evt?.data?.content || evt?.content || "";
+                  if (content) {
+                    fullContent = content;
+                    setMessages((prev) =>
+                      prev.map((m) =>
+                        m.id === currentMsgId ? { ...m, content: fullContent } : m
+                      )
+                    );
+                  }
+                } catch {
+                  // Skip invalid JSON lines (e.g. event types)
+                }
+              }
+            }
+          } catch {
+            // Stream ended or error — use whatever we have
+          }
+
+          // Ensure we have content, otherwise show error
+          if (!fullContent) {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === currentMsgId
+                  ? { ...m, content: isVietnamese ? "Mình đang cập nhật dữ liệu. Bạn thử hỏi lại nhé! 😊" : "I'm updating data. Please try again! 😊" }
+                  : m
+              )
+            );
+          }
+        } else {
+          // Fallback: no streaming support — try json
+          const data = await response.json().catch(() => ({}));
+          const replyContent = data.content ?? data.response ?? (isVietnamese ? "Mình đang cập nhật. Bạn thử hỏi lại nhé! 😊" : "Updating. Please try again! 😊");
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === currentMsgId ? { ...m, content: replyContent } : m
+            )
+          );
+        }
       }
     } catch (error) {
       setMessages((prev) => [
