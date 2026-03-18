@@ -37,6 +37,7 @@ import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/currency";
+import { BehaviorTab } from "./BehaviorTab";
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -153,11 +154,12 @@ interface Message {
   content: string;
 }
 
-type TabId = "overview" | "realtime" | "prospects" | "profiles" | "sales" | "chat";
+type TabId = "overview" | "realtime" | "prospects" | "profiles" | "sales" | "behavior" | "chat";
 
 const TABS: { id: TabId; label: string; icon: typeof Brain }[] = [
   { id: "overview", label: "Tổng quan", icon: Brain },
   { id: "realtime", label: "Real-time", icon: Activity },
+  { id: "behavior", label: "Hành vi", icon: TrendingUp },
   { id: "prospects", label: "Tiềm năng", icon: UserSearch },
   { id: "profiles", label: "Hồ sơ KH", icon: User },
   { id: "sales", label: "AI Bán hàng", icon: Target },
@@ -372,7 +374,7 @@ export default function AICommandCenter() {
 
   const totals = useMemo(() => ({
     warnings: insights.filter((i) => i.type === "warning").length,
-    urgentRestocks: forecasts.filter((i) => i.daysUntilStockout < 7).length,
+    urgentRestocks: forecasts.filter((i) => i.daysUntilStockout >= 0 && i.daysUntilStockout < 7).length,
     totalSegmentRevenue: segments.reduce((sum, s) => sum + s.totalRevenue, 0),
     hotLeadCount: hotLeads.length,
   }), [insights, forecasts, segments, hotLeads]);
@@ -446,6 +448,7 @@ export default function AICommandCenter() {
       {/* Tab Content */}
       {activeTab === "overview" && <OverviewTab insights={insights} summary={summary} forecasts={forecasts} segments={segments} hotLeads={hotLeads} />}
       {activeTab === "realtime" && <RealTimeTab visitors={visitors} isLoading={isLoadingVisitors} onRefresh={loadVisitors} />}
+      {activeTab === "behavior" && <BehaviorTab />}
       {activeTab === "prospects" && <ProspectsTab prospects={prospects} isLoading={isLoadingProspects} onRefresh={loadProspects} />}
       {activeTab === "profiles" && (
         <ProfilesTab
@@ -556,11 +559,13 @@ function OverviewTab({
                     <p className="text-xs text-zinc-500">Tồn: {item.currentStock} · Nhập: {item.recommendedRestock}</p>
                   </div>
                   <span className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ${
+                    item.daysUntilStockout < 0 ? "bg-zinc-700/50 text-zinc-400" :
                     item.daysUntilStockout < 7 ? "bg-rose-500/20 text-rose-400" :
                     item.daysUntilStockout < 14 ? "bg-amber-500/20 text-amber-400" :
+                    item.daysUntilStockout < 30 ? "bg-blue-500/20 text-blue-400" :
                     "bg-emerald-500/20 text-emerald-400"
                   }`}>
-                    {item.daysUntilStockout} ngày
+                    {item.daysUntilStockout < 0 ? "Ổn định" : `${item.daysUntilStockout} ngày`}
                   </span>
                 </div>
               ))}

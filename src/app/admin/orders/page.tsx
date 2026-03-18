@@ -112,12 +112,12 @@ export default function AdminOrdersPage() {
       
       const response = await fetch(`/api/orders?${params.toString()}`);
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data?.error || 'Failed to load orders');
+      if (!response.ok) throw new Error(data?.error || 'Không thể tải danh sách đơn hàng');
       
       setOrders(Array.isArray(data.orders) ? data.orders : []);
       setTotal(data.pagination?.total || data.total || 0);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to load orders');
+      toast.error(error instanceof Error ? error.message : 'Không thể tải danh sách đơn hàng');
     } finally {
       setIsLoading(false);
     }
@@ -140,7 +140,7 @@ export default function AdminOrdersPage() {
         body: JSON.stringify({ status: nextStatus }),
       });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data?.error || 'Failed to update status');
+      if (!response.ok) throw new Error(data?.error || 'Không thể cập nhật trạng thái');
       
       toast.success(`Order #${String(orderId).slice(-6)} → ${nextStatus}`);
       await loadOrders();
@@ -148,7 +148,7 @@ export default function AdminOrdersPage() {
         loadOrderDetail(orderId);
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to update status');
+      toast.error(error instanceof Error ? error.message : 'Không thể cập nhật trạng thái');
     } finally {
       setUpdatingId(null);
     }
@@ -162,7 +162,7 @@ export default function AdminOrdersPage() {
       setSelectedOrders(new Set());
       setBulkStatus('');
     } catch {
-      toast.error('Some orders failed to update');
+      toast.error('Một số đơn hàng không thể cập nhật');
     }
   };
 
@@ -308,7 +308,7 @@ export default function AdminOrdersPage() {
               onChange={(e) => setBulkStatus(e.target.value)}
               className="h-8 rounded-md border border-zinc-700 bg-zinc-900 px-2 text-xs text-zinc-100"
             >
-              <option value="">Update Status</option>
+              <option value="">Cập nhật trạng thái</option>
               {['CONFIRMED','PROCESSING','SHIPPING','DELIVERED','COMPLETED','CANCELLED'].map(s => (
                 <option key={s} value={s}>→ {s}</option>
               ))}
@@ -318,10 +318,13 @@ export default function AdminOrdersPage() {
               disabled={!bulkStatus}
               className="h-8 px-3 rounded-md border border-teal-600/50 bg-teal-600/20 text-xs text-teal-300 hover:bg-teal-600/30 disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Apply
+              Áp dụng
             </button>
-            <button disabled className="h-8 px-3 rounded-md border border-zinc-700 bg-zinc-900 text-xs text-zinc-500 cursor-not-allowed opacity-50" title="Tính năng đang phát triển">
-              Export Selected
+            <button
+              onClick={() => { window.open('/api/admin/export?type=orders', '_blank'); toast.success('Đang xuất dữ liệu đơn hàng...'); }}
+              className="h-8 px-3 rounded-md border border-zinc-700 bg-zinc-900 text-xs text-zinc-300 hover:bg-zinc-800 transition-colors"
+            >
+              Xuất dữ liệu
             </button>
           </div>
         </div>
@@ -652,7 +655,7 @@ function OrderDrawer({
           </div>
         ) : (
           <div className="p-4 text-center text-zinc-500">
-            Failed to load order details
+            Không thể tải chi tiết đơn hàng
           </div>
         )}
       </div>

@@ -277,7 +277,7 @@ export default function AIAssistantWidget() {
                       className="min-h-[110px] w-full resize-none border-0 bg-transparent text-sm leading-6 text-zinc-200 outline-none placeholder:text-zinc-500"
                     />
                     <div className="mt-3 flex items-center justify-between gap-3">
-                      <p className="text-xs text-slate-400">Dựa trên số liệu quản trị hiện tại khi có sẵn.</p>
+                      <p className="text-xs text-zinc-500">Dựa trên số liệu quản trị hiện tại khi có sẵn.</p>
                       <Button onClick={() => void sendMessage()} disabled={!input.trim() || isSending} className="rounded-full">
                         {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                         Gửi

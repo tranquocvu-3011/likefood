@@ -399,12 +399,26 @@ export async function getAIAnalyticsInsights(salesData: SalesData[]): Promise<AI
   return insights;
 }
 
-export async function getAIInventoryForecast(products: ProductData[]): Promise<InventoryForecast[]> {
+export async function getAIInventoryForecast(
+  products: ProductData[],
+  recentSalesMap?: Map<number, number>, // productId → qty sold in last 30 days
+): Promise<InventoryForecast[]> {
   return products
     .map((product) => {
-      const dailySalesRate = product.soldCount > 0 ? product.soldCount / 30 : 0;
-      const daysUntilStockout = dailySalesRate > 0 ? Math.max(Math.floor(product.inventory / dailySalesRate), 0) : 999;
-      const recommendedRestock = dailySalesRate > 0 ? Math.ceil(dailySalesRate * 45) : Math.max(product.inventory, 10);
+      // Use actual 30-day sales data if available, fallback to soldCount / 90 (lifetime estimate)
+      const recentSold = recentSalesMap?.get(product.id) ?? 0;
+      const dailySalesRate = recentSold > 0
+        ? recentSold / 30
+        : (product.soldCount > 0 ? product.soldCount / 90 : 0);
+
+      // -1 means "no sales data" → UI will show "Ổn định" instead of "999"
+      const daysUntilStockout = dailySalesRate > 0
+        ? Math.min(Math.max(Math.floor(product.inventory / dailySalesRate), 0), 365)
+        : -1;
+
+      const recommendedRestock = dailySalesRate > 0
+        ? Math.ceil(dailySalesRate * 45)
+        : Math.max(Math.min(product.inventory, 50), 10);
 
       return {
         productId: product.id,
@@ -412,10 +426,16 @@ export async function getAIInventoryForecast(products: ProductData[]): Promise<I
         currentStock: product.inventory,
         daysUntilStockout,
         recommendedRestock,
-        confidence: dailySalesRate > 0 ? 0.82 : 0.45,
+        confidence: recentSold > 0 ? 0.85 : (product.soldCount > 0 ? 0.55 : 0.3),
       };
     })
-    .sort((left, right) => left.daysUntilStockout - right.daysUntilStockout);
+    .sort((left, right) => {
+      // Items with actual sales data first (ascending by days), then no-data items last
+      if (left.daysUntilStockout === -1 && right.daysUntilStockout === -1) return 0;
+      if (left.daysUntilStockout === -1) return 1;
+      if (right.daysUntilStockout === -1) return -1;
+      return left.daysUntilStockout - right.daysUntilStockout;
+    });
 }
 
 export async function getAICustomerInsights(customers: CustomerData[]): Promise<CustomerSegment[]> {

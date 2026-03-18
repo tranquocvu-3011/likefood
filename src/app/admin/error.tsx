@@ -37,7 +37,7 @@ export default function AdminError({
                 <p className="text-zinc-500 mb-6 text-sm">
                     {error.message || "Có vấn đề xảy ra khi tải trang admin. Vui lòng thử lại."}
                     {error.digest && (
-                        <span className="block mt-1 text-xs text-slate-400">
+                        <span className="block mt-1 text-xs text-zinc-500">
                             Mã lỗi: {error.digest}
                         </span>
                     )}

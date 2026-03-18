@@ -16,13 +16,16 @@ import {
   FileText,
   FolderTree,
   Home,
+  Inbox,
   Layout,
   LogOut,
   Menu,
+  Newspaper,
   Package,
   Settings,
   Sparkles,
   Tag,
+  ThumbsUp,
   Ticket,
   Users,
   X,
@@ -56,65 +59,68 @@ interface NavGroup {
 const NAV_GROUPS: NavGroup[] = [
   {
     id: "overview",
-    label: "Overview",
+    label: "Tổng quan",
     items: [
-      { id: "dashboard", label: "Dashboard", href: "/admin", icon: Home },
-      { id: "analytics", label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+      { id: "dashboard", label: "Bảng điều khiển", href: "/admin", icon: Home },
+      { id: "analytics", label: "Phân tích", href: "/admin/analytics", icon: BarChart3 },
       { id: "ai", label: "AI Insights", href: "/admin/ai", icon: Sparkles },
     ],
   },
   {
     id: "operations",
-    label: "Operations",
+    label: "Vận hành",
     items: [
-      { id: "orders", label: "Orders", href: "/admin/orders", icon: ClipboardList },
-      { id: "inventory", label: "Inventory", href: "/admin/inventory", icon: Package },
-      { id: "live-chat", label: "Live Chat", href: "/admin/live-chat", icon: MessageSquare },
+      { id: "orders", label: "Đơn hàng", href: "/admin/orders", icon: ClipboardList },
+      { id: "inventory", label: "Kho hàng", href: "/admin/inventory", icon: Package },
+      { id: "live-chat", label: "Trò chuyện", href: "/admin/live-chat", icon: MessageSquare },
+      { id: "contact-messages", label: "Tin nhắn liên hệ", href: "/admin/contact-messages", icon: Inbox },
     ],
   },
   {
     id: "catalog",
-    label: "Catalog",
+    label: "Danh mục",
     items: [
-      { id: "products", label: "Products", href: "/admin/products", icon: Package },
-      { id: "categories", label: "Categories", href: "/admin/categories", icon: FolderTree },
-      { id: "brands", label: "Brands", href: "/admin/brands", icon: Tag },
-      { id: "reviews", label: "Reviews", href: "/admin/reviews", icon: Star },
+      { id: "products", label: "Sản phẩm", href: "/admin/products", icon: Package },
+      { id: "categories", label: "Phân loại", href: "/admin/categories", icon: FolderTree },
+      { id: "brands", label: "Thương hiệu", href: "/admin/brands", icon: Tag },
+      { id: "reviews", label: "Đánh giá", href: "/admin/reviews", icon: Star },
     ],
   },
   {
     id: "customers",
-    label: "Customers",
+    label: "Khách hàng",
     items: [
-      { id: "customers", label: "Customers", href: "/admin/customers", icon: Users },
-      { id: "users", label: "Users", href: "/admin/users", icon: Shield },
+      { id: "customers", label: "Khách hàng", href: "/admin/customers", icon: Users },
+      { id: "users", label: "Tài khoản", href: "/admin/users", icon: Shield },
+      { id: "feedback", label: "Phản hồi", href: "/admin/feedback", icon: ThumbsUp },
     ],
   },
   {
     id: "marketing",
-    label: "Marketing",
+    label: "Tiếp thị",
     items: [
-      { id: "coupons", label: "Coupons", href: "/admin/coupons", icon: Ticket },
-      { id: "flash-sales", label: "Flash Sales", href: "/admin/flash-sales", icon: Zap },
+      { id: "coupons", label: "Mã giảm giá", href: "/admin/coupons", icon: Ticket },
+      { id: "flash-sales", label: "Flash Sale", href: "/admin/flash-sales", icon: Zap },
+      { id: "newsletter", label: "Email đăng ký", href: "/admin/newsletter", icon: Newspaper },
     ],
   },
   {
     id: "content",
-    label: "Content",
+    label: "Nội dung",
     items: [
-      { id: "cms", label: "CMS", href: "/admin/cms", icon: Paintbrush },
-      { id: "posts", label: "Posts", href: "/admin/posts", icon: FileText },
-      { id: "pages", label: "Pages", href: "/admin/pages", icon: File },
+      { id: "cms", label: "Trang & Nội dung", href: "/admin/cms", icon: Paintbrush },
+      { id: "posts", label: "Bài viết", href: "/admin/posts", icon: FileText },
+      { id: "pages", label: "Trang động", href: "/admin/pages", icon: File },
       { id: "knowledge", label: "AI Knowledge", href: "/admin/knowledge", icon: BookOpen },
       { id: "menu", label: "Menu", href: "/admin/menu", icon: Menu },
-      { id: "homepage", label: "Homepage", href: "/admin/homepage", icon: Layout },
+      { id: "homepage", label: "Trang chủ", href: "/admin/homepage", icon: Layout },
     ],
   },
   {
     id: "settings",
-    label: "Settings",
+    label: "Cài đặt",
     items: [
-      { id: "settings", label: "Settings", href: "/admin/settings", icon: Settings },
+      { id: "settings", label: "Cài đặt", href: "/admin/settings", icon: Settings },
     ],
   },
 ];
@@ -170,7 +176,7 @@ export default function AdminSidebar() {
             </div>
             {!collapsed && (
               <div className="min-w-0">
-                <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-500">Admin</p>
+                <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-500">Quản trị</p>
                 <h2 className="truncate text-sm font-semibold tracking-tight text-zinc-100">LIKEFOOD</h2>
               </div>
             )}
@@ -179,7 +185,7 @@ export default function AdminSidebar() {
             type="button"
             onClick={() => setCollapsed((prev) => !prev)}
             className="hidden h-6 w-6 items-center justify-center rounded-md border border-zinc-700/50 bg-zinc-900 text-zinc-500 transition-colors hover:text-zinc-300 lg:flex"
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-label={collapsed ? "Mở rộng" : "Thu gọn"}
           >
             {collapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
           </button>
@@ -189,7 +195,7 @@ export default function AdminSidebar() {
         {!collapsed && (
           <div className="mx-3 mt-3 flex items-center gap-2 rounded-md bg-zinc-900/50 px-2 py-1.5">
             <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]" />
-            <p className="text-[10px] font-medium text-zinc-500">System Online</p>
+            <p className="text-[10px] font-medium text-zinc-500">Hệ thống hoạt động</p>
           </div>
         )}
 
@@ -262,12 +268,12 @@ export default function AdminSidebar() {
             className={cn(
               "flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-[12px] font-medium text-zinc-500 transition-colors hover:bg-zinc-900 hover:text-red-400"
             )}
-            title={collapsed ? "Sign out" : undefined}
+            title={collapsed ? "Đăng xuất" : undefined}
           >
             <span className="flex h-5 w-5 items-center justify-center text-zinc-500">
               <LogOut className="h-4 w-4" />
             </span>
-            {!collapsed && <span>Sign out</span>}
+            {!collapsed && <span>Đăng xuất</span>}
           </button>
         </div>
       </aside>

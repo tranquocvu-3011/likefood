@@ -330,7 +330,7 @@ export default function ProductTable({
                                     return (
                                         <tr 
                                             key={product.id} 
-                                            className="border-b border-zinc-700/40/50 hover:bg-zinc-800/30 transition-colors"
+                                            className="border-b border-zinc-800 hover:bg-zinc-800/30 transition-colors"
                                         >
                                             <td className="p-4">
                                                 <button

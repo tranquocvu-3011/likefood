@@ -52,13 +52,13 @@ export default function AdminUsersPage() {
       const response = await fetch(`/api/admin/users?${params.toString()}`);
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(data?.error || "Unable to load users.");
+        throw new Error(data?.error || "Không thể tải danh sách người dùng.");
       }
 
       setUsers(Array.isArray(data.users) ? data.users : []);
       setTotal(data.pagination?.total || 0);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Unable to load users.");
+      toast.error(error instanceof Error ? error.message : "Không thể tải danh sách người dùng.");
     } finally {
       setIsLoading(false);
     }
@@ -82,13 +82,13 @@ export default function AdminUsersPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(data?.error || "Unable to update role.");
+        throw new Error(data?.error || "Không thể cập nhật vai trò.");
       }
 
       setUsers((prev) => prev.map((user) => (user.id === userId ? { ...user, role: data.user.role } : user)));
       toast.success("Đã cập nhật vai trò.");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Unable to update role.");
+      toast.error(error instanceof Error ? error.message : "Không thể cập nhật vai trò.");
     } finally {
       setSavingId(null);
     }

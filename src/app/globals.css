@@ -269,3 +269,47 @@
     background-color: #21242c !important;
   }
 }
+
+/* Admin settings input/textarea — dark theme */
+.admin-input {
+  width: 100%;
+  min-height: 3.35rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(63 63 70) !important;
+  background: rgb(17 17 19) !important;
+  padding: 0.875rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(244 244 245) !important;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.admin-input::placeholder {
+  color: rgb(113 113 122) !important;
+}
+.admin-input:focus {
+  border-color: rgb(20 184 166 / 0.5) !important;
+  box-shadow: 0 0 0 3px rgb(20 184 166 / 0.1);
+  background: rgb(17 17 19) !important;
+}
+.admin-textarea {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(63 63 70) !important;
+  background: rgb(17 17 19) !important;
+  padding: 1rem;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: rgb(244 244 245) !important;
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.admin-textarea::placeholder {
+  color: rgb(113 113 122) !important;
+}
+.admin-textarea:focus {
+  border-color: rgb(20 184 166 / 0.5) !important;
+  box-shadow: 0 0 0 3px rgb(20 184 166 / 0.1);
+  background: rgb(17 17 19) !important;
+}

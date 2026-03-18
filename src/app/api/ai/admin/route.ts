@@ -102,7 +102,24 @@ export async function GET(req: NextRequest) {
           },
         });
 
-        const forecasts = await getAIInventoryForecast(products);
+        // Query actual sales in last 30 days per product
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const recentSales = await prisma.orderitem.groupBy({
+          by: ["productId"],
+          where: {
+            order: {
+              createdAt: { gte: thirtyDaysAgo },
+              status: { in: ["COMPLETED", "DELIVERED"] },
+            },
+          },
+          _sum: { quantity: true },
+        });
+        const recentSalesMap = new Map<number, number>(
+          recentSales.map((s) => [s.productId, s._sum.quantity ?? 0])
+        );
+
+        const forecasts = await getAIInventoryForecast(products, recentSalesMap);
         return NextResponse.json({ forecasts: forecasts.slice(0, 10) });
       }
 
@@ -229,18 +246,128 @@ export async function GET(req: NextRequest) {
         const { calculateLeadScores } = await import("@/lib/ai/behavioral-intelligence");
         const leadDays = parseInt(searchParams.get("days") || "30", 10);
         const leadScores = await calculateLeadScores(leadDays);
-        // Enrich with user names
+        // Enrich with user info + orders + cart
         const leadUserIds = leadScores.map(l => l.userId);
-        const leadUsers = leadUserIds.length > 0 
-          ? await prisma.user.findMany({ where: { id: { in: leadUserIds } }, select: { id: true, name: true, email: true } })
+        const leadUsers = leadUserIds.length > 0
+          ? await prisma.user.findMany({
+              where: { id: { in: leadUserIds } },
+              select: {
+                id: true, name: true, email: true, phone: true, points: true,
+                orders: {
+                  where: { status: { in: ["COMPLETED", "DELIVERED"] } },
+                  select: { total: true, createdAt: true },
+                  orderBy: { createdAt: "desc" },
+                  take: 5,
+                },
+                cart: { select: { items: { select: { product: { select: { name: true, price: true } }, quantity: true } } } },
+              },
+            })
           : [];
         const leadUserMap = new Map(leadUsers.map(u => [u.id, u]));
-        const enrichedLeads = leadScores.map(l => ({
-          ...l,
-          userName: leadUserMap.get(l.userId)?.name || "Unknown",
-          userEmail: leadUserMap.get(l.userId)?.email || "",
-        }));
+        const enrichedLeads = leadScores.map(l => {
+          const user = leadUserMap.get(l.userId);
+          const totalSpent = user?.orders?.reduce((s, o) => s + o.total, 0) ?? 0;
+          const totalOrders = user?.orders?.length ?? 0;
+          const cartItems = user?.cart?.items?.map(i => ({ name: i.product.name, price: i.product.price, qty: i.quantity })) ?? [];
+          const cartValue = cartItems.reduce((s, i) => s + i.price * i.qty, 0);
+
+          // AI recommendations
+          const recs: string[] = [];
+          if (cartItems.length > 0) recs.push(`${cartItems.length} SP trong giỏ (${Math.round(cartValue).toLocaleString()}đ) — Gửi voucher giảm giá`);
+          if (l.intentScore >= 60) recs.push("Ý định mua cao — Liên hệ ngay");
+          if (l.churnRisk >= 50) recs.push("Có nguy cơ rời bỏ — Gửi ưu đãi re-engage");
+          if (totalSpent >= 200 && totalSpent < 500) recs.push("Gần VIP ($500+) — Ưu đãi nâng tier");
+          if (l.productAffinity.length > 0) recs.push(`Quan tâm: ${l.productAffinity.map(a => a.category).join(", ")} — Push SP mới`);
+          if (totalOrders === 0 && l.intentScore >= 30) recs.push("Chưa mua lần nào — Tặng voucher lần đầu");
+
+          let segment = "Khách mới";
+          if (totalSpent >= 500) segment = "VIP";
+          else if (totalSpent >= 200) segment = "Premium";
+          else if (totalSpent >= 100) segment = "Thường xuyên";
+          else if (totalOrders > 0) segment = "Đã mua";
+
+          return {
+            ...l,
+            userName: user?.name || "Unknown",
+            userEmail: user?.email || "",
+            phone: user?.phone || null,
+            loyaltyPoints: user?.points ?? 0,
+            totalOrders,
+            totalSpent: Math.round(totalSpent * 100) / 100,
+            segment,
+            cartItems,
+            cartValue: Math.round(cartValue * 100) / 100,
+            lastOrderDate: user?.orders?.[0]?.createdAt?.toISOString() || null,
+            aiRecommendations: recs,
+          };
+        });
         return NextResponse.json({ leadScores: enrichedLeads });
+      }
+
+      case "customer-intelligence": {
+        // Tổng hợp tất cả khách hàng có tài khoản + hành vi
+        const allUsers = await prisma.user.findMany({
+          select: {
+            id: true, name: true, email: true, phone: true, points: true, createdAt: true,
+            orders: {
+              where: { status: { in: ["COMPLETED", "DELIVERED"] } },
+              select: { total: true, createdAt: true },
+              orderBy: { createdAt: "desc" },
+              take: 3,
+            },
+            cart: { select: { items: { select: { product: { select: { name: true, price: true } }, quantity: true } } } },
+            _count: { select: { orders: true } },
+          },
+          orderBy: { createdAt: "desc" },
+          take: 50,
+        });
+
+        // Get behavior event counts per user
+        const ciSince = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        const userEventCounts = await prisma.behaviorEvent.groupBy({
+          by: ["userId"],
+          where: { userId: { not: null }, createdAt: { gte: ciSince } },
+          _count: { id: true },
+        });
+        const eventCountMap = new Map(userEventCounts.map(e => [e.userId!, e._count.id]));
+
+        const customers = allUsers.map(u => {
+          const totalSpent = u.orders.reduce((s, o) => s + o.total, 0);
+          const cartItems = u.cart?.items || [];
+          const cartValue = cartItems.reduce((s, i) => s + i.product.price * i.quantity, 0);
+          const eventCount = eventCountMap.get(u.id) || 0;
+
+          let segment = "Khách mới";
+          if (totalSpent >= 500) segment = "VIP";
+          else if (totalSpent >= 200) segment = "Premium";
+          else if (totalSpent >= 100) segment = "Thường xuyên";
+          else if (u.orders.length > 0) segment = "Đã mua";
+
+          const recs: string[] = [];
+          if (cartItems.length > 0) recs.push(`${cartItems.length} SP trong giỏ — Gửi nhắc`);
+          if (eventCount >= 20) recs.push("Đang hoạt động tích cực");
+          if (u.orders.length > 0 && totalSpent < 500) recs.push("Tiềm năng nâng tier");
+          if (u.orders.length === 0 && eventCount > 0) recs.push("Đã tìm hiểu — Tặng voucher");
+
+          return {
+            id: u.id,
+            name: u.name || "Chưa cập nhật",
+            email: u.email,
+            phone: u.phone || null,
+            joinedAt: u.createdAt.toISOString(),
+            segment,
+            totalOrders: u._count.orders,
+            totalSpent: Math.round(totalSpent * 100) / 100,
+            loyaltyPoints: u.points,
+            cartItemCount: cartItems.length,
+            cartValue: Math.round(cartValue * 100) / 100,
+            eventCount30d: eventCount,
+            lastOrderDate: u.orders[0]?.createdAt?.toISOString() || null,
+            aiRecommendations: recs,
+          };
+        });
+
+        return NextResponse.json({ customers });
       }
 
       case "funnel": {

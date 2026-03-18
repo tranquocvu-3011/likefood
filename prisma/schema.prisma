@@ -767,6 +767,8 @@ model BehaviorEvent {
   @@index([eventType], map: "behaviorEvent_eventType_idx")
   @@index([sessionId], map: "behaviorEvent_sessionId_idx")
   @@index([userId], map: "behaviorEvent_userId_idx")
+  @@index([userId, eventType, createdAt], map: "behaviorEvent_user_event_time_idx")
+  @@index([eventType, createdAt], map: "behaviorEvent_event_time_idx")
   @@map("behaviorevent")
 }
 

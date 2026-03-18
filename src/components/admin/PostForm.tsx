@@ -238,7 +238,7 @@ export default function PostForm({ initialData }: PostFormProps) {
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    className="w-full h-16 rounded-full border-zinc-700 bg-zinc-800 text-zinc-100 hover:bg-zinc-700 hover:text-white"
+                                    className="w-full h-14 rounded-lg border-zinc-700 bg-zinc-800 text-zinc-100 hover:bg-zinc-700 hover:text-white"
                                 >
                                     Hủy
                                 </Button>
@@ -246,7 +246,7 @@ export default function PostForm({ initialData }: PostFormProps) {
                             <Button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="flex-[2] h-16 rounded-full bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest shadow-2xl shadow-primary/30"
+                                className="flex-[2] h-14 rounded-lg bg-teal-500 hover:bg-teal-400 text-white font-semibold shadow-lg shadow-teal-500/20"
                             >
                                 {isSubmitting ? (
                                     <Loader2 className="w-6 h-6 animate-spin" />

@@ -51,7 +51,7 @@ export default function AdminInventoryPage() {
     setIsLoading(true);
     try {
       const res = await fetch("/api/admin/inventory?sort=name");
-      if (!res.ok) throw new Error("Failed to load inventory");
+      if (!res.ok) throw new Error("Không thể tải dữ liệu kho");
       const data = await res.json();
       const items: InventoryProduct[] = (data.products || []).map((p: any) => ({
         id: p.id,
@@ -67,7 +67,7 @@ export default function AdminInventoryPage() {
       }));
       setProducts(items);
     } catch (error) {
-      toast.error("Failed to load inventory");
+      toast.error("Không thể tải dữ liệu kho");
     } finally {
       setIsLoading(false);
     }
@@ -131,21 +131,21 @@ export default function AdminInventoryPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productId, delta }),
       });
-      if (!res.ok) throw new Error("Failed to adjust inventory");
-      toast.success(`Inventory adjusted by ${delta > 0 ? '+' : ''}${delta}`);
+      if (!res.ok) throw new Error("Không thể điều chỉnh tồn kho");
+      toast.success(`Đã điều chỉnh tồn kho ${delta > 0 ? '+' : ''}${delta}`);
       await fetchProducts();
     } catch {
-      toast.error("Failed to adjust inventory");
+      toast.error("Không thể điều chỉnh tồn kho");
     } finally {
       setAdjustingId(null);
     }
   };
 
   const getStockStatus = (inventory: number) => {
-    if (inventory <= 0) return { label: "Out of Stock", color: "bg-red-500/10 text-red-400", priority: 1 };
-    if (inventory <= CRITICAL_STOCK_THRESHOLD) return { label: "Critical", color: "bg-red-500/10 text-red-400", priority: 2 };
-    if (inventory < LOW_STOCK_THRESHOLD) return { label: "Low", color: "bg-amber-500/10 text-amber-400", priority: 3 };
-    return { label: "In Stock", color: "bg-emerald-500/10 text-emerald-400", priority: 4 };
+    if (inventory <= 0) return { label: "Hết hàng", color: "bg-red-500/10 text-red-400", priority: 1 };
+    if (inventory <= CRITICAL_STOCK_THRESHOLD) return { label: "Nguy hiểm", color: "bg-red-500/10 text-red-400", priority: 2 };
+    if (inventory < LOW_STOCK_THRESHOLD) return { label: "Sắp hết", color: "bg-amber-500/10 text-amber-400", priority: 3 };
+    return { label: "Còn hàng", color: "bg-emerald-500/10 text-emerald-400", priority: 4 };
   };
 
   const openDrawer = (product: InventoryProduct) => {
@@ -158,8 +158,8 @@ export default function AdminInventoryPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-zinc-100">Inventory</h1>
-          <p className="text-sm text-zinc-500 mt-0.5">Stock management & low stock alerts</p>
+          <h1 className="text-xl font-semibold text-zinc-100">Kho hàng</h1>
+          <p className="text-sm text-zinc-500 mt-0.5">Quản lý tồn kho & cảnh báo hết hàng</p>
         </div>
         <div className="flex items-center gap-2">
           <button 
@@ -168,11 +168,11 @@ export default function AdminInventoryPage() {
             className="px-3.5 py-2 rounded-md border border-zinc-700 bg-zinc-900 text-sm font-medium text-zinc-300 hover:bg-zinc-800 transition-colors flex items-center gap-2"
           >
             <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-            Refresh
+            Làm mới
           </button>
           <button className="px-3.5 py-2 rounded-md border border-zinc-700 bg-zinc-900 text-sm font-medium text-zinc-300 hover:bg-zinc-800 transition-colors flex items-center gap-2">
             <Download className="h-4 w-4" />
-            Export
+            Xuất dữ liệu
           </button>
         </div>
       </div>
@@ -183,10 +183,10 @@ export default function AdminInventoryPage() {
           <div className="flex items-start gap-3">
             <AlertTriangle className="h-5 w-5 text-red-400 mt-0.5" />
             <div>
-              <h3 className="text-sm font-semibold text-red-400">Attention Required</h3>
+              <h3 className="text-sm font-semibold text-red-400">Cần chú ý</h3>
               <p className="text-xs text-zinc-400 mt-1">
-                {stats.outOfStock > 0 && `${stats.outOfStock} products out of stock. `}
-                {stats.critical > 0 && `${stats.critical} products at critical level (<${CRITICAL_STOCK_THRESHOLD} units).`}
+                {stats.outOfStock > 0 && `${stats.outOfStock} sản phẩm hết hàng. `}
+                {stats.critical > 0 && `${stats.critical} sản phẩm ở mức nguy hiểm (<${CRITICAL_STOCK_THRESHOLD} đơn vị).`}
               </p>
             </div>
           </div>
@@ -196,23 +196,23 @@ export default function AdminInventoryPage() {
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <div className="rounded-lg border border-zinc-700/50 bg-[#111113] p-4">
-          <p className="text-xs font-medium text-zinc-500 uppercase">Total Products</p>
+          <p className="text-xs font-medium text-zinc-500 uppercase">Tổng sản phẩm</p>
           <p className="text-2xl font-bold text-zinc-100 mt-1">{stats.total}</p>
         </div>
         <div className="rounded-lg border border-zinc-700/50 bg-[#111113] p-4">
-          <p className="text-xs font-medium text-zinc-500 uppercase">In Stock</p>
+          <p className="text-xs font-medium text-zinc-500 uppercase">Còn hàng</p>
           <p className="text-2xl font-bold text-emerald-400 mt-1">{stats.inStock}</p>
         </div>
         <div className="rounded-lg border border-zinc-700/50 bg-[#111113] p-4">
-          <p className="text-xs font-medium text-zinc-500 uppercase">Low Stock</p>
+          <p className="text-xs font-medium text-zinc-500 uppercase">Sắp hết</p>
           <p className="text-2xl font-bold text-amber-400 mt-1">{stats.low}</p>
         </div>
         <div className="rounded-lg border border-zinc-700/50 bg-[#111113] p-4">
-          <p className="text-xs font-medium text-zinc-500 uppercase">Critical</p>
+          <p className="text-xs font-medium text-zinc-500 uppercase">Nguy hiểm</p>
           <p className="text-2xl font-bold text-orange-400 mt-1">{stats.critical}</p>
         </div>
         <div className="rounded-lg border border-zinc-700/50 bg-[#111113] p-4">
-          <p className="text-xs font-medium text-zinc-500 uppercase">Out of Stock</p>
+          <p className="text-xs font-medium text-zinc-500 uppercase">Hết hàng</p>
           <p className="text-2xl font-bold text-red-400 mt-1">{stats.outOfStock}</p>
         </div>
       </div>
@@ -224,7 +224,7 @@ export default function AdminInventoryPage() {
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
             <input
               type="text"
-              placeholder="Search by name, SKU, category..."
+              placeholder="Tìm theo tên, SKU, danh mục..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="h-9 w-full rounded-md border border-zinc-700 bg-zinc-900 pl-9 pr-8 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-teal-500 focus:outline-none"
@@ -242,18 +242,18 @@ export default function AdminInventoryPage() {
               onChange={(e) => setStockFilter(e.target.value)}
               className="h-9 rounded-md border border-zinc-700 bg-zinc-900 px-3 text-sm text-zinc-100"
             >
-              <option value="ALL">All Stock</option>
-              <option value="IN_STOCK">In Stock</option>
-              <option value="LOW">Low Stock</option>
-              <option value="CRITICAL">Critical</option>
-              <option value="OUT">Out of Stock</option>
+              <option value="ALL">Tất cả</option>
+              <option value="IN_STOCK">Còn hàng</option>
+              <option value="LOW">Sắp hết</option>
+              <option value="CRITICAL">Nguy hiểm</option>
+              <option value="OUT">Hết hàng</option>
             </select>
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
               className="h-9 rounded-md border border-zinc-700 bg-zinc-900 px-3 text-sm text-zinc-100"
             >
-              <option value="">All Categories</option>
+              <option value="">Tất cả danh mục</option>
               {categories.map(cat => (
                 <option key={cat} value={cat}>{cat}</option>
               ))}
@@ -267,13 +267,13 @@ export default function AdminInventoryPage() {
         <table className="w-full">
           <thead>
             <tr className="border-b border-zinc-700/50 bg-zinc-900/50">
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Product</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Sản phẩm</th>
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">SKU</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Category</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Price</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Stock</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Status</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Quick Adj</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Danh mục</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Giá</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Tồn kho</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Trạng thái</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Điều chỉnh</th>
               <th className="w-10 px-4 py-3"></th>
             </tr>
           </thead>
@@ -295,7 +295,7 @@ export default function AdminInventoryPage() {
               <tr>
                 <td colSpan={8} className="px-4 py-20 text-center">
                   <Package className="mx-auto h-10 w-10 text-zinc-500" />
-                  <h3 className="mt-4 text-sm font-medium text-zinc-400">No products found</h3>
+                  <h3 className="mt-4 text-sm font-medium text-zinc-400">Không tìm thấy sản phẩm</h3>
                 </td>
               </tr>
             ) : (
@@ -306,7 +306,7 @@ export default function AdminInventoryPage() {
                     <td className="px-4 py-4">
                       <div>
                         <p className="text-sm font-medium text-zinc-200">{product.name}</p>
-                        <p className="text-xs text-zinc-500">{product.soldCount} sold</p>
+                        <p className="text-xs text-zinc-500">{product.soldCount} đã bán</p>
                       </div>
                     </td>
                     <td className="px-4 py-4 text-sm text-zinc-400 font-mono">
@@ -389,7 +389,7 @@ function InventoryDrawer({ product, open, onClose, onAdjust }: { product: Invent
       <div className="fixed right-0 top-0 z-50 h-screen w-full max-w-md border-l border-zinc-700/50 bg-[#0A0A0B] shadow-xl overflow-y-auto">
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-zinc-700/50 bg-[#0A0A0B] px-4 py-4">
           <div>
-            <h2 className="text-lg font-semibold text-zinc-100">Inventory Details</h2>
+            <h2 className="text-lg font-semibold text-zinc-100">Chi tiết tồn kho</h2>
             <p className="text-xs text-zinc-500 mt-0.5">{product?.name}</p>
           </div>
           <button onClick={onClose} className="p-2 rounded-md text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800">
@@ -407,7 +407,7 @@ function InventoryDrawer({ product, open, onClose, onAdjust }: { product: Invent
                 </span>
                 <span className="text-2xl font-bold text-zinc-100">{product.inventory}</span>
               </div>
-              <p className="text-xs text-zinc-500 mt-2">Current stock level</p>
+              <p className="text-xs text-zinc-500 mt-2">Mức tồn kho hiện tại</p>
             </div>
 
             {/* Product Info */}
@@ -417,34 +417,34 @@ function InventoryDrawer({ product, open, onClose, onAdjust }: { product: Invent
                 <span className="text-sm font-mono text-zinc-300">{product.sku || '-'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-xs text-zinc-500">Category</span>
+                <span className="text-xs text-zinc-500">Danh mục</span>
                 <span className="text-sm text-zinc-300">{product.category}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-xs text-zinc-500">Price</span>
+                <span className="text-xs text-zinc-500">Giá</span>
                 <span className="text-sm font-semibold text-zinc-200">{formatPrice(product.price)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-xs text-zinc-500">Total Sold</span>
+                <span className="text-xs text-zinc-500">Đã bán</span>
                 <span className="text-sm text-zinc-300">{product.soldCount}</span>
               </div>
             </div>
 
             {/* Quick Actions */}
             <div className="rounded-lg border border-zinc-700/50 bg-[#111113] p-4">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-3">Quick Actions</h3>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-3">Thao tác nhanh</h3>
               <div className="grid grid-cols-2 gap-2">
                 <button onClick={() => void onAdjust(product.id, 10)} className="px-3 py-2 rounded-md border border-zinc-700 bg-zinc-900 text-xs text-zinc-300 hover:bg-zinc-800">
-                  +10 Stock
+                  +10 Tồn kho
                 </button>
                 <button onClick={() => void onAdjust(product.id, 50)} className="px-3 py-2 rounded-md border border-zinc-700 bg-zinc-900 text-xs text-zinc-300 hover:bg-zinc-800">
-                  +50 Stock
+                  +50 Tồn kho
                 </button>
-                <button disabled className="px-3 py-2 rounded-md border border-zinc-700 bg-zinc-900 text-xs text-zinc-500 cursor-not-allowed opacity-50">
-                  Reorder
+                <button disabled className="px-3 py-2 rounded-md border border-zinc-700 bg-zinc-900 text-xs text-zinc-500 cursor-not-allowed opacity-50" title="Tính năng đang phát triển">
+                  Đặt hàng lại
                 </button>
                 <Link href={`/admin/products/${product.id}/edit`} onClick={onClose} className="px-3 py-2 rounded-md border border-zinc-700 bg-zinc-900 text-xs text-zinc-300 hover:bg-zinc-800 text-center">
-                  View Product
+                  Xem sản phẩm
                 </Link>
               </div>
             </div>
@@ -456,8 +456,8 @@ function InventoryDrawer({ product, open, onClose, onAdjust }: { product: Invent
 }
 
 function getStockStatus(inventory: number) {
-  if (inventory <= 0) return { label: "Out of Stock", color: "bg-red-500/10 text-red-400", priority: 1 };
-  if (inventory <= CRITICAL_STOCK_THRESHOLD) return { label: "Critical", color: "bg-red-500/10 text-red-400", priority: 2 };
-  if (inventory < LOW_STOCK_THRESHOLD) return { label: "Low", color: "bg-amber-500/10 text-amber-400", priority: 3 };
-  return { label: "In Stock", color: "bg-emerald-500/10 text-emerald-400", priority: 4 };
+  if (inventory <= 0) return { label: "Hết hàng", color: "bg-red-500/10 text-red-400", priority: 1 };
+  if (inventory <= CRITICAL_STOCK_THRESHOLD) return { label: "Nguy hiểm", color: "bg-red-500/10 text-red-400", priority: 2 };
+  if (inventory < LOW_STOCK_THRESHOLD) return { label: "Sắp hết", color: "bg-amber-500/10 text-amber-400", priority: 3 };
+  return { label: "Còn hàng", color: "bg-emerald-500/10 text-emerald-400", priority: 4 };
 }

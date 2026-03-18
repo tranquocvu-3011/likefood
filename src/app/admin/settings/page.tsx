@@ -218,11 +218,11 @@ export default function AdminSettingsPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(data?.error || "Unable to save settings.");
+        throw new Error(data?.error || "Không thể lưu cài đặt.");
       }
       toast.success("Đã lưu cài đặt hệ thống.");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Unable to save settings.");
+      toast.error(error instanceof Error ? error.message : "Không thể lưu cài đặt.");
     } finally {
       setIsSavingSettings(false);
     }
@@ -1019,35 +1019,44 @@ export default function AdminSettingsPage() {
         .admin-input {
           width: 100%;
           min-height: 3.35rem;
-          border-radius: 1rem;
-          border: 1px solid rgb(226 232 240);
-          background: rgb(248 250 252);
+          border-radius: 0.75rem;
+          border: 1px solid rgb(63 63 70);
+          background: rgb(17 17 19);
           padding: 0.875rem 1rem;
-          font-size: 0.95rem;
-          font-weight: 600;
-          color: rgb(15 23 42);
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: rgb(244 244 245);
           outline: none;
-          transition: border-color 0.2s ease, background-color 0.2s ease;
+          transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .admin-input::placeholder {
+          color: rgb(113 113 122);
         }
         .admin-input:focus {
-          border-color: rgba(15, 23, 42, 0.32);
-          background: white;
+          border-color: rgb(20 184 166 / 0.5);
+          box-shadow: 0 0 0 3px rgb(20 184 166 / 0.1);
+          background: rgb(17 17 19);
         }
         .admin-textarea {
           width: 100%;
-          border-radius: 1.15rem;
-          border: 1px solid rgb(226 232 240);
-          background: rgb(248 250 252);
+          border-radius: 0.75rem;
+          border: 1px solid rgb(63 63 70);
+          background: rgb(17 17 19);
           padding: 1rem;
-          font-size: 0.95rem;
-          font-weight: 500;
-          color: rgb(15 23 42);
+          font-size: 0.875rem;
+          font-weight: 400;
+          color: rgb(244 244 245);
           outline: none;
-          transition: border-color 0.2s ease, background-color 0.2s ease;
+          resize: vertical;
+          transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .admin-textarea::placeholder {
+          color: rgb(113 113 122);
         }
         .admin-textarea:focus {
-          border-color: rgba(15, 23, 42, 0.32);
-          background: white;
+          border-color: rgb(20 184 166 / 0.5);
+          box-shadow: 0 0 0 3px rgb(20 184 166 / 0.1);
+          background: rgb(17 17 19);
         }
       `}</style>
     </AdminPageContainer>

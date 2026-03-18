@@ -72,11 +72,11 @@ export default function CustomersPage() {
       if (search) params.set('search', search);
       const response = await fetch(`/api/admin/customers?${params.toString()}`);
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error('Failed to load customers');
+      if (!response.ok) throw new Error('Không thể tải danh sách khách hàng');
       setCustomers(Array.isArray(data.customers) ? data.customers : []);
       setTotal(data.pagination?.total || 0);
     } catch {
-      toast.error('Failed to load customers');
+      toast.error('Không thể tải danh sách khách hàng');
     } finally {
       setIsLoading(false);
     }
@@ -185,9 +185,12 @@ export default function CustomersPage() {
             <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
           </button>
-          <button disabled className="px-3.5 py-2 rounded-md border border-zinc-700 bg-zinc-900 text-sm font-medium text-zinc-500 cursor-not-allowed opacity-50 flex items-center gap-2" title="Tính năng đang phát triển">
+          <button
+            onClick={() => { window.open('/api/admin/export?type=customers', '_blank'); toast.success('Đang xuất dữ liệu khách hàng...'); }}
+            className="px-3.5 py-2 rounded-md border border-zinc-700 bg-zinc-900 text-sm font-medium text-zinc-300 hover:bg-zinc-800 transition-colors flex items-center gap-2"
+          >
             <Download className="h-4 w-4" />
-            Export
+            Xuất dữ liệu
           </button>
         </div>
       </div>
@@ -195,19 +198,19 @@ export default function CustomersPage() {
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="rounded-lg border border-zinc-700/50 bg-[#111113] p-4">
-          <p className="text-xs font-medium text-zinc-500 uppercase">Total Customers</p>
+          <p className="text-xs font-medium text-zinc-500 uppercase">Tổng khách hàng</p>
           <p className="text-2xl font-bold text-zinc-100 mt-1">{stats.totalCustomers}</p>
         </div>
         <div className="rounded-lg border border-zinc-700/50 bg-[#111113] p-4">
-          <p className="text-xs font-medium text-zinc-500 uppercase">Total Revenue</p>
+          <p className="text-xs font-medium text-zinc-500 uppercase">Tổng doanh thu</p>
           <p className="text-2xl font-bold text-teal-400 mt-1">{formatPrice(stats.totalRevenue)}</p>
         </div>
         <div className="rounded-lg border border-zinc-700/50 bg-[#111113] p-4">
-          <p className="text-xs font-medium text-zinc-500 uppercase">Avg. Spend</p>
+          <p className="text-xs font-medium text-zinc-500 uppercase">Chi tiêu TB</p>
           <p className="text-2xl font-bold text-zinc-100 mt-1">{formatPrice(stats.avgSpend)}</p>
         </div>
         <div className="rounded-lg border border-zinc-700/50 bg-[#111113] p-4">
-          <p className="text-xs font-medium text-zinc-500 uppercase">Repeat Customers</p>
+          <p className="text-xs font-medium text-zinc-500 uppercase">Khách quay lại</p>
           <p className="text-2xl font-bold text-emerald-400 mt-1">{stats.repeatCustomers}</p>
         </div>
       </div>
@@ -440,7 +443,7 @@ function CustomerDrawer({
 
             {/* Contact Info */}
             <div className="rounded-lg border border-zinc-700/50 bg-[#111113] p-4 space-y-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Contact</h3>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Liên hệ</h3>
               <div className="flex items-center gap-2 text-sm text-zinc-300">
                 <Mail className="h-4 w-4 text-zinc-500" />
                 {customer.email}

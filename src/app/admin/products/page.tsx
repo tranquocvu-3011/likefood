@@ -108,13 +108,13 @@ export default function AdminProductsPage() {
       // Use admin products API (shows hidden products too)
       const response = await fetch(`/api/admin/products?${params.toString()}`);
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data?.error || "Failed to load products");
+      if (!response.ok) throw new Error(data?.error || "Không thể tải danh sách sản phẩm");
 
       const productList = Array.isArray(data.products) ? data.products : [];
       setProducts(productList);
       setTotal(data.pagination?.total || 0);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to load products");
+      toast.error(error instanceof Error ? error.message : "Không thể tải danh sách sản phẩm");
     } finally {
       setIsLoading(false);
     }
@@ -141,11 +141,11 @@ export default function AdminProductsPage() {
     try {
       const response = await fetch(`/api/products?id=${productId}`, { method: "DELETE" });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data?.error || "Failed to delete");
-      toast.success("Product deleted");
+      if (!response.ok) throw new Error(data?.error || "Không thể xóa sản phẩm");
+      toast.success("Đã xóa sản phẩm");
       await fetchProducts();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to delete");
+      toast.error(error instanceof Error ? error.message : "Không thể xóa sản phẩm");
     } finally {
       setDeleteId(null);
     }
@@ -161,8 +161,8 @@ export default function AdminProductsPage() {
         if (!res.ok) failed++;
       } catch { failed++; }
     }));
-    if (failed > 0) toast.error(`${failed} products failed to delete`);
-    else toast.success(`${ids.length} products deleted`);
+    if (failed > 0) toast.error(`${failed} sản phẩm không thể xóa`);
+    else toast.success(`Đã xóa ${ids.length} sản phẩm`);
     setSelectedProducts(new Set());
     await fetchProducts();
   };
@@ -181,8 +181,8 @@ export default function AdminProductsPage() {
         if (!res.ok) failed++;
       } catch { failed++; }
     }));
-    if (failed > 0) toast.error(`${failed} products failed to update`);
-    else toast.success(`${ids.length} products set as featured`);
+    if (failed > 0) toast.error(`${failed} sản phẩm không thể cập nhật`);
+    else toast.success(`Đã đánh dấu ${ids.length} sản phẩm nổi bật`);
     setSelectedProducts(new Set());
     await fetchProducts();
   };

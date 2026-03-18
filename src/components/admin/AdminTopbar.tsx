@@ -34,6 +34,9 @@ const PATH_LABELS: Record<string, string> = {
     menu: "Menu",
     homepage: "Trang chủ",
     verify: "Xác thực",
+    newsletter: "Email đăng ký",
+    feedback: "Phản hồi",
+    "contact-messages": "Tin nhắn liên hệ",
 };
 
 interface AdminTopbarProps {
@@ -95,7 +98,7 @@ export default function AdminTopbar({ onOpenCommandPalette }: AdminTopbarProps) 
                     type="button"
                     onClick={onOpenCommandPalette}
                     className="hidden sm:flex items-center gap-1.5 rounded-lg border border-zinc-700/40 bg-zinc-900/80 px-3 py-2 text-[12px] text-zinc-400 transition hover:border-zinc-700 hover:text-zinc-100"
-                    title="Open command palette"
+                    title="Tìm nhanh (Ctrl+K)"
                 >
                     <Command className="h-3 w-3" />
                     <span>Tìm nhanh</span>
@@ -105,7 +108,7 @@ export default function AdminTopbar({ onOpenCommandPalette }: AdminTopbarProps) 
                 <button
                     type="button"
                     className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-700/40 bg-zinc-900/80 text-zinc-400 transition hover:border-zinc-700 hover:text-zinc-100"
-                    title="Notifications"
+                    title="Thông báo"
                 >
                     <Bell className="h-4 w-4" />
                 </button>

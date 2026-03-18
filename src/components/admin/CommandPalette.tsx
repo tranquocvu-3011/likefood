@@ -41,33 +41,33 @@ interface CommandItem {
 }
 
 const COMMANDS: CommandItem[] = [
-  // Navigation
-  { id: 'nav-dashboard', label: 'Go to Dashboard', icon: Home, href: '/admin', category: 'Navigation' },
-  { id: 'nav-orders', label: 'Go to Orders', icon: ClipboardList, href: '/admin/orders', category: 'Navigation' },
-  { id: 'nav-products', label: 'Go to Products', icon: Package, href: '/admin/products', category: 'Navigation' },
-  { id: 'nav-customers', label: 'Go to Customers', icon: Users, href: '/admin/customers', category: 'Navigation' },
-  { id: 'nav-inventory', label: 'Go to Inventory', icon: Database, href: '/admin/inventory', category: 'Navigation' },
-  { id: 'nav-analytics', label: 'Go to Analytics', icon: BarChart3, href: '/admin/analytics', category: 'Navigation' },
-  { id: 'nav-ai', label: 'Go to AI Insights', icon: Sparkles, href: '/admin/ai', category: 'Navigation' },
-  { id: 'nav-settings', label: 'Go to Settings', icon: Settings, href: '/admin/settings', category: 'Navigation' },
+  // Điều hướng
+  { id: 'nav-dashboard', label: 'Bảng điều khiển', icon: Home, href: '/admin', category: 'Điều hướng' },
+  { id: 'nav-orders', label: 'Đơn hàng', icon: ClipboardList, href: '/admin/orders', category: 'Điều hướng' },
+  { id: 'nav-products', label: 'Sản phẩm', icon: Package, href: '/admin/products', category: 'Điều hướng' },
+  { id: 'nav-customers', label: 'Khách hàng', icon: Users, href: '/admin/customers', category: 'Điều hướng' },
+  { id: 'nav-inventory', label: 'Kho hàng', icon: Database, href: '/admin/inventory', category: 'Điều hướng' },
+  { id: 'nav-analytics', label: 'Phân tích', icon: BarChart3, href: '/admin/analytics', category: 'Điều hướng' },
+  { id: 'nav-ai', label: 'AI Insights', icon: Sparkles, href: '/admin/ai', category: 'Điều hướng' },
+  { id: 'nav-settings', label: 'Cài đặt', icon: Settings, href: '/admin/settings', category: 'Điều hướng' },
   
-  // Quick Actions
-  { id: 'action-new-product', label: 'Create New Product', icon: Plus, href: '/admin/products/new', category: 'Quick Actions' },
-  { id: 'action-new-order', label: 'View Recent Orders', icon: ClipboardList, href: '/admin/orders', category: 'Quick Actions' },
-  { id: 'action-check-stock', label: 'Check Low Stock', icon: Package, href: '/admin/inventory', category: 'Quick Actions' },
+  // Thao tác nhanh
+  { id: 'action-new-product', label: 'Tạo sản phẩm mới', icon: Plus, href: '/admin/products/new', category: 'Thao tác nhanh' },
+  { id: 'action-new-order', label: 'Xem đơn hàng gần đây', icon: ClipboardList, href: '/admin/orders', category: 'Thao tác nhanh' },
+  { id: 'action-check-stock', label: 'Kiểm tra tồn kho thấp', icon: Package, href: '/admin/inventory', category: 'Thao tác nhanh' },
   
-  // Catalog
-  { id: 'cat-categories', label: 'Manage Categories', icon: FolderTree, href: '/admin/categories', category: 'Catalog' },
-  { id: 'cat-brands', label: 'Manage Brands', icon: Tag, href: '/admin/brands', category: 'Catalog' },
-  { id: 'cat-coupons', label: 'Manage Coupons', icon: Megaphone, href: '/admin/coupons', category: 'Catalog' },
+  // Danh mục
+  { id: 'cat-categories', label: 'Quản lý phân loại', icon: FolderTree, href: '/admin/categories', category: 'Danh mục' },
+  { id: 'cat-brands', label: 'Quản lý thương hiệu', icon: Tag, href: '/admin/brands', category: 'Danh mục' },
+  { id: 'cat-coupons', label: 'Quản lý mã giảm giá', icon: Megaphone, href: '/admin/coupons', category: 'Danh mục' },
   
-  // Operations
-  { id: 'ops-shipping', label: 'Shipping Settings', icon: Truck, href: '/admin/settings', category: 'Operations' },
-  { id: 'ops-payments', label: 'Payment Settings', icon: Shield, href: '/admin/settings', category: 'Operations' },
+  // Vận hành
+  { id: 'ops-shipping', label: 'Cài đặt vận chuyển', icon: Truck, href: '/admin/settings', category: 'Vận hành' },
+  { id: 'ops-payments', label: 'Cài đặt thanh toán', icon: Shield, href: '/admin/settings', category: 'Vận hành' },
   
-  // Content
-  { id: 'content-posts', label: 'Manage Posts', icon: FileText, href: '/admin/posts', category: 'Content' },
-  { id: 'content-pages', label: 'Manage Pages', icon: FileText, href: '/admin/pages', category: 'Content' },
+  // Nội dung
+  { id: 'content-posts', label: 'Quản lý bài viết', icon: FileText, href: '/admin/posts', category: 'Nội dung' },
+  { id: 'content-pages', label: 'Quản lý trang', icon: FileText, href: '/admin/pages', category: 'Nội dung' },
 ];
 
 interface CommandPaletteProps {
@@ -147,7 +147,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             <input
               ref={inputRef}
               type="text"
-              placeholder="Search commands, pages, actions..."
+              placeholder="Tìm lệnh, trang, thao tác..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -168,7 +168,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
           <div className="max-h-[60vh] overflow-y-auto py-2">
             {flatCommands.length === 0 ? (
               <div className="px-4 py-8 text-center text-sm text-zinc-500">
-                No results found for &quot;{search}&quot;
+                Không tìm thấy kết quả cho &quot;{search}&quot;
               </div>
             ) : (
               Object.entries(groupedCommands).map(([category, commands]) => (
@@ -208,15 +208,15 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             <div className="flex items-center gap-4">
               <span className="flex items-center gap-1">
                 <kbd className="rounded border border-zinc-700 bg-zinc-900 px-1.5 py-0.5">↑↓</kbd>
-                Navigate
+                Di chuyển
               </span>
               <span className="flex items-center gap-1">
                 <kbd className="rounded border border-zinc-700 bg-zinc-900 px-1.5 py-0.5">↵</kbd>
-                Select
+                Chọn
               </span>
               <span className="flex items-center gap-1">
                 <kbd className="rounded border border-zinc-700 bg-zinc-900 px-1.5 py-0.5">esc</kbd>
-                Close
+                Đóng
               </span>
             </div>
           </div>
