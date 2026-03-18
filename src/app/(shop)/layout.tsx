@@ -7,7 +7,7 @@
 
 import Navbar from "@/components/shared/Navbar";
 import Footer from "@/components/shared/Footer";
-import ChatbotAIUltimate from "@/components/shared/ChatbotAIUltimate";
+import ChatbotAI from "@/components/shared/ChatbotAI";
 import ContactLauncher from "@/components/shared/ContactLauncher";
 import MobileBottomNav from "@/components/navbar/MobileBottomNav";
 import IdleSessionWrapper from "@/components/auth/IdleSessionWrapper";
@@ -31,7 +31,7 @@ export default function ShopLayout({
                     </IdleSessionWrapper>
                 </main>
                 <Footer />
-                <ChatbotAIUltimate />
+                <ChatbotAI />
                 <ContactLauncher />
                 <MobileBottomNav />
                 <AbandonedCartTracker />
