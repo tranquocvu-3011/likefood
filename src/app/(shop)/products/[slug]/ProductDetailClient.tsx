@@ -12,7 +12,7 @@ import { useParams, useRouter } from "next/navigation";
 import {
     Star, Heart, Share2, ShoppingCart, Truck, 
     Loader2, Flame, Zap, ChevronRight, Package, ShoppingBag,
-    ChevronDown, Shield, RefreshCw, CreditCard, Info
+    ChevronDown, Shield, RefreshCw, CreditCard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
@@ -24,7 +24,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { RelatedProduct } from "@/types/product";
 import { logger } from "@/lib/logger";
-import ProductSpecifications from "@/components/product/ProductSpecifications";
+
 import ProductStructuredData from "@/components/seo/ProductStructuredData";
 import { useLanguage } from "@/lib/i18n/context";
 import { formatPrice, formatVndEquivalent } from "@/lib/currency";
@@ -45,7 +45,7 @@ const FrequentlyBoughtTogether = dynamic(() => import("@/components/product/Freq
 });
 
 import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/commerce";
-import { SizeGuide, SizeGuideButton } from "@/components/product-size-guide/SizeGuide";
+
 import StickyBuyBar from "@/components/product/StickyBuyBar";
 import { motion } from "framer-motion";
 
@@ -108,8 +108,7 @@ export interface ProductDetailClientProps {
     initialRelated?: RelatedProduct[];
 }
 
-/* ─── Tab type for description/specs ─── */
-type DetailTab = "description" | "specs";
+
 
 export default function ProductDetailClient({ initialProduct, initialRelated }: ProductDetailClientProps) {
     const params = useParams();
@@ -124,9 +123,8 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
     const [error, setError] = useState<string | null>(null);
     const [isAddingToCart, setIsAddingToCart] = useState(false);
     const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
-    const [showSizeGuide, setShowSizeGuide] = useState(false);
+
     const [descExpanded, setDescExpanded] = useState(false);
-    const [activeTab, setActiveTab] = useState<DetailTab>("description");
     const { t, language } = useLanguage();
 
     // Auto-format description
@@ -595,7 +593,7 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
                                                 {t("shop.share")}
                                             </button>
                                         </div>
-                                        <SizeGuideButton onClick={() => setShowSizeGuide(true)} />
+
                                     </div>
                                 </div>
                             </div>
@@ -617,95 +615,42 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
                         </motion.div>
                     </div>
 
-                    {/* ══════════ DETAIL TABS: Description + Specs ══════════ */}
+                    {/* ══════════ MÔ TẢ SẢN PHẨM ══════════ */}
                     <div className="mt-8">
-                        {/* Tab headers */}
-                        <div className="flex border-b border-slate-200">
-                            <button
-                                type="button"
-                                onClick={() => setActiveTab("description")}
-                                className={`px-5 py-2.5 text-sm font-bold transition-all relative ${
-                                    activeTab === "description"
-                                        ? "text-emerald-600"
-                                        : "text-slate-400 hover:text-slate-600"
-                                }`}
-                            >
-                                <Info className="w-4 h-4 inline mr-1.5" />
-                                {language === "vi" ? "Mô tả sản phẩm" : "Description"}
-                                {activeTab === "description" && (
-                                    <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-500 rounded-full" />
-                                )}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setActiveTab("specs")}
-                                className={`px-5 py-2.5 text-sm font-bold transition-all relative ${
-                                    activeTab === "specs"
-                                        ? "text-emerald-600"
-                                        : "text-slate-400 hover:text-slate-600"
-                                }`}
-                            >
-                                <Package className="w-4 h-4 inline mr-1.5" />
-                                {language === "vi" ? "Thông số" : "Specifications"}
-                                {activeTab === "specs" && (
-                                    <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-500 rounded-full" />
-                                )}
-                            </button>
-                        </div>
-
-                        {/* Tab content */}
-                        <div className="bg-white rounded-b-2xl border-x border-b border-slate-100 shadow-sm">
-                            {activeTab === "description" && (
-                                <div>
-                                    <div className={`relative ${!descExpanded && descriptionSections.length > 2 ? 'max-h-[280px] overflow-hidden' : ''}`}>
-                                        <div className="p-5 space-y-4">
-                                            {descriptionSections.map((section, idx) => (
-                                                <div key={idx}>
-                                                    {section.title && (
-                                                        <h3 className="flex items-center gap-1.5 text-sm font-bold text-slate-800 mb-1.5">
-                                                            <span>{section.emoji}</span>
-                                                            {section.title}
-                                                        </h3>
-                                                    )}
-                                                    <p className="text-[13px] text-slate-600 leading-relaxed whitespace-pre-line">{section.content}</p>
-                                                </div>
-                                            ))}
+                        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm">
+                            <div className={`relative ${!descExpanded && descriptionSections.length > 2 ? 'max-h-[280px] overflow-hidden' : ''}`}>
+                                <div className="p-5 space-y-4">
+                                    {descriptionSections.map((section, idx) => (
+                                        <div key={idx}>
+                                            {section.title && (
+                                                <h3 className="flex items-center gap-1.5 text-sm font-bold text-slate-800 mb-1.5">
+                                                    <span>{section.emoji}</span>
+                                                    {section.title}
+                                                </h3>
+                                            )}
+                                            <p className="text-[13px] text-slate-600 leading-relaxed whitespace-pre-line">{section.content}</p>
                                         </div>
-                                        {!descExpanded && descriptionSections.length > 2 && (
-                                            <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent" />
-                                        )}
-                                    </div>
-                                    {descriptionSections.length > 2 && (
-                                        <button
-                                            type="button"
-                                            onClick={() => setDescExpanded(!descExpanded)}
-                                            className="w-full py-3 flex items-center justify-center gap-1.5 text-xs font-bold text-emerald-600 hover:bg-emerald-50/50 transition-colors border-t border-slate-100"
-                                        >
-                                            {descExpanded ? (language === "vi" ? "Thu gọn" : "Show less") : (language === "vi" ? "Xem thêm" : "Show more")}
-                                            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${descExpanded ? 'rotate-180' : ''}`} />
-                                        </button>
-                                    )}
+                                    ))}
                                 </div>
-                            )}
-
-                            {activeTab === "specs" && (
-                                <div className="p-5">
-                                    <ProductSpecifications slug={slug} />
-                                </div>
+                                {!descExpanded && descriptionSections.length > 2 && (
+                                    <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent" />
+                                )}
+                            </div>
+                            {descriptionSections.length > 2 && (
+                                <button
+                                    type="button"
+                                    onClick={() => setDescExpanded(!descExpanded)}
+                                    className="w-full py-3 flex items-center justify-center gap-1.5 text-xs font-bold text-emerald-600 hover:bg-emerald-50/50 transition-colors border-t border-slate-100"
+                                >
+                                    {descExpanded ? (language === "vi" ? "Thu gọn" : "Show less") : (language === "vi" ? "Xem thêm" : "Show more")}
+                                    <ChevronDown className={`w-3.5 h-3.5 transition-transform ${descExpanded ? 'rotate-180' : ''}`} />
+                                </button>
                             )}
                         </div>
                     </div>
 
                     {/* ══════════ FREQUENTLY BOUGHT TOGETHER ══════════ */}
                     <section className="mt-8">
-                        <div className="flex items-center gap-2 mb-4">
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-orange-400 to-amber-500 flex items-center justify-center shadow-sm">
-                                <ShoppingBag className="w-4 h-4 text-white" />
-                            </div>
-                            <h2 className="text-lg font-black text-slate-900">
-                                {language === "vi" ? "Thường mua cùng" : "Frequently Bought Together"}
-                            </h2>
-                        </div>
                         <FrequentlyBoughtTogether
                             currentProduct={{
                                 id: product.id,
@@ -748,7 +693,7 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
                                 </div>
                                 <h2 className="text-lg font-black text-slate-900">{t("shop.relatedProducts")}</h2>
                             </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                                 {relatedProducts.map((rp) => (
                                     <ProductCard key={rp.id} product={rp} />
                                 ))}
@@ -756,8 +701,7 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
                         </section>
                     )}
 
-                    {/* Size Guide Modal */}
-                    <SizeGuide isOpen={showSizeGuide} onClose={() => setShowSizeGuide(false)} productName={product.name} />
+
                 </div>
             </div>
             <StickyBuyBar

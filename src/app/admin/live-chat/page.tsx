@@ -8,7 +8,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { 
-  MessageCircle, Send, X, CheckCheck, Clock, 
+  MessageCircle, Send, CheckCheck, Clock, 
   RefreshCw, ChevronLeft, Bot, Loader2, UserCheck, ShieldX
 } from "lucide-react";
 

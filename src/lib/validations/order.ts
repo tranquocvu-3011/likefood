@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod';
-import { cuidSchema, phoneSchema, emailSchema, positiveNumberSchema } from './common';
+import { cuidSchema, phoneSchema, emailSchema } from './common';
 
 /**
  * Order validation schemas

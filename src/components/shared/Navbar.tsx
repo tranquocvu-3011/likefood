@@ -8,14 +8,11 @@
  */
 
 import Link from "next/link";
-import Image from "next/image";
-import ImageWithFallback from "@/components/shared/ImageWithFallback";
-import {
+import Image from "next/image";import {
     ShoppingCart, User, Search, Menu, X, ChevronDown,
-    Heart, Phone, Sparkles, Headphones, Home, Flame,
+    Heart, Phone, Home, Flame,
     Settings, FileText, ShoppingBag, Info,
-    HelpCircle, Gift, Package, UserPlus,
-} from "lucide-react";
+    HelpCircle, Gift, UserPlus } from "lucide-react";
 import { useState, useEffect, Suspense, useRef, useCallback } from "react";
 import { useCartState } from "@/contexts/CartContext";
 import { useSession } from "next-auth/react";

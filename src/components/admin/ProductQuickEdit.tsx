@@ -6,7 +6,7 @@
  * Copyright (c) 2026 LIKEFOOD Team
  */
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { X, Save, Loader2, Check, Package, DollarSign, Tag, Archive } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";

@@ -19,8 +19,6 @@ import StripeSdk from "stripe";
 import { getSystemSettingTrimmed } from "@/lib/system-settings";
 import { normalizeOrderStatus, POINTS_PER_DOLLAR } from "@/lib/commerce";
 import { notifyPaymentSuccess } from "@/lib/telegram";
-import { encrypt } from "@/lib/encryption";
-
 export async function POST(req: Request) {
     const sig = req.headers.get("stripe-signature");
     const webhookSecret =

@@ -9,15 +9,12 @@ import { useEffect, useState } from "react";
 import { 
   BarChart3, 
   Loader2, 
-  Package, 
   Target, 
   TrendingDown, 
   TrendingUp, 
   Users,
   ArrowUpRight,
   AlertTriangle,
-  CheckCircle,
-  Clock,
   DollarSign
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";

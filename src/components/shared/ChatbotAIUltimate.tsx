@@ -30,14 +30,9 @@ import {
   Sparkles,
   X,
   Minus,
-  Zap,
   Headphones,
   ArrowLeft,
-  Package,
-  Star,
-  ShoppingCart,
-  Gift,
-} from "lucide-react";
+  Star } from "lucide-react";
 
 /* ─── Types ─── */
 interface Message {

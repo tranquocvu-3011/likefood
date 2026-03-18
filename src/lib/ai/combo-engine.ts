@@ -6,7 +6,7 @@
  * Copyright (c) 2026 LIKEFOOD Team
  */
 
-import { callGPT, callGPTJSON } from "@/lib/ai/ai-provider";
+import { callGPTJSON } from "@/lib/ai/ai-provider";
 import { logRecommendation } from "@/lib/ai/ai-logger";
 import prisma from "@/lib/prisma";
 import type { ComboType, ComboResult, ComboProduct, ComboRequest } from "./ai-types";

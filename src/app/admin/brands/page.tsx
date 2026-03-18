@@ -9,10 +9,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { Plus, Edit, Trash2, Loader2, Package, Search, X, Check } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { toast } from "sonner";
+import { Plus, Edit, Trash2, Loader2, Package, X, Check } from "lucide-react";
+import { Button } from "@/components/ui/button";import { toast } from "sonner";
 import { AdminPageContainer, AdminTableContainer } from "@/components/admin/AdminPageContainer";
 import { AdminFilterBar } from "@/components/admin/AdminSearch";
 import { useDebounce } from "@/hooks/useDebounce";

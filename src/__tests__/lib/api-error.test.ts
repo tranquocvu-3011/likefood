@@ -2,7 +2,7 @@
  * LIKEFOOD - API Error Response Tests (Fixed)
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
     apiError,
     validationError,
@@ -12,8 +12,7 @@ import {
     badRequest,
     internalError,
     rateLimited,
-    conflict,
-} from "@/lib/api-error";
+    conflict } from "@/lib/api-error";
 import { z, ZodError } from "zod";
 import type { ErrorCode } from "@/lib/api-error";
 

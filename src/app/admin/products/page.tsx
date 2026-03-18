@@ -10,20 +10,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { 
   Edit, 
-  Eye, 
   Loader2, 
   Package, 
   Plus, 
   RefreshCw, 
   Trash2,
   Search,
-  Filter,
   X,
-  Star,
-  TrendingUp,
-  AlertTriangle,
-  CheckCircle,
-  MoreHorizontal
+  Star
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/currency";

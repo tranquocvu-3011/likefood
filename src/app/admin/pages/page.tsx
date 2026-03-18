@@ -12,8 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { 
-  FileText, Plus, Pencil, Trash2, Loader2, Save, X, 
-  Eye, EyeOff, ChevronUp, ChevronDown, Settings, Copy, ExternalLink
+  FileText, Plus, Pencil, Trash2, Loader2, Eye, EyeOff, Copy
 } from "lucide-react";
 import { toast } from "sonner";
 import DOMPurify from "isomorphic-dompurify";
@@ -22,8 +21,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  DialogFooter } from "@/components/ui/dialog";
 
 interface DynamicPage {
   id: number;

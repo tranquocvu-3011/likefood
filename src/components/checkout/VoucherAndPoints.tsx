@@ -9,8 +9,6 @@ import { Ticket, X, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import type { CheckoutVoucher } from "@/hooks/useCheckout";
 import PriceDisplay from "@/components/ui/price-display";
-import { formatPrice } from "@/lib/currency";
-
 interface VoucherAndPointsProps {
     language: string;
     t: any;

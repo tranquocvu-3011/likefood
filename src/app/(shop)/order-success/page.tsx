@@ -12,12 +12,12 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-    CheckCircle2, Loader2, Package, ShoppingBag,
+    CheckCircle2, Package, ShoppingBag,
     Truck, ArrowRight, Sparkles, Copy, Check
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { formatPrice } from "@/lib/currency";
 import { logger } from "@/lib/logger";
 import { useLanguage } from "@/lib/i18n/context";
@@ -47,7 +47,7 @@ function ConfettiCanvas() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const particlesRef = useRef<Particle[]>([]);
     const animFrameRef = useRef<number>(0);
-    const burstCountRef = useRef(0);
+    const _burstCountRef = useRef(0);
 
     useEffect(() => {
         const canvas = canvasRef.current;

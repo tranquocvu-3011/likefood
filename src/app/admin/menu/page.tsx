@@ -11,8 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { 
-  Menu, Plus, Pencil, Trash2, Loader2, Save, X, 
-  GripVertical, Eye, EyeOff, ExternalLink, ChevronRight, ChevronDown 
+  Menu, Plus, Pencil, Trash2, Loader2, Save, GripVertical, Eye, EyeOff, ChevronRight, ChevronDown 
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -20,8 +19,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  DialogFooter } from "@/components/ui/dialog";
 
 interface MenuItem {
   id: number;

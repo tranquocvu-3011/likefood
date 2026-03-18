@@ -10,7 +10,6 @@
 import { Trash2, CheckSquare, Square } from "lucide-react";
 import Link from "next/link";
 import ImageWithFallback from "@/components/shared/ImageWithFallback";
-import { formatPrice } from "@/lib/currency";
 import { useSession } from "next-auth/react";
 import { useLanguage } from "@/lib/i18n/context";
 import QuantitySelector from "@/components/ui/quantity-selector";

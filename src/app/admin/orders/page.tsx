@@ -8,24 +8,18 @@
 import { useCallback, useEffect, useState } from "react";
 import { 
   CalendarDays, 
-  ChevronDown, 
   ClipboardList, 
   Download, 
   Eye, 
   Loader2, 
-  MoreHorizontal, 
   RefreshCw, 
   Search,
   X,
   Package,
-  Truck,
   CreditCard,
   User,
   MapPin,
-  Clock,
-  CheckCircle,
-  XCircle,
-  AlertCircle
+  Clock
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/currency";

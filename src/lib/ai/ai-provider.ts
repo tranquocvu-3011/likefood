@@ -126,7 +126,7 @@ export async function callGPT(
   const frequencyPenalty = opts.frequencyPenalty ?? 0;
   const presencePenalty = opts.presencePenalty ?? 0;
   const maxAttempts = opts.noRetry ? 1 : MAX_RETRIES + 1;
-  const timeout = PREMIUM_TASKS.has(task) ? PREMIUM_TIMEOUT_MS : DEFAULT_TIMEOUT_MS;
+  const _timeout = PREMIUM_TASKS.has(task) ? PREMIUM_TIMEOUT_MS : DEFAULT_TIMEOUT_MS;
 
   // Check cache for deterministic tasks (uses Redis when available)
   if (CACHEABLE_TASKS.has(task)) {

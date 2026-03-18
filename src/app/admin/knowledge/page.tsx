@@ -9,9 +9,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { AdminPageContainer } from "@/components/admin/AdminPageContainer";
 import {
-  BookOpen, Plus, Search, Trash2, Edit3, Save, X, Filter,
-  ChevronLeft, ChevronRight, AlertCircle, CheckCircle,
-} from "lucide-react";
+  Plus, Search, Trash2, Edit3, Save, X, Filter,
+  ChevronLeft, ChevronRight, AlertCircle, CheckCircle } from "lucide-react";
 
 interface KnowledgeItem {
   id: number;

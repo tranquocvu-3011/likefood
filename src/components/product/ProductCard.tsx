@@ -9,13 +9,13 @@
 import { Star, Eye, Package } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardFooter } from "@/components/ui/card";
 import { useState, useCallback, memo } from "react";
 import QuickViewModal from "./QuickViewModal";
 import QuickAddButton from "./QuickAddButton";
 import WishlistButton from "./WishlistButton";
 import { useRouter } from "next/navigation";
-import { useCartState, useCartActions } from "@/contexts/CartContext";
+import { useCartState } from "@/contexts/CartContext";
 import { useLanguage } from "@/lib/i18n/context";
 
 // Sub-components

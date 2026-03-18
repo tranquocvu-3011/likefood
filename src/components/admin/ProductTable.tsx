@@ -10,10 +10,9 @@ import { useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { 
-    Search, Filter, MoreVertical, Edit, Trash2, Eye, EyeOff, 
+    Search, Edit, Trash2, Eye, EyeOff, 
     Star, Package, AlertTriangle, CheckCircle, XCircle,
-    ChevronLeft, ChevronRight, RefreshCw, Download, Upload,
-    Check, Square, X, Zap, Gift
+    ChevronLeft, ChevronRight, RefreshCw, Check, Square, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";

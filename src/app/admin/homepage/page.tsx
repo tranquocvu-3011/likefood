@@ -12,8 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { 
-  Layout, Plus, Pencil, Trash2, Loader2, Save, X, 
-  GripVertical, Eye, EyeOff, ChevronUp, ChevronDown, Settings
+  Layout, Plus, Trash2, Loader2, Save, GripVertical, Eye, EyeOff, ChevronUp, ChevronDown, Settings
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -21,8 +20,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  DialogFooter } from "@/components/ui/dialog";
 
 interface HomepageSection {
   id: number;

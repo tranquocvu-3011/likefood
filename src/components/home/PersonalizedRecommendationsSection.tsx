@@ -10,7 +10,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { Sparkles, TrendingUp, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import ProductCard from "@/components/product/ProductCard";
 import { ProductCardSkeleton } from "@/components/ui/product-skeleton";
 import { useLanguage } from "@/lib/i18n/context";

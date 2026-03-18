@@ -11,10 +11,8 @@ import { logger } from "@/lib/logger";
 import { applyRateLimit, apiRateLimit, getRateLimitIdentifier } from "@/lib/ratelimit";
 import {
   generateProductContent,
-  generateProductDescription,
   generateSEOContent,
-  generateMarketingCopy,
-} from "@/lib/ai/content-generator";
+  generateMarketingCopy } from "@/lib/ai/content-generator";
 import { generateMarketingEmail } from "@/lib/ai/admin-service";
 import { callGPT } from "@/lib/ai/ai-provider";
 

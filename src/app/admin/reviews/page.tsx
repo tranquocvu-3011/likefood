@@ -9,10 +9,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { AdminPageContainer } from "@/components/admin/AdminPageContainer";
 import {
-  Star, Search, Filter, ChevronLeft, ChevronRight,
+  Star, Search, ChevronLeft, ChevronRight,
   CheckCircle, XCircle, Trash2, MessageSquare, AlertCircle,
-  Eye, Clock, ThumbsUp, ThumbsDown,
-} from "lucide-react";
+  Eye, Clock, ThumbsUp, ThumbsDown } from "lucide-react";
 
 interface ReviewUser {
   id: number;

@@ -12,7 +12,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
-import { STORE_ADDRESS, POINTS_PER_DOLLAR, getStoreAddressFromDB } from "@/lib/commerce";
+import { POINTS_PER_DOLLAR, getStoreAddressFromDB } from "@/lib/commerce";
 
 interface PickupItem {
     productId: string | number;

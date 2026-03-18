@@ -7,7 +7,7 @@
  */
 
 import { useState, useCallback, useRef } from "react";
-import { Upload, Download, FileSpreadsheet, AlertCircle, CheckCircle, X, Loader2, Table, Eye, Trash2 } from "lucide-react";
+import { Upload, Download, FileSpreadsheet, AlertCircle, CheckCircle, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 

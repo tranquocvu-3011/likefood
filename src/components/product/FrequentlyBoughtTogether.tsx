@@ -52,8 +52,8 @@ export default function FrequentlyBoughtTogether({ currentProduct }: FrequentlyB
                 const res = await fetch(`/api/products/recommendations/fbt?product=${currentProduct.slug}`);
                 if (!res.ok) throw new Error("Failed to fetch FBT");
                 const data = await res.json();
-                // Ensure exactly 3 recommended products (total 4 with current)
-                const limited = (data as Product[]).slice(0, 3);
+                // Ensure exactly 4 recommended products (total 5 with current)
+                const limited = (data as Product[]).slice(0, 4);
                 setRecommended(limited);
                 setSelectedIds(limited.map((p: Product) => p.id));
             } catch (err) {

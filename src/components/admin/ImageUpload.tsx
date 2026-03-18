@@ -9,7 +9,6 @@
 import { useState, useCallback, useRef } from "react";
 import { Upload, X, Image as ImageIcon, Loader2, Crown, Maximize2, GripVertical, ArrowUp } from "lucide-react";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { logger } from "@/lib/logger";
 

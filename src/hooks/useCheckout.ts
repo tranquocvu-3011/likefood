@@ -73,7 +73,7 @@ export function useCheckout(language: string) {
     // ── Core State ──
     const [step, setStep] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [orderId, setOrderId] = useState<number | null>(null);
+    const [orderId, _setOrderId] = useState<number | null>(null);
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
     // ── Form Data ──

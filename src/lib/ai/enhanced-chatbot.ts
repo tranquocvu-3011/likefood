@@ -8,14 +8,14 @@
 
 import { callGPT } from "@/lib/ai/ai-provider";
 import { classifyIntent, type Intent, type IntentResult } from "./intent-classifier";
-import { addMessage, getConversationHistory, getContextSummary, isNewSession, updateEntities, getContext, updatePreferences } from "./context-manager";
-import { getActivePromotions, getCategories, getFlashSaleProducts, getShippingInfo, getTrendingProducts, searchProducts, getProduct } from "./product-service";
+import { addMessage, getConversationHistory, getContextSummary, isNewSession, updateEntities, getContext } from "./context-manager";
+import { getActivePromotions, getCategories, getFlashSaleProducts, getShippingInfo, getTrendingProducts, searchProducts } from "./product-service";
 import { assessConfidence, getFallbackResponse, getSafeResponse, shouldEscalate, validateResponse } from "./safety-guard";
 import { searchKnowledge, type KnowledgeItem } from "./knowledge-base";
 import { buildAIContext, getSmartRecommendations } from "./ai-data-reader";
 import { notifyOwnerNewChat } from "@/lib/chat/owner-notification";
 import { getComboSuggestions } from "./combo-engine";
-import { getAdvisorResponse, compareProducts } from "./product-advisor";
+import { getAdvisorResponse } from "./product-advisor";
 
 interface ChatRequest {
   message: string;
@@ -427,7 +427,7 @@ async function handleEnhancedIntent(
     const products = keywords ? await searchProducts(keywords, 5) : await getTrendingProducts(5);
     
     if (products.length > 0) {
-      const productDetails = products.slice(0, 3).map(p => ({
+      const _productDetails = products.slice(0, 3).map(p => ({
         name: p.name,
         price: p.price,
         description: p.description.substring(0, 150)
@@ -521,7 +521,7 @@ async function handleEnhancedIntent(
       const recs = await getSmartRecommendations(keywords || message, undefined, 6);
       if (recs.products.length > 0) {
         // Build product data for GPT to use as context (not as direct response)
-        const productList = recs.products.map((p, i) =>
+        const _productList = recs.products.map((p, i) =>
           `${i + 1}. ${p.name} — $${p.price}${p.salePrice ? ` (sale $${p.salePrice})` : ''} | ⭐${p.rating.toFixed(1)} | Sold: ${p.soldCount} | slug: ${p.slug}`
         ).join('\n');
         // Return empty → main flow will use GPT with buildAIContext for natural response
@@ -784,7 +784,7 @@ export async function enhancedChat(request: ChatRequest): Promise<ChatResponse> 
     // Lấy context
     const history = await getConversationHistory(sessionId, 5);
     const contextSummary = await getContextSummary(sessionId);
-    const fullContext = await getContext(sessionId);
+    const _fullContext = await getContext(sessionId);
 
     // Tìm kiếm knowledge base
     const knowledgeResults = await searchKnowledge(message, language, 3);

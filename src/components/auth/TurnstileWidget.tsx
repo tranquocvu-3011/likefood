@@ -7,7 +7,7 @@
  * https://github.com/tranquocvu-3011/likefood
  */
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface TurnstileWidgetProps {
     siteKey?: string;

@@ -1,7 +1,4 @@
 "use client";
-
-import Link from "next/link";
-import { motion } from "framer-motion";
 import { Search, ChevronDown, Clock } from "lucide-react";
 import ImageWithFallback from "@/components/shared/ImageWithFallback";
 

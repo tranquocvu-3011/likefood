@@ -9,7 +9,6 @@
 
 import { useState } from "react";
 import { X, ShoppingBag, Star, Heart, Share2 } from "lucide-react";
-import Image from "next/image";
 import ImageWithFallback from "@/components/shared/ImageWithFallback";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";

@@ -7,7 +7,7 @@
  * https://github.com/tranquocvu-3011/likefood
  */
 
-import { callGPT, callGPTJSON } from "@/lib/ai/ai-provider";
+import { callGPT } from "@/lib/ai/ai-provider";
 
 interface GenerateDescriptionInput {
   name: string;

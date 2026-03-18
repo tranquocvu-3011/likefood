@@ -8,7 +8,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Activity,
-  BarChart3,
   Bot,
   Brain,
   ChevronDown,
@@ -33,8 +32,7 @@ import {
   User,
   UserSearch,
   Users,
-  Zap,
-} from "lucide-react";
+  Zap } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ message: "Link đăng nhập đã được gửi vào email của bạn." });
     } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
+        const _message = error instanceof Error ? error.message : String(error);
         logger.error("[magic-link] Error", error as Error, { context: "auth-magic-link" });
         return NextResponse.json(
             { error: "Lỗi server. Kiểm tra cấu hình SMTP và env." },

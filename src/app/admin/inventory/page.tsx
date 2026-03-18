@@ -10,19 +10,14 @@ import Link from "next/link";
 import { 
   AlertTriangle, 
   ArrowUpRight, 
-  Clock, 
   Download, 
-  Loader2, 
   Package, 
   RefreshCw, 
   Search, 
-  TrendingDown, 
-  TrendingUp,
   X,
   Plus,
   Minus,
-  History,
-} from "lucide-react";
+  History } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/currency";
 

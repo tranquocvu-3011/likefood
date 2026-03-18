@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
-import { X, Ticket, Check, AlertCircle, Search, ArrowRight, Sparkles } from "lucide-react";
+import { X, Ticket, Check, AlertCircle, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { logger } from "@/lib/logger";
