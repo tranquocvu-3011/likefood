@@ -99,7 +99,8 @@ async function getClient(): Promise<OpenAI | null> {
     return null;
   }
   if (_client && _clientKey === key) return _client;
-  _client = new OpenAI({ apiKey: key, timeout: DEFAULT_TIMEOUT_MS });
+  const baseURL = (process.env.OPENAI_BASE_URL ?? "").trim() || undefined;
+  _client = new OpenAI({ apiKey: key, timeout: DEFAULT_TIMEOUT_MS, ...(baseURL ? { baseURL } : {}) });
   _clientKey = key;
   return _client;
 }
