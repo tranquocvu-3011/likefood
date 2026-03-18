@@ -494,11 +494,6 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
                                             size="xl"
                                             showDiscountBadge={false}
                                         />
-                                        {hasDiscount() && (
-                                            <span className="text-xs font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-full mb-1">
-                                                -{getDiscountPercent()}%
-                                            </span>
-                                        )}
                                     </div>
                                     <p className="text-[11px] font-medium text-slate-400 mt-0.5">{formatVndEquivalent(getCurrentPrice())}</p>
                                     {selectedVariant && selectedVariant.priceAdjustment !== 0 && (

@@ -87,6 +87,25 @@ export default function FrequentlyBoughtTogether({ currentProduct }: FrequentlyB
         }
 
         let addedCount = 0;
+
+        // 1. Add current product first
+        const currentEffective = getEffectivePrice(currentProduct);
+        const currentOriginal = currentProduct.originalPrice && currentProduct.originalPrice > currentEffective ? currentProduct.originalPrice : undefined;
+        const addedCurrent = addItem({
+            productId: currentProduct.id,
+            slug: currentProduct.slug,
+            name: currentProduct.name,
+            price: currentEffective,
+            originalPrice: currentOriginal,
+            salePrice: currentOriginal ? currentEffective : undefined,
+            isOnSale: !!currentOriginal,
+            image: currentProduct.image,
+            quantity: 1,
+            inventory: currentProduct.inventory,
+        });
+        if (addedCurrent) addedCount++;
+
+        // 2. Add selected recommended products
         for (const p of selectedProducts) {
             const effectivePrice = getEffectivePrice(p);
             const originalPrice = p.originalPrice && p.originalPrice > effectivePrice ? p.originalPrice : undefined;
@@ -105,7 +124,7 @@ export default function FrequentlyBoughtTogether({ currentProduct }: FrequentlyB
             if (added) addedCount++;
         }
 
-        if (addedCount > 1) {
+        if (addedCount > 0) {
             toast.success(vi ? `Đã thêm ${addedCount} sản phẩm vào giỏ hàng!` : `Added ${addedCount} items to cart!`);
         }
         setIsAddingAll(false);

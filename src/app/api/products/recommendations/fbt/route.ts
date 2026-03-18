@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
         // 4. Sort and get top IDs
         const sortedIds = Object.entries(frequencyMap)
             .sort((a, b) => b[1] - a[1])
-            .slice(0, 3)
+            .slice(0, 4)
             .map(entry => Number(entry[0]));
 
         // 5. Fetch full product details for these IDs
@@ -91,15 +91,18 @@ export async function GET(req: NextRequest) {
             }
         });
 
-        // 6. Fallback if not enough products found (too little order data)
-        if (recommendedProducts.length < 2) {
+        // 6. Fallback if not enough products found (ensure always 4)
+        if (recommendedProducts.length < 4) {
+            const existingIds = [productId, ...recommendedProducts.map(p => p.id)];
+            // First try same category
             const fallbackProducts = await prisma.product.findMany({
                 where: {
-                    id: { not: productId },
+                    id: { notIn: existingIds },
                     category: product.category,
                     inventory: { gt: 0 }
                 },
-                take: 3 - recommendedProducts.length,
+                take: 4 - recommendedProducts.length,
+                orderBy: { soldCount: "desc" },
                 select: {
                     id: true,
                     slug: true,
@@ -119,6 +122,37 @@ export async function GET(req: NextRequest) {
                 }
             });
             recommendedProducts = [...recommendedProducts, ...fallbackProducts];
+
+            // If still not enough, get from any category
+            if (recommendedProducts.length < 4) {
+                const allExistingIds = [productId, ...recommendedProducts.map(p => p.id)];
+                const extraFallback = await prisma.product.findMany({
+                    where: {
+                        id: { notIn: allExistingIds },
+                        inventory: { gt: 0 }
+                    },
+                    take: 4 - recommendedProducts.length,
+                    orderBy: { soldCount: "desc" },
+                    select: {
+                        id: true,
+                        slug: true,
+                        name: true,
+                        price: true,
+                        originalPrice: true,
+                        salePrice: true,
+                        isOnSale: true,
+                        image: true,
+                        inventory: true,
+                        category: true,
+                        productImages: {
+                            orderBy: { order: "asc" },
+                            take: 1,
+                            select: { imageUrl: true }
+                        }
+                    }
+                });
+                recommendedProducts = [...recommendedProducts, ...extraFallback];
+            }
         }
 
         // Map image: use product.image first, fallback to first productImage
