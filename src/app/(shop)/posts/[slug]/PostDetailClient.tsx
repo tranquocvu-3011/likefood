@@ -49,13 +49,6 @@ interface Post {
     images?: PostImage[];
 }
 
-// Calculate reading time
-const calculateReadTime = (content?: string): number => {
-    if (!content) return 5;
-    const words = content.trim().split(/\s+/).length;
-    return Math.max(1, Math.ceil(words / 200));
-};
-
 // Stagger animation variants
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -98,7 +91,6 @@ const slideVariants = {
 
 export default function PostDetailClient({ slug }: { slug: string }) {
     const { t, language } = useLanguage();
-    const isVi = language === "vi";
     const [post, setPost] = useState<Post | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [copied, setCopied] = useState(false);
@@ -255,7 +247,6 @@ export default function PostDetailClient({ slug }: { slug: string }) {
 
     const galleryImages = post.images || [];
     const hasGallery = galleryImages.length > 0;
-    const readTime = calculateReadTime(post.content);
 
     return (
         <div className="min-h-screen bg-[#f4f1ea] pb-24 selection:bg-emerald-200 selection:text-emerald-900 w-full overflow-x-hidden">

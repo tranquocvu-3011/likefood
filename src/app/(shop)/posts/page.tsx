@@ -13,6 +13,7 @@ import Link from "next/link";
 import { User, ArrowRight, Loader2, Search, Sparkles, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/lib/i18n/context";
+import ImageWithFallback from "@/components/shared/ImageWithFallback";
 
 interface Post {
     id: number;
@@ -188,8 +189,9 @@ export default function PostsPage() {
                                     >
                                         <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
                                             {post.image ? (
-                                                <Image
+                                                <ImageWithFallback
                                                     src={post.image}
+                                                    fallbackSrc="/images/placeholder.jpg"
                                                     alt={post.title}
                                                     fill
                                                     className="object-cover group-hover:scale-105 transition-transform duration-500"

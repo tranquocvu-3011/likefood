@@ -13,6 +13,8 @@ services:
       - "3000:3000"
     env_file:
       - .env.production
+    volumes:
+      - uploads_data:/app/public/uploads
     depends_on:
       - mysql
       - redis
@@ -105,6 +107,7 @@ volumes:
   mysql_data:
   redis_data:
   nginx_cache:
+  uploads_data:
 
 networks:
   weblikefood_net:

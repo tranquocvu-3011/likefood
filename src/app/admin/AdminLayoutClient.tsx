@@ -182,7 +182,7 @@ export default function AdminLayoutClient({
     }
 
     return (
-        <div className="flex min-h-screen bg-[#0A0A0B]">
+        <div className="admin-dark flex min-h-screen bg-[#0A0A0B]">
             <AdminSidebar />
             <main className="flex-1 lg:ml-56 p-4 lg:p-6 transition-all duration-200 text-zinc-100">
                 <div className="max-w-[1600px] mx-auto">

@@ -9,6 +9,14 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 
+const normalizeMediaPath = (value?: string | null): string | null => {
+    if (!value) return null;
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    if (trimmed.startsWith("/uploads/")) return `/api${trimmed}`;
+    return trimmed;
+};
+
 // GET single post by slug
 export async function GET(
     req: Request,
@@ -32,7 +40,16 @@ export async function GET(
             return NextResponse.json({ error: "Post not found" }, { status: 404 });
         }
 
-        return NextResponse.json(post);
+        const normalizedPost = {
+            ...post,
+            image: normalizeMediaPath(post.image),
+            images: post.images.map((img) => ({
+                ...img,
+                imageUrl: normalizeMediaPath(img.imageUrl) || "",
+            })),
+        };
+
+        return NextResponse.json(normalizedPost);
     } catch (error) {
         logger.error("Failed to fetch public post detail", error as Error);
         return NextResponse.json({ error: "Failed to fetch post" }, { status: 500 });

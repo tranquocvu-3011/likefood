@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDebounce } from "@/hooks/useDebounce";
 import { toast } from "sonner";
-import Image from "next/image";
+import ImageWithFallback from "@/components/shared/ImageWithFallback";
 
 interface Post {
     id: number;
@@ -159,7 +159,14 @@ export default function AdminPostsPage() {
                                         <div className="flex items-center gap-4">
                                             <div className="w-14 h-14 rounded-2xl bg-slate-100 overflow-hidden relative flex-shrink-0">
                                                 {post.image && (
-                                                    <Image src={post.image} alt={post.title} fill className="object-cover" sizes="56px" />
+                                                    <ImageWithFallback
+                                                        src={post.image}
+                                                        fallbackSrc="/images/placeholder.jpg"
+                                                        alt={post.title}
+                                                        fill
+                                                        className="object-cover"
+                                                        sizes="56px"
+                                                    />
                                                 )}
                                             </div>
                                             <div className="max-w-md">

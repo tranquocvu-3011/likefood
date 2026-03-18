@@ -10,6 +10,14 @@ import prisma from "../../../lib/prisma";
 import { logger } from "@/lib/logger";
 import { Prisma } from "../../../generated/client";
 
+const normalizeMediaPath = (value?: string | null): string | null => {
+    if (!value) return null;
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    if (trimmed.startsWith("/uploads/")) return `/api${trimmed}`;
+    return trimmed;
+};
+
 // GET all published posts
 export async function GET(req: Request) {
     try {
@@ -60,8 +68,17 @@ export async function GET(req: Request) {
             prisma.post.count({ where }),
         ]);
 
+        const normalizedPosts = posts.map((post) => ({
+            ...post,
+            image: normalizeMediaPath(post.image),
+            images: post.images.map((img) => ({
+                ...img,
+                imageUrl: normalizeMediaPath(img.imageUrl) || "",
+            })),
+        }));
+
         return NextResponse.json({
-            posts,
+            posts: normalizedPosts,
             pagination: {
                 page,
                 limit,
