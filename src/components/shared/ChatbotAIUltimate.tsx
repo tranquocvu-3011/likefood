@@ -16,7 +16,7 @@
 
 "use client";
 
-import { useEffect, useRef, useState, useCallback, type KeyboardEvent, TextDecoder } from "react";
+import { useEffect, useRef, useState, useCallback, type KeyboardEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
@@ -169,7 +169,7 @@ function clearChatStorage() {
 
 /* ─── Component ─── */
 export default function ChatbotAI() {
-  const { isOpen: isVisible, toggle: toggleChat } = useChatOpen();
+  const { isChatOpen: isVisible, setChatOpen: toggleChat } = useChatOpen();
   const { language } = useLanguage();
   const isVietnamese = language === "vi";
   
@@ -330,17 +330,19 @@ export default function ChatbotAI() {
               const lines = text.split("\n");
               
               for (const line of lines) {
-                if (line.startsWith("data: ")) {
+                const trimmedLine = line.trim();
+                if (!trimmedLine || trimmedLine === "data:") continue;
+                
+                if (trimmedLine.startsWith("data: ")) {
                   try {
-                    const evt = JSON.parse(line.slice(6));
-                    if (evt.event === "chunk" && evt.data?.content) {
-                      fullContent += evt.data.content;
-                      setMessages(prev => prev.map(m => m.id === currentMsgId ? { ...m, content: fullContent } : m));
-                    } else if (evt.event === "done" && !fullContent && evt.data?.content) {
-                      fullContent = evt.data.content;
+                    const dataStr = trimmedLine.slice(6);
+                    const evt = JSON.parse(dataStr);
+                    const content = evt?.data?.content || evt?.content || "";
+                    if (content) {
+                      fullContent = content;
                       setMessages(prev => prev.map(m => m.id === currentMsgId ? { ...m, content: fullContent } : m));
                     }
-                  } catch { /* skip */ }
+                  } catch { /* skip invalid JSON */ }
                 }
               }
             }
@@ -422,12 +424,26 @@ export default function ChatbotAI() {
           <div className={`flex items-center justify-between bg-gradient-to-r ${headerGradient} px-4 py-3 text-white`}>
             <div className="flex items-center gap-2">
               {chatMode === "live" && <ArrowLeft className="h-4 w-4 cursor-pointer hover:opacity-80" onClick={exitLiveChat} />}
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20">
-                <Sparkles className="h-5 w-5" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-md ring-2 ring-white/30">
+                {chatMode === "live" ? (
+                  <Headphones className="h-5 w-5 text-white" />
+                ) : (
+                  <Sparkles className="h-5 w-5 text-white" />
+                )}
               </div>
               <div>
-                <h3 className="font-semibold">{chatMode === "live" ? (isVietnamese ? "Live Support" : "Live Support") : "LIKEFOOD AI"}</h3>
-                <p className="text-xs text-white/80">{chatMode === "live" ? (isVietnamese ? "Nhân viên hỗ trợ" : "Staff support") : (isVietnamese ? "Trợ lý ẩm thực" : "Food assistant"))}</p>
+                <div className="flex items-center gap-1">
+                  <h3 className="font-semibold">{chatMode === "live" ? "Live Chat" : "LIKEFOOD AI"}</h3>
+                  {chatMode === "ai" && <Sparkles className="h-3.5 w-3.5 text-amber-300" />}
+                </div>
+                <p className="text-xs text-white/80">
+                  {chatMode === "live" 
+                    ? (isVietnamese ? "Chat trực tiếp với nhân viên" : "Live chat with support")
+                    : (isLoading 
+                        ? (isVietnamese ? "Đang soạn tin nhắn..." : "Typing...")
+                        : (isVietnamese ? "Trực tuyến • Sẵn sàng hỗ trợ" : "Online • Ready to help"))
+                  }
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-1">
@@ -439,10 +455,10 @@ export default function ChatbotAI() {
               <button onClick={resetChat} className="rounded-lg bg-white/20 p-2 hover:bg-white/30" title={isVietnamese ? "Làm mới" : "Reset"}>
                 <RotateCcw className="h-4 w-4" />
               </button>
-              <button onClick={toggleChat} className="rounded-lg bg-white/20 p-2 hover:bg-white/30">
+              <button onClick={() => toggleChat(false)} className="rounded-lg bg-white/20 p-2 hover:bg-white/30">
                 <Minus className="h-4 w-4" />
               </button>
-              <button onClick={toggleChat} className="rounded-lg bg-white/20 p-2 hover:bg-white/30">
+              <button onClick={() => toggleChat(false)} className="rounded-lg bg-white/20 p-2 hover:bg-white/30">
                 <X className="h-4 w-4" />
               </button>
             </div>

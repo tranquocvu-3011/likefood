@@ -8,7 +8,7 @@
  */
 
 // Force Turbopack recompile - no Bot icon used here
-import { useEffect, useRef, useState, useCallback, type KeyboardEvent, TextDecoder } from "react";
+import { useEffect, useRef, useState, useCallback, type KeyboardEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";

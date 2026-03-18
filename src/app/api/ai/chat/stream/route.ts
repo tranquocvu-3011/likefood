@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (!rateLimitResult.success) {
-      return new NextResponse(
+      return new Response(
         createSSEChunk("error", { message: "Too many requests. Please try again later." }),
         {
           status: 429,
@@ -64,22 +64,36 @@ export async function POST(req: NextRequest) {
     }
 
     // Parse body
-    const body = await req.json().catch(() => ({}));
-    const { message, sessionId, userId, messages, history } = body ?? {};
-
+    let body;
+    try {
+      body = await req.json();
+    } catch {
+      body = {};
+    }
+    
+    const { message, sessionId, userId, messages: msgArray, history } = body ?? {};
     let chatMessage = message;
+
     chatSessionId = typeof sessionId === "string" && sessionId.trim() 
       ? sessionId.trim() 
       : generateSessionId();
 
-    if (!chatMessage && Array.isArray(messages) && messages.length > 0) {
-      const lastMessage = messages[messages.length - 1];
-      chatMessage = typeof lastMessage?.content === "string" ? lastMessage.content.trim() : "";
+    // Support both "message" and "messages" array formats
+    if (!chatMessage && Array.isArray(msgArray) && msgArray.length > 0) {
+      const lastMessage = msgArray[msgArray.length - 1];
+      chatMessage = typeof lastMessage?.content === "string" ? lastMessage.content : "";
     }
 
-    if (typeof chatMessage !== "string" || !chatMessage.trim()) {
-      return new NextResponse(
-        createSSEChunk("error", { message: "Invalid message." }),
+    // Handle history format (from frontend)
+    if (!chatMessage && Array.isArray(history) && history.length > 0) {
+      const lastHistory = history[history.length - 1];
+      chatMessage = typeof lastHistory?.content === "string" ? lastHistory.content : "";
+    }
+
+    // Validate message
+    if (!chatMessage || typeof chatMessage !== "string") {
+      return new Response(
+        createSSEChunk("error", { message: "Invalid message. Please send a valid message." }),
         {
           status: 400,
           headers: {
@@ -92,8 +106,22 @@ export async function POST(req: NextRequest) {
     }
 
     const trimmedMessage = chatMessage.trim();
+    if (trimmedMessage.length === 0) {
+      return new Response(
+        createSSEChunk("error", { message: "Message cannot be empty." }),
+        {
+          status: 400,
+          headers: {
+            "Content-Type": "text/event-stream",
+            "Cache-Control": "no-cache",
+            Connection: "keep-alive",
+          },
+        }
+      );
+    }
+
     if (trimmedMessage.length > 2000) {
-      return new NextResponse(
+      return new Response(
         createSSEChunk("error", { message: "Tin nhắn không được quá 2000 ký tự." }),
         {
           status: 400,
@@ -149,7 +177,6 @@ export async function POST(req: NextRequest) {
 
           // 5. Stream AI response
           let fullResponse = "";
-          let chunkCount = 0;
           
           const streamResult = await callGPTStream(
             trimmedMessage,
@@ -161,17 +188,15 @@ export async function POST(req: NextRequest) {
               frequencyPenalty: 0.1,
               presencePenalty: 0.1,
             },
-            (chunk) => {
-              fullResponse += chunk;
-              chunkCount++;
-              
-              // Send chunk every 2 pieces for smooth streaming
-              if (chunkCount % 2 === 0 || chunk.length < 15) {
+            {
+              onChunk: (chunk) => {
+                fullResponse += chunk;
+                
+                // Send accumulated content for smooth streaming
                 controller.enqueue(encoder.encode(createSSEChunk("chunk", { 
-                  content: chunk,
-                  fullContent: fullResponse
+                  content: fullResponse
                 })));
-              }
+              },
             }
           );
 
@@ -219,7 +244,7 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     logger.error("[AI_CHAT_SSE] Critical error", error as Error, { context: "ai-chat-sse" });
-    return new NextResponse(
+    return new Response(
       createSSEChunk("error", { 
         message: "Mình đang xử lý, bạn thử gửi lại nhé! 😊" 
       }),

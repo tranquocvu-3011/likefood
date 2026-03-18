@@ -108,7 +108,7 @@ export default function SearchSuggestions({
 
     if (suggestions.length > 0) {
         return (
-            <div className="py-2">
+            <div className="py-2" onMouseDown={(e) => e.stopPropagation()}>
                 <div className="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center justify-between">
                     <span>{t("common.suggestionsFor")} &quot;{query}&quot;</span>
                     <div className="h-px flex-1 bg-slate-100 ml-4" />
@@ -117,8 +117,19 @@ export default function SearchSuggestions({
                     {suggestions.map((item, idx) => (
                         <button
                             key={item.id}
+                            type="button"
                             onMouseDown={(e) => {
                                 e.preventDefault();
+                                e.stopPropagation();
+                            }}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                onSuggestionClick(item.slug, String(item.id));
+                            }}
+                            onTouchEnd={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
                                 onSuggestionClick(item.slug, String(item.id));
                             }}
                             className={`w-full px-4 py-3 flex items-center gap-4 rounded-2xl transition-all text-left group ${
@@ -155,10 +166,11 @@ export default function SearchSuggestions({
                         type="button"
                         onMouseDown={(e) => {
                             e.preventDefault();
-                            onViewAllClick?.();
+                            e.stopPropagation();
                         }}
-                        onClick={() => {
-                            // Navigate đến trang danh sách sản phẩm với search query
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onViewAllClick?.();
                             window.location.href = `/products?search=${encodeURIComponent(query)}`;
                         }}
                         className={`block w-full px-4 py-3.5 text-[11px] font-black rounded-2xl text-center shadow-lg transition-all uppercase tracking-widest ${

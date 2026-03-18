@@ -413,6 +413,14 @@ function NavbarContent() {
                                     </div>
                                 </div>
 
+                                {/* Click outside overlay - PHẢI RENDER TRƯỚC dropdown để dropdown nằm trên */}
+                                {showSuggestions && (
+                                    <div 
+                                        className="fixed inset-0 z-[55]" 
+                                        onMouseDown={() => setShowSuggestions(false)}
+                                    />
+                                )}
+
                                 {/* ========== SEARCH DROPDOWN ========== */}
                                 <AnimatePresence>
                                        {showSuggestions && (
@@ -438,15 +446,6 @@ function NavbarContent() {
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
-
-                                {/* Click outside overlay - đóng dropdown khi click ra ngoài */}
-                                {showSuggestions && (
-                                    <div 
-                                        className="fixed inset-0 z-[45]" 
-                                        onClick={() => setShowSuggestions(false)}
-                                        onTouchStart={() => setShowSuggestions(false)}
-                                    />
-                                )}
                             </form>
                         </div>
 

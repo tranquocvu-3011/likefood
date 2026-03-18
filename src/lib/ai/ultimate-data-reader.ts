@@ -52,19 +52,14 @@ interface ProductInfo {
   price: number;
   salePrice?: number;
   category: string;
-  brand?: string;
+  brand?: { name: string } | null;
   description: string;
-  rating: number;
-  reviewCount: number;
+  ratingAvg: number;
+  ratingCount: number;
   soldCount: number;
   inventory: number;
   isOnSale: boolean;
-  origin?: string;
   weight?: string;
-  ingredients?: string;
-  nutrition?: string;
-  storage?: string;
-  usage?: string;
 }
 
 interface ReviewInfo {
@@ -84,8 +79,7 @@ async function getAllProductsDetailed(): Promise<string> {
         id: true, name: true, slug: true, price: true, salePrice: true,
         category: true, brand: true, description: true, ratingAvg: true,
         ratingCount: true, soldCount: true, inventory: true, isOnSale: true,
-        origin: true, weight: true, ingredients: true, nutrition: true,
-        storage: true, usage: true,
+        weight: true,
       },
       orderBy: [{ soldCount: "desc" }, { name: "asc" }],
       take: 200,
@@ -111,7 +105,7 @@ async function getAllProductsDetailed(): Promise<string> {
         const discount = p.salePrice ? ` (-${Math.round((1 - p.salePrice / p.price) * 100)}%)` : "";
         const stock = p.inventory <= 0 ? " ❌HẾT HÀNG" : p.inventory < 10 ? ` ⚠️Còn ${p.inventory} SP` : "";
         const rating = p.ratingAvg ? ` ⭐${p.ratingAvg.toFixed(1)}` : "";
-        const brand = p.brand ? ` 🏭${p.brand}` : "";
+        const brand = p.brand?.name ? ` 🏭${p.brand.name}` : "";
         
         lines.push(`• ${p.name}${brand} — **$${p.price}**${discount}${sale}${stock}${rating}`);
         
