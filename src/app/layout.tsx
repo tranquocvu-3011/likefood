@@ -161,9 +161,11 @@ export const metadata: Metadata = {
     images: ["/og-image.png"],
     creator: "@likefood",
   },
-  other: {
-    "fb:app_id": process.env.NEXT_PUBLIC_FB_APP_ID || "",
-  },
+  ...(process.env.NEXT_PUBLIC_FB_APP_ID ? {
+    other: {
+      "fb:app_id": process.env.NEXT_PUBLIC_FB_APP_ID,
+    },
+  } : {}),
   icons: {
     icon: "/icon-512.png",
     apple: "/icon-512.png",

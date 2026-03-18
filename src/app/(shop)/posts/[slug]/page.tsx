@@ -9,6 +9,7 @@ import { Metadata } from "next";
 import { cookies } from "next/headers";
 import prisma from "@/lib/prisma";
 import PostDetailClient from "./PostDetailClient";
+import RelatedPosts from "@/components/seo/RelatedPosts";
 
 export const revalidate = 3600; // 1 hour for blog posts
 
@@ -175,6 +176,9 @@ export default async function PostDetailPage({ params }: PageProps) {
                 />
             )}
             <PostDetailClient slug={slug} />
+            <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 1rem' }}>
+              <RelatedPosts currentSlug={slug} maxPosts={4} />
+            </div>
         </>
     );
 }

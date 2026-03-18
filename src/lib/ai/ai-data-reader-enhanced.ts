@@ -97,7 +97,7 @@ export async function getProductDetailsByName(productName: string): Promise<Prod
       where: {
         isDeleted: false,
         OR: [
-          { name: { contains: productName, mode: "insensitive" } },
+          { name: { contains: productName } },
           { slug: { contains: productName.toLowerCase().replace(/ /g, "-") } },
         ],
       },
@@ -129,14 +129,15 @@ export async function getProductDetailsByName(productName: string): Promise<Prod
     });
 
     const detail = mapProductDetail(product);
-    detail.reviews = product.reviews.map(r => ({
+    const productWithRelations = product as any;
+    detail.reviews = (productWithRelations.reviews ?? []).map((r: any) => ({
       rating: r.rating,
       comment: r.comment?.slice(0, 200) ?? "",
       author: r.user?.name ?? "Khách hàng",
       createdAt: r.createdAt.toISOString(),
     }));
     detail.relatedProducts = related.map(mapProductDetail);
-    detail.specifications = product.specifications as Record<string, string> | null ?? {};
+    detail.specifications = (productWithRelations.specifications as Record<string, string> | null) ?? {};
 
     return detail;
   } catch (error) {
@@ -151,7 +152,7 @@ export async function getProductsByCategory(categoryName: string, limit = 10): P
   try {
     const products = await prisma.product.findMany({
       where: {
-        category: { contains: categoryName, mode: "insensitive" },
+        category: { contains: categoryName },
         isDeleted: false,
         inventory: { gt: 0 },
       },

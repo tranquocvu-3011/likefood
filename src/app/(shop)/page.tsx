@@ -11,6 +11,7 @@ import CategoryShowcase from "@/components/shared/CategoryShowcase";
 import FlashSaleBanner from "@/components/shared/FlashSaleBanner";
 import HomeSearchBar from "@/components/shared/HomeSearchBar";
 import StructuredData from "@/components/seo/StructuredData";
+import InternalLinks from "@/components/seo/InternalLinks";
 import { RecentlyViewedClient } from "@/components/shared/ClientWrappers";
 import { Suspense } from "react";
 import { ProductGridSkeleton } from "@/components/ui/product-skeleton";
@@ -198,6 +199,11 @@ export default async function Home() {
 
         {/* Section 7.5: Recently Viewed Products */}
         {show("recently-viewed") && <section aria-label="Sản phẩm đã xem gần đây"><RecentlyViewedClient /></section>}
+
+        {/* Section 9: SEO Internal Links */}
+        <section aria-label="Liên kết nội bộ" style={{ padding: '0 1rem 2rem', maxWidth: 1200, margin: '0 auto', width: '100%' }}>
+          <InternalLinks />
+        </section>
 
       </div>
     </>
