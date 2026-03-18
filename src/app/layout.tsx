@@ -24,7 +24,7 @@ const outfit = Outfit({ subsets: ["latin"], variable: '--font-outfit' });
 export const metadata: Metadata = {
   title: {
     default: "LIKEFOOD - Đặc Sản Việt Nam Chính Gốc Tại Mỹ | Vietnamese Specialty Food in USA",
-    template: "%s | LIKEFOOD - Đặc Sản Việt Nam Tại Mỹ"
+    template: "%s | LIKEFOOD"
   },
   description: "LIKEFOOD - Cửa hàng đặc sản Việt Nam uy tín #1 tại Mỹ. 100+ sản phẩm chính gốc: cá khô miền Tây, tôm khô Cà Mau, mực khô, trái cây sấy, mắm truyền thống, gia vị Việt. Giao hàng nhanh 2-3 ngày toàn nước Mỹ. Miễn phí ship đơn từ $500. Đảm bảo chất lượng FDA. Hỗ trợ 24/7.",
   keywords: [

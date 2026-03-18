@@ -24,20 +24,23 @@ export async function generateMetadata(): Promise<Metadata> {
     // Self-referencing canonical with pagination
     const canonicalPath = currentPage > 1 ? `/products?page=${currentPage}` : "/products";
 
-    const title = isEn ? "Products | LIKEFOOD" : "Sản phẩm | LIKEFOOD";
+    const title = isEn
+        ? "Vietnamese Specialty Products | 100+ Authentic Items"
+        : "Đặc Sản Việt Nam Chính Gốc | 100+ Sản Phẩm Miền Tây";
     const description = isEn
-        ? "Explore premium Vietnamese specialty products at LIKEFOOD. Dried fish, shrimp, squid, fruits and more. Nationwide US delivery."
-        : "Khám phá các sản phẩm đặc sản Việt Nam chất lượng cao tại LIKEFOOD. Cá khô, tôm khô, mực khô, trái cây sấy. Giao hàng toàn nước Mỹ.";
+        ? "Shop 100+ authentic Vietnamese specialty products at LIKEFOOD. Premium dried fish, Cà Mau shrimp, squid, tropical dried fruits, traditional sauces & spices. Fast 2-3 day delivery across USA. Free shipping on orders $500+."
+        : "Mua 100+ sản phẩm đặc sản Việt Nam chính gốc tại LIKEFOOD. Cá khô miền Tây, tôm khô Cà Mau, mực khô, trái cây sấy, mắm truyền thống, gia vị Việt. Giao hàng 2-3 ngày toàn nước Mỹ. Miễn phí ship từ $500.";
 
     return {
         title,
         description,
         keywords: [
-            "sản phẩm LIKEFOOD", "đặc sản Việt Nam", "cá khô", "tôm khô", "mực khô",
-            "trái cây sấy", "gia vị Việt Nam", "Vietnamese specialty products",
-            "đặc sản Việt tại Mỹ", "likefood products", "mua đồ khô Việt Nam online",
-            "dried fish USA", "dried shrimp USA", "Vietnamese food online",
-            "khô bò", "khô gà", "đặc sản quê hương", "mua đặc sản Việt Nam",
+            "đặc sản Việt Nam", "đặc sản Việt Nam tại Mỹ", "cá khô miền Tây", "tôm khô Cà Mau", "mực khô nguyên con",
+            "trái cây sấy Việt Nam", "gia vị Việt Nam", "mắm truyền thống", "nước mắm Phú Quốc",
+            "Vietnamese specialty products", "Vietnamese food in USA", "Vietnamese dried fish",
+            "dried shrimp USA", "Vietnamese grocery online", "buy Vietnamese food in America",
+            "đặc sản miền Tây", "đồ khô Việt Nam", "mua đặc sản Việt Nam online",
+            "khô bò", "trà Việt Nam", "bánh tráng", "Vietnamese snacks USA",
         ],
         alternates: {
             canonical: canonicalPath,

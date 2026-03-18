@@ -38,7 +38,7 @@ export async function generateMetadata(
 
         if (!product) {
             return {
-                title: isEn ? "Product Not Found | LIKEFOOD" : "Sản phẩm không tồn tại | LIKEFOOD",
+                title: isEn ? "Product Not Found" : "Sản phẩm không tồn tại",
                 description: isEn ? "The requested product could not be found." : "Không tìm thấy sản phẩm yêu cầu.",
                 alternates: {
                     canonical: `${BASE_URL}/products/${slug}`,
@@ -53,7 +53,7 @@ export async function generateMetadata(
 
         const currentPrice = product.salePrice && product.salePrice > 0 ? product.salePrice : product.price;
         const priceStr = `$${currentPrice.toFixed(2)}`;
-        const title = `${product.name} - ${product.category} | LIKEFOOD`;
+        const title = `${product.name} - ${product.category}`;
         const productUrl = `${BASE_URL}/products/${slug}`;
         
         // Build SEO description with price while keeping concise length.
@@ -96,7 +96,7 @@ export async function generateMetadata(
         };
     } catch {
         return {
-            title: isEn ? "Vietnamese Specialty Products | LIKEFOOD" : "Sản phẩm đặc sản Việt Nam | LIKEFOOD",
+            title: isEn ? "Vietnamese Specialty Products" : "Sản phẩm đặc sản Việt Nam",
             description: isEn
                 ? "Explore premium Vietnamese specialty products at LIKEFOOD."
                 : "Khám phá các loại đặc sản Việt Nam chất lượng cao tại LIKEFOOD.",

@@ -9,7 +9,7 @@
  */
 
 const SITE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.app";
-const SITE_NAME = "LIKEFOOD";
+const SITE_NAME = "LIKEFOOD - Đặc Sản Việt Nam Tại Mỹ";
 
 export default function StructuredData() {
     // Merged Organization + LocalBusiness into a single entity (Google recommended)
@@ -24,7 +24,7 @@ export default function StructuredData() {
             url: `${SITE_URL}/logo.png`,
         },
         image: `${SITE_URL}/og-image.png`,
-        description: "Vietnamese Specialty Marketplace in the United States — Nền tảng đặc sản Việt Nam tại Hoa Kỳ",
+        description: "LIKEFOOD - Cửa hàng đặc sản Việt Nam uy tín #1 tại Mỹ. 100+ sản phẩm chính gốc miền Tây: cá khô, tôm khô Cà Mau, mực khô, trái cây sấy, mắm truyền thống. Giao hàng nhanh 2-3 ngày toàn nước Mỹ. Chất lượng FDA.",
         telephone: "+1-402-315-8105",
         email: "tranquocvu3011@gmail.com",
         contactPoint: {
@@ -42,17 +42,40 @@ export default function StructuredData() {
             addressCountry: "US",
         },
         priceRange: "$$",
+        currenciesAccepted: "USD",
+        paymentAccepted: "Credit Card, Stripe, Apple Pay, Google Pay",
+        areaServed: {
+            "@type": "Country",
+            name: "United States",
+        },
+        geo: {
+            "@type": "GeoCoordinates",
+            latitude: 41.2149,
+            longitude: -96.1249,
+        },
+        hasOfferCatalog: {
+            "@type": "OfferCatalog",
+            name: "Đặc sản Việt Nam",
+            itemListElement: [
+                { "@type": "OfferCatalog", name: "Cá khô miền Tây" },
+                { "@type": "OfferCatalog", name: "Tôm & Mực khô" },
+                { "@type": "OfferCatalog", name: "Trái cây sấy" },
+                { "@type": "OfferCatalog", name: "Gia vị Việt Nam" },
+                { "@type": "OfferCatalog", name: "Trà & Bánh mứt" },
+            ],
+        },
         openingHoursSpecification: [
             {
                 "@type": "OpeningHoursSpecification",
-                dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-                opens: "08:00",
-                closes: "18:00"
+                dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+                opens: "00:00",
+                closes: "23:59"
             }
         ],
         sameAs: [
             "https://www.facebook.com/profile.php?id=100076170558548",
             "https://instagram.com/likefood",
+            "https://likefood.app",
         ],
     };
 
@@ -92,8 +115,8 @@ export default function StructuredData() {
         "@context": "https://schema.org",
         "@type": "WebPage",
         "@id": `${SITE_URL}/#webpage`,
-        name: "LIKEFOOD — Đặc sản Việt Nam tại Mỹ",
-        description: "Nền tảng thương mại điện tử chuyên cung cấp đặc sản Việt Nam chất lượng cao tại Hoa Kỳ. Cá khô, tôm khô, mực khô, trái cây sấy. Giao hàng toàn nước Mỹ.",
+        name: "LIKEFOOD - Đặc Sản Việt Nam Chính Gốc Tại Mỹ | Vietnamese Specialty Food USA",
+        description: "LIKEFOOD - Cửa hàng đặc sản Việt Nam uy tín #1 tại Mỹ. 100+ sản phẩm chính gốc: cá khô miền Tây, tôm khô Cà Mau, mực khô, trái cây sấy, mắm truyền thống, gia vị Việt. Giao hàng nhanh 2-3 ngày toàn nước Mỹ. Miễn phí ship đơn từ $500.",
         url: SITE_URL,
         isPartOf: { "@id": `${SITE_URL}/#website` },
         about: { "@id": `${SITE_URL}/#organization` },

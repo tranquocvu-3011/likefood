@@ -54,14 +54,14 @@ export async function generateMetadata(): Promise<Metadata> {
   const isEn = cookieStore.get("language")?.value === "en";
 
   const title = isEn
-    ? "LIKEFOOD - Authentic Vietnamese Specialty Store in the U.S."
-    : "LIKEFOOD - Đặc sản Việt Nam chính gốc tại Hoa Kỳ";
+    ? "LIKEFOOD - Authentic Vietnamese Specialty Food in USA | Shop 100+ Products"
+    : "LIKEFOOD - Đặc Sản Việt Nam Chính Gốc Tại Mỹ | 100+ Sản Phẩm | Giao Nhanh 2-3 Ngày";
   const description = isEn
-    ? "Shop premium Vietnamese dried seafood, fruits, and regional specialties. Nationwide U.S. shipping in 2-3 days. Free shipping from $500 orders."
-    : "Mua cá khô, tôm khô, mực khô, trái cây sấy và đặc sản Việt Nam chất lượng cao. Giao hàng toàn nước Mỹ trong 2-3 ngày. Miễn phí ship đơn từ $500.";
+    ? "Shop 100+ authentic Vietnamese dried seafood, fruits, and regional specialties at LIKEFOOD. Premium quality, FDA approved. Fast 2-3 day delivery across USA. Free shipping from $500."
+    : "LIKEFOOD - Cửa hàng đặc sản Việt Nam uy tín #1 tại Mỹ. 100+ sản phẩm chính gốc: cá khô miền Tây, tôm khô Cà Mau, mực khô, trái cây sấy, mắm truyền thống. Giao 2-3 ngày. Miễn phí ship từ $500.";
 
   return {
-    title,
+    title: { absolute: title },
     description,
     keywords: [
       "likefood", "likefood là gì", "LIKEFOOD", "like food",

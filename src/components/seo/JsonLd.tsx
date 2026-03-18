@@ -163,3 +163,80 @@ export function FAQJsonLd({
 
     return <JsonLd data={data} />;
 }
+
+/**
+ * WebSite structured data — enables Sitelinks Searchbox in Google
+ */
+export function WebSiteJsonLd({ url }: { url: string }) {
+    const data = {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: "LIKEFOOD",
+        url,
+        potentialAction: {
+            "@type": "SearchAction",
+            target: {
+                "@type": "EntryPoint",
+                urlTemplate: `${url}/products?search={search_term_string}`,
+            },
+            "query-input": "required name=search_term_string",
+        },
+    };
+
+    return <JsonLd data={data} />;
+}
+
+/**
+ * Article structured data for blog posts
+ */
+export function ArticleJsonLd({
+    title,
+    description,
+    image,
+    authorName,
+    publishedAt,
+    modifiedAt,
+    url,
+}: {
+    title: string;
+    description: string;
+    image?: string;
+    authorName?: string;
+    publishedAt: string;
+    modifiedAt?: string;
+    url: string;
+}) {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.app";
+    const data: Record<string, unknown> = {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        headline: title,
+        description,
+        url,
+        datePublished: publishedAt,
+        dateModified: modifiedAt || publishedAt,
+        author: {
+            "@type": "Person",
+            name: authorName || "LIKEFOOD",
+        },
+        publisher: {
+            "@type": "Organization",
+            name: "LIKEFOOD",
+            url: baseUrl,
+            logo: {
+                "@type": "ImageObject",
+                url: `${baseUrl}/icon-512.png`,
+            },
+        },
+        mainEntityOfPage: {
+            "@type": "WebPage",
+            "@id": url,
+        },
+    };
+
+    if (image) {
+        data.image = image.startsWith("http") ? image : `${baseUrl}${image}`;
+    }
+
+    return <JsonLd data={data} />;
+}

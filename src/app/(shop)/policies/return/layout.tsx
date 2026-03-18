@@ -10,7 +10,7 @@ export async function generateMetadata(): Promise<Metadata> {
     const cookieStore = await cookies();
     const isEn = cookieStore.get("language")?.value === "en";
 
-    const title = isEn ? "Return Policy | LIKEFOOD" : "Chính Sách Đổi Trả | LIKEFOOD";
+    const title = isEn ? "Return Policy" : "Chính Sách Đổi Trả";
     const description = isEn
         ? "LIKEFOOD return and refund policy. Learn about eligible return cases, the return process, and our commitment to customer satisfaction."
         : "Chính sách đổi trả và hoàn tiền tại LIKEFOOD. Tìm hiểu các trường hợp đổi trả, quy trình và cam kết chất lượng khách hàng.";

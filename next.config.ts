@@ -147,7 +147,19 @@ const nextConfig: NextConfig = {
                     },
                     {
                         key: "Strict-Transport-Security",
-                        value: "max-age=31536000; includeSubDomains",
+                        value: "max-age=31536000; includeSubDomains; preload",
+                    },
+                    {
+                        key: "X-DNS-Prefetch-Control",
+                        value: "on",
+                    },
+                    {
+                        key: "Cross-Origin-Opener-Policy",
+                        value: "same-origin",
+                    },
+                    {
+                        key: "Cross-Origin-Resource-Policy",
+                        value: "same-site",
                     },
                     // SEC-002 TODO: Fix CSP to remove unsafe-inline and unsafe-eval
                     // Currently required for:

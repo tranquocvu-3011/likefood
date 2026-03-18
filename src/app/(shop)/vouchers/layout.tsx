@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
     const cookieStore = await cookies();
     const isEn = cookieStore.get("language")?.value === "en";
 
-    const title = isEn ? "Vouchers & Promotions | LIKEFOOD" : "Voucher & Khuyến Mãi | LIKEFOOD";
+    const title = isEn ? "Vouchers & Promotions" : "Voucher & Khuyến Mãi";
     const description = isEn
         ? "Browse LIKEFOOD vouchers and promotions. Save on premium Vietnamese specialty food with exclusive discount codes and free shipping offers."
         : "Khám phá voucher và khuyến mãi LIKEFOOD. Tiết kiệm khi mua đặc sản Việt Nam với mã giảm giá và ưu đãi miễn phí vận chuyển.";
