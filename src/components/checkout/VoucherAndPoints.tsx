@@ -106,8 +106,9 @@ export default function VoucherAndPoints({
                                     <span className="text-[10px] font-bold text-amber-700">
                                         {t('checkout.convertedValue')}
                                     </span>
-                                    <span className="text-[10px] font-black text-amber-900">
-                                        -<PriceDisplay currentPrice={pointsToUse / 100} size="sm" showDiscountBadge={false} className="inline-block" />
+                                    <span className="inline-flex items-baseline gap-0.5 whitespace-nowrap text-[10px] font-black text-amber-900">
+                                        <span aria-hidden="true">-</span>
+                                        <PriceDisplay currentPrice={pointsToUse / 100} size="sm" showDiscountBadge={false} className="whitespace-nowrap" />
                                     </span>
                                 </div>
                             </motion.div>

@@ -203,7 +203,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       select: { slug: true, updatedAt: true },
     });
     cmsPages = dynamicPages.map((p) => {
-      const cmsUrl = `${BASE_URL}/pages/${p.slug}`;
+      const cmsUrl = `${BASE_URL}/${p.slug}`;
       return {
         url: cmsUrl,
         lastModified: p.updatedAt,

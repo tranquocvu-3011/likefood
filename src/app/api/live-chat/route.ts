@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     // Check if user already has an active chat
     const existingChat = await prisma.livechat.findFirst({
       where: { userId, status: { in: ["OPEN", "ASSIGNED"] } },
-      select: { id: true },
+      select: { id: true, status: true },
     });
 
     if (existingChat) {
@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
         chatId: existingChat.id,
         message: "Bạn đã có phiên chat đang mở.",
         existing: true,
+        status: existingChat.status,
       });
     }
 
@@ -77,6 +78,7 @@ export async function POST(req: NextRequest) {
       messageId: chat.messages[0]?.id ?? 0,
       message: "Phiên chat đã được tạo! AI sẽ hỗ trợ ngay.",
       existing: false,
+      status: chat.status,
     }, { status: 201 });
   } catch (error) {
     logger.error("[LIVE_CHAT] Create error", error as Error, { context: "live-chat-api" });

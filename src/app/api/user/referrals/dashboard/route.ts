@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
 import { getOrCreateProfile } from "@/lib/referral/code.service";
 import { getReferralConfig } from "@/lib/referral/config.service";
+import { ensureDefaultReferralMilestones } from "@/lib/referral/milestone.service";
 import prisma from "@/lib/prisma";
 import type { ReferralDashboard } from "@/lib/referral/types";
 
@@ -18,6 +19,7 @@ export async function GET() {
     const userId = Number(session.user.id);
     const profile = await getOrCreateProfile(userId);
     const config = await getReferralConfig();
+    await ensureDefaultReferralMilestones();
 
     // Get next unachieved milestone
     const nextMilestone = await prisma.referralmilestone.findFirst({

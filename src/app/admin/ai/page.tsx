@@ -11,11 +11,17 @@ import {
   BarChart3,
   Bot,
   Brain,
+  ChevronDown,
+  ChevronUp,
+  Copy,
   Eye,
   Flame,
   Loader2,
+  Mail,
+  MessageSquare,
   Monitor,
   Package,
+  Phone,
   RefreshCw,
   Search,
   Send,
@@ -25,6 +31,7 @@ import {
   Target,
   TrendingUp,
   User,
+  UserSearch,
   Users,
   Zap,
 } from "lucide-react";
@@ -118,17 +125,42 @@ interface SalesRecommendation {
   urgencyLevel: "high" | "medium" | "low";
 }
 
+interface ProspectCustomer {
+  id: number;
+  name: string;
+  email: string;
+  phone?: string;
+  avatarInitial: string;
+  prospectScore: number;
+  visitDays: number;
+  totalPageViews: number;
+  totalProductViews: number;
+  totalSearches: number;
+  addToCartCount: number;
+  avgSessionMinutes: number;
+  lastVisit: string;
+  firstVisit: string;
+  productsViewed: { id: number; name: string; price: number; viewCount: number; category: string }[];
+  searchQueries: string[];
+  predictedProducts: { id: number; name: string; price: number; reason: string; confidence: number }[];
+  behaviorSummary: string[];
+  segment: string;
+  suggestedContactMethod: string;
+  suggestedMessage: string;
+}
+
 interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
 }
 
-type TabId = "overview" | "realtime" | "profiles" | "sales" | "chat";
+type TabId = "overview" | "realtime" | "prospects" | "profiles" | "sales" | "chat";
 
 const TABS: { id: TabId; label: string; icon: typeof Brain }[] = [
   { id: "overview", label: "Tổng quan", icon: Brain },
   { id: "realtime", label: "Real-time", icon: Activity },
+  { id: "prospects", label: "Tiềm năng", icon: UserSearch },
   { id: "profiles", label: "Hồ sơ KH", icon: User },
   { id: "sales", label: "AI Bán hàng", icon: Target },
   { id: "chat", label: "Chat AI", icon: Bot },
@@ -163,6 +195,10 @@ export default function AICommandCenter() {
   const [profileSearchResults, setProfileSearchResults] = useState<{ id: number; name: string; email: string }[]>([]);
   const [selectedProfile, setSelectedProfile] = useState<SmartProfile | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+
+  // Prospects data
+  const [prospects, setProspects] = useState<ProspectCustomer[]>([]);
+  const [isLoadingProspects, setIsLoadingProspects] = useState(false);
 
   // Sales data
   const [salesRec, setSalesRec] = useState<SalesRecommendation | null>(null);
@@ -220,6 +256,21 @@ export default function AICommandCenter() {
       toast.error("Không thể tải dữ liệu visitors.");
     } finally {
       setIsLoadingVisitors(false);
+    }
+  }, []);
+
+  const loadProspects = useCallback(async () => {
+    setIsLoadingProspects(true);
+    try {
+      const res = await fetch("/api/ai/admin?type=prospects");
+      if (res.ok) {
+        const data = await res.json();
+        setProspects(Array.isArray(data.prospects) ? data.prospects : []);
+      }
+    } catch {
+      toast.error("Không thể tải dữ liệu khách hàng tiềm năng.");
+    } finally {
+      setIsLoadingProspects(false);
     }
   }, []);
 
@@ -306,7 +357,10 @@ export default function AICommandCenter() {
       intervalRef.current = setInterval(() => { void loadVisitors(); }, 30000);
       return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
     }
-  }, [activeTab, loadVisitors]);
+    if (activeTab === "prospects") {
+      void loadProspects();
+    }
+  }, [activeTab, loadVisitors, loadProspects]);
 
   // Debounced customer search
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -394,6 +448,7 @@ export default function AICommandCenter() {
       {/* Tab Content */}
       {activeTab === "overview" && <OverviewTab insights={insights} summary={summary} forecasts={forecasts} segments={segments} hotLeads={hotLeads} />}
       {activeTab === "realtime" && <RealTimeTab visitors={visitors} isLoading={isLoadingVisitors} onRefresh={loadVisitors} />}
+      {activeTab === "prospects" && <ProspectsTab prospects={prospects} isLoading={isLoadingProspects} onRefresh={loadProspects} />}
       {activeTab === "profiles" && (
         <ProfilesTab
           search={profileSearch}
@@ -602,6 +657,300 @@ function RealTimeTab({ visitors, isLoading, onRefresh }: { visitors: ActiveVisit
               </CardContent>
             </Card>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ProspectsTab({ prospects, isLoading, onRefresh }: { prospects: ProspectCustomer[]; isLoading: boolean; onRefresh: () => void }) {
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  const copyToClipboard = useCallback((text: string, field: string) => {
+    void navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    toast.success("Đã sao chép!");
+    setTimeout(() => setCopiedField(null), 2000);
+  }, []);
+
+  const getScoreColor = (score: number) => {
+    if (score >= 70) return "bg-rose-500/20 text-rose-400 border-rose-500/30";
+    if (score >= 50) return "bg-amber-500/20 text-amber-400 border-amber-500/30";
+    if (score >= 30) return "bg-blue-500/20 text-blue-400 border-blue-500/30";
+    return "bg-zinc-700/50 text-zinc-400 border-zinc-600/30";
+  };
+
+  const getSegmentColor = (segment: string) => {
+    if (segment === "Rất tiềm năng") return "bg-rose-500/15 text-rose-400";
+    if (segment === "Tiềm năng cao") return "bg-amber-500/15 text-amber-400";
+    if (segment === "Tiềm năng") return "bg-blue-500/15 text-blue-400";
+    return "bg-zinc-700/50 text-zinc-400";
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-bold text-zinc-100">Khách hàng tiềm năng</h2>
+          <p className="text-xs text-zinc-500">
+            Phân tích hành vi 7 ngày · {prospects.length} khách tiềm năng · Sắp xếp theo điểm quan tâm
+          </p>
+        </div>
+        <Button variant="outline" size="sm" onClick={onRefresh} disabled={isLoading}>
+          <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? "animate-spin" : ""}`} />Làm mới
+        </Button>
+      </div>
+
+      {/* Summary Stats */}
+      {prospects.length > 0 && (
+        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-xl border border-zinc-700/50 bg-[#111113] p-3">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Tổng tiềm năng</p>
+            <p className="mt-1 text-xl font-black text-zinc-100">{prospects.length}</p>
+          </div>
+          <div className="rounded-xl border border-zinc-700/50 bg-[#111113] p-3">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Rất tiềm năng</p>
+            <p className="mt-1 text-xl font-black text-rose-400">{prospects.filter(p => p.prospectScore >= 70).length}</p>
+          </div>
+          <div className="rounded-xl border border-zinc-700/50 bg-[#111113] p-3">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Có giỏ hàng</p>
+            <p className="mt-1 text-xl font-black text-amber-400">{prospects.filter(p => p.addToCartCount > 0).length}</p>
+          </div>
+          <div className="rounded-xl border border-zinc-700/50 bg-[#111113] p-3">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">TB điểm tiềm năng</p>
+            <p className="mt-1 text-xl font-black text-teal-400">
+              {prospects.length > 0 ? Math.round(prospects.reduce((s, p) => s + p.prospectScore, 0) / prospects.length) : 0}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {isLoading && (
+        <div className="flex flex-col items-center justify-center gap-3 py-12">
+          <Loader2 className="h-6 w-6 animate-spin text-teal-500" />
+          <p className="text-sm text-zinc-500 animate-pulse">Đang phân tích hành vi khách hàng...</p>
+        </div>
+      )}
+
+      {!isLoading && prospects.length === 0 && (
+        <Card className="rounded-2xl border-zinc-700/50 bg-[#111113]">
+          <CardContent className="p-8 text-center">
+            <UserSearch className="mx-auto h-10 w-10 text-zinc-600" />
+            <p className="mt-3 text-sm text-zinc-500">Chưa tìm thấy khách hàng tiềm năng trong 7 ngày qua.</p>
+            <p className="mt-1 text-xs text-zinc-600">Hệ thống phân tích hành vi người dùng đã đăng nhập nhưng chưa mua hàng.</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {!isLoading && prospects.length > 0 && (
+        <div className="space-y-3">
+          {prospects.map((prospect) => {
+            const isExpanded = expandedId === prospect.id;
+            return (
+              <Card key={prospect.id} className="rounded-xl border-zinc-700/50 bg-[#111113] overflow-hidden">
+                <CardContent className="p-0">
+                  {/* Collapsed View */}
+                  <button
+                    type="button"
+                    onClick={() => setExpandedId(isExpanded ? null : prospect.id)}
+                    className="flex w-full items-center gap-4 p-4 text-left transition hover:bg-zinc-800/30"
+                  >
+                    {/* Avatar */}
+                    <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-base font-bold ${
+                      prospect.prospectScore >= 70 ? "bg-gradient-to-br from-rose-500 to-orange-500 text-white" :
+                      prospect.prospectScore >= 50 ? "bg-gradient-to-br from-amber-500 to-yellow-500 text-white" :
+                      "bg-gradient-to-br from-teal-500 to-blue-500 text-white"
+                    }`}>
+                      {prospect.avatarInitial}
+                    </div>
+
+                    {/* Info */}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="truncate text-sm font-bold text-zinc-100">{prospect.name}</p>
+                        <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${getSegmentColor(prospect.segment)}`}>
+                          {prospect.segment}
+                        </span>
+                      </div>
+                      <div className="mt-1 flex flex-wrap gap-2 text-xs text-zinc-500">
+                        <span>{prospect.email}</span>
+                        {prospect.phone && <span>· {prospect.phone}</span>}
+                      </div>
+                      <div className="mt-1.5 flex flex-wrap gap-1.5">
+                        {prospect.behaviorSummary.slice(0, 3).map((s, i) => (
+                          <span key={i} className="rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] text-zinc-400">{s}</span>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Score + Expand */}
+                    <div className="flex items-center gap-3 shrink-0">
+                      <div className={`flex flex-col items-center rounded-xl border px-3 py-2 ${getScoreColor(prospect.prospectScore)}`}>
+                        <span className="text-lg font-black">{prospect.prospectScore}</span>
+                        <span className="text-[9px] font-bold uppercase tracking-wider opacity-70">Điểm</span>
+                      </div>
+                      {isExpanded ? <ChevronUp className="h-4 w-4 text-zinc-500" /> : <ChevronDown className="h-4 w-4 text-zinc-500" />}
+                    </div>
+                  </button>
+
+                  {/* Expanded Details */}
+                  {isExpanded && (
+                    <div className="border-t border-zinc-700/50 bg-zinc-900/30 px-4 pb-5 pt-4 space-y-5">
+                      {/* Behavior Stats */}
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2">📊 Hành vi chi tiết</p>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+                          <StatBlock label="Ngày truy cập" value={`${prospect.visitDays}`} />
+                          <StatBlock label="Lượt xem trang" value={`${prospect.totalPageViews}`} />
+                          <StatBlock label="SP đã xem" value={`${prospect.totalProductViews}`} />
+                          <StatBlock label="Tìm kiếm" value={`${prospect.totalSearches}`} />
+                          <StatBlock label="Giỏ hàng" value={`${prospect.addToCartCount}`} highlight={prospect.addToCartCount > 0} />
+                          <StatBlock label="TB phút/phiên" value={`${prospect.avgSessionMinutes}`} />
+                        </div>
+                      </div>
+
+                      {/* Products Viewed */}
+                      {prospect.productsViewed.length > 0 && (
+                        <div>
+                          <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2">👁️ Sản phẩm đã xem ({prospect.productsViewed.length})</p>
+                          <div className="space-y-1.5">
+                            {prospect.productsViewed.map((p) => (
+                              <div key={p.id} className="flex items-center justify-between rounded-lg border border-zinc-700/50 bg-zinc-900/50 px-3 py-2">
+                                <div className="min-w-0 flex-1">
+                                  <p className="truncate text-sm text-zinc-200">{p.name}</p>
+                                  <p className="text-[10px] text-zinc-500">{p.category}</p>
+                                </div>
+                                <div className="flex items-center gap-3 shrink-0 ml-2">
+                                  <span className="text-xs text-zinc-400">{formatPrice(p.price)}</span>
+                                  {p.viewCount > 1 && (
+                                    <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-bold text-amber-400">
+                                      ×{p.viewCount}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Search History */}
+                      {prospect.searchQueries.length > 0 && (
+                        <div>
+                          <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2">🔍 Từ khóa tìm kiếm</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {prospect.searchQueries.map((q, i) => (
+                              <span key={i} className="rounded-lg bg-zinc-800 px-2.5 py-1 text-xs text-zinc-300">
+                                {q}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Predicted Products */}
+                      {prospect.predictedProducts.length > 0 && (
+                        <div>
+                          <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2">🎯 Dự đoán SP quan tâm</p>
+                          <div className="space-y-1.5">
+                            {prospect.predictedProducts.map((p) => (
+                              <div key={p.id} className="flex items-center justify-between rounded-lg border border-teal-500/20 bg-teal-500/5 px-3 py-2">
+                                <div className="min-w-0 flex-1">
+                                  <p className="truncate text-sm font-medium text-zinc-200">{p.name}</p>
+                                  <p className="text-[10px] text-zinc-500">{p.reason}</p>
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0 ml-2">
+                                  <span className="text-sm font-bold text-zinc-100">{formatPrice(p.price)}</span>
+                                  <span className="text-[10px] text-teal-400 font-bold">{Math.round(p.confidence * 100)}%</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Contact Actions */}
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2">📞 Liên hệ tư vấn</p>
+                        <div className="rounded-xl border border-zinc-700/50 bg-zinc-900/50 p-3 space-y-3">
+                          <p className="text-xs text-zinc-400">
+                            <span className="font-bold text-zinc-300">Gợi ý:</span> {prospect.suggestedContactMethod}
+                          </p>
+
+                          {/* Suggested Message */}
+                          <div className="rounded-lg border border-zinc-700/30 bg-zinc-800/50 p-3">
+                            <p className="text-xs text-zinc-400 mb-1">💬 Tin nhắn gợi ý:</p>
+                            <p className="text-sm text-zinc-300 leading-5">{prospect.suggestedMessage}</p>
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="flex flex-wrap gap-2">
+                            <a
+                              href={`mailto:${prospect.email}?subject=LIKEFOOD - Ưu đãi đặc biệt dành cho bạn&body=${encodeURIComponent(prospect.suggestedMessage)}`}
+                              className="flex items-center gap-1.5 rounded-lg bg-teal-600 px-3 py-2 text-xs font-bold text-white transition hover:bg-teal-500"
+                            >
+                              <Mail className="h-3.5 w-3.5" />Gửi Email
+                            </a>
+                            {prospect.phone && (
+                              <a
+                                href={`tel:${prospect.phone}`}
+                                className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-xs font-bold text-white transition hover:bg-blue-500"
+                              >
+                                <Phone className="h-3.5 w-3.5" />Gọi điện
+                              </a>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => copyToClipboard(prospect.suggestedMessage, `msg-${prospect.id}`)}
+                              className="flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs font-bold text-zinc-300 transition hover:bg-zinc-700"
+                            >
+                              {copiedField === `msg-${prospect.id}` ? (
+                                <><MessageSquare className="h-3.5 w-3.5 text-emerald-400" />Đã copy</>
+                              ) : (
+                                <><Copy className="h-3.5 w-3.5" />Copy tin nhắn</>
+                              )}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => copyToClipboard(prospect.email, `email-${prospect.id}`)}
+                              className="flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs font-bold text-zinc-300 transition hover:bg-zinc-700"
+                            >
+                              {copiedField === `email-${prospect.id}` ? (
+                                <><Mail className="h-3.5 w-3.5 text-emerald-400" />Đã copy</>
+                              ) : (
+                                <><Copy className="h-3.5 w-3.5" />Copy email</>
+                              )}
+                            </button>
+                            {prospect.phone && (
+                              <button
+                                type="button"
+                                onClick={() => copyToClipboard(prospect.phone!, `phone-${prospect.id}`)}
+                                className="flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs font-bold text-zinc-300 transition hover:bg-zinc-700"
+                              >
+                                {copiedField === `phone-${prospect.id}` ? (
+                                  <><Phone className="h-3.5 w-3.5 text-emerald-400" />Đã copy</>
+                                ) : (
+                                  <><Copy className="h-3.5 w-3.5" />Copy SĐT</>
+                                )}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Last Visit Time */}
+                      <div className="flex items-center justify-between text-[11px] text-zinc-600">
+                        <span>Lần cuối truy cập: {new Date(prospect.lastVisit).toLocaleString("vi-VN")}</span>
+                        <span>Lần đầu truy cập: {new Date(prospect.firstVisit).toLocaleString("vi-VN")}</span>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>

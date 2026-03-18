@@ -13,6 +13,7 @@ import { searchKnowledge } from "@/lib/ai/knowledge-base";
 // ─── TTL Cache (reduces DB load for slow-changing data) ─────
 
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const USER_CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes for user data
 interface CacheEntry<T> { data: T; expiresAt: number; }
 const _dataCache = new Map<string, CacheEntry<unknown>>();
 
@@ -22,7 +23,7 @@ async function cached<T>(key: string, fetcher: () => Promise<T>, ttl = CACHE_TTL
   const data = await fetcher();
   _dataCache.set(key, { data, expiresAt: Date.now() + ttl });
   // Evict old entries (keep max 20)
-  if (_dataCache.size > 20) {
+  if (_dataCache.size > 50) {
     const oldestKey = _dataCache.keys().next().value;
     if (oldestKey) _dataCache.delete(oldestKey);
   }
@@ -107,7 +108,7 @@ function mapProduct(p: {
     reviewCount: p.ratingCount ?? 0,
     soldCount: p.soldCount,
     inventory: p.inventory,
-    description: p.description?.slice(0, 500) ?? "",
+    description: p.description?.slice(0, 400) ?? "",
     isOnSale: !!p.isOnSale,
   };
 }
@@ -602,178 +603,101 @@ export async function buildAIContext(
 ): Promise<string> {
   const parts: string[] = [];
 
-  // ★ Cached: catalog, snapshot, config, brands (TTL 5min)
-  const [catalog, snapshot, storeConfig, brandsInfo] = await Promise.all([
-    cached("catalog", getFullProductCatalog),
-    cached("snapshot", getStoreSnapshot),
-    cached("config", getStoreConfig),
-    cached("brands", getBrandsInfo),
-  ]);
+  // ★ LIKEFOOD IDENTITY (no DB query — instant)
+  parts.push(`🏢 LIKEFOOD — Cửa hàng đặc sản Việt Nam online tại Mỹ
+📌 E-commerce chuyên đặc sản VN chính hãng. Sứ mệnh: kết nối hương vị quê nhà với kiều bào & người yêu ẩm thực Việt tại Hoa Kỳ.
+📍 Omaha, NE 68136 | ☎ 402-315-8105 | ✉ tranquocvu3011@gmail.com | Telegram: t.me/tranquocvu3011 | FB: fb.com/vudev05
+🌟 100% nhập khẩu VN | Kiểm tra chất lượng | Giao toàn Mỹ (50 bang) | Đóng gói giữ hương vị | Hỗ trợ 24/7 Việt-Anh | Đổi trả 7 ngày
+🛒 Danh mục: 🐟Hải sản khô | 🧂Gia vị | 🍵Trà & Cà phê | 🍬Bánh kẹo & Snacks | 🥩Thịt chế biến | 🎁Quà biếu
+🌐 Tính năng: Giỏ hàng, Checkout (Visa/MC/Amex/PayPal/Apple Pay/Google Pay/COD), Tracking, Review, Blog, Flash Sale, Coupon, Chat AI + Live Chat
+💰 Xu: $1=1xu | Check-in +5xu/ngày | Mốc 200/300/500/1000xu→voucher | Pickup: $1=2xu
+🚚 Ship: Standard 5-7d FREE từ $99 | Express 2-3d FREE từ $199 | Pickup FREE
+💳 Thanh toán: Visa/MC/Amex (Stripe), PayPal, Apple Pay, Google Pay, COD
+🔄 Đổi trả 7 ngày | Hoàn tiền 5-7 ngày | Hỗ trợ: AI 24/7, Live Chat, Hotline 402-315-8105`);
 
-  if (catalog) parts.push(catalog);
-
-  parts.push(`📊 THÔNG TIN CỬA HÀNG THẬT:
-- Tổng sản phẩm: ${snapshot.totalProducts} (${snapshot.totalCategories} danh mục)
-- Flash Sale: ${snapshot.flashSaleActive ? "ĐANG DIỄN RA" : "Không có"}`);
-
-  if (storeConfig) parts.push(`\n${storeConfig}`);
-  if (brandsInfo) parts.push(`\n${brandsInfo}`);
-
-
-
-  // Trending products
-  if (snapshot.trending.length > 0) {
-    parts.push(`\n🔥 SẢN PHẨM BÁN CHẠY NHẤT (từ database thật):
-${snapshot.trending.slice(0, 5).map((p, i) => 
-  `${i + 1}. ${p.name} — $${p.price}${p.salePrice ? ` (giảm còn $${p.salePrice})` : ""} | ⭐${p.rating.toFixed(1)} (${p.reviewCount} đánh giá) | Đã bán: ${p.soldCount} | Kho: ${p.inventory}
-   Mô tả: ${p.description || "Đặc sản Việt Nam chất lượng cao"}`
-).join("\n")}`);
-  }
-
-  // Flash sale products
-  if (snapshot.flashSaleActive && snapshot.flashSaleProducts.length > 0) {
-    parts.push(`\n⚡ FLASH SALE ĐANG DIỄN RA:
-${snapshot.flashSaleProducts.slice(0, 4).map(p =>
-  `- ${p.name} — $${p.salePrice ?? p.price} (gốc $${p.price}) | Tiết kiệm ${p.salePrice ? Math.round((1 - p.salePrice / p.price) * 100) : 0}%`
-).join("\n")}`);
-  }
-
-  // On-sale products
-  if (snapshot.onSale.length > 0) {
-    parts.push(`\n🏷️ SẢN PHẨM ĐANG GIẢM GIÁ:
-${snapshot.onSale.slice(0, 4).map(p =>
-  `- ${p.name} — $${p.salePrice ?? p.price} (gốc $${p.price})`
-).join("\n")}`);
-  }
-
-  // New arrivals
-  if (snapshot.newArrivals.length > 0) {
-    parts.push(`\n🆕 SẢN PHẨM MỚI:
-${snapshot.newArrivals.slice(0, 4).map(p =>
-  `- ${p.name} — $${p.price} | ${p.category}
-   Mô tả: ${p.description?.slice(0, 200) || "Sản phẩm mới nhập"}`
-).join("\n")}`);
-  }
-
-  // User profile (personalized)
-  if (userId) {
-    const profile = await getUserPurchaseProfile(userId);
-    if (profile.totalOrders > 0) {
-      parts.push(`\n👤 THÔNG TIN KHÁCH HÀNG (đã đăng nhập):
-- Tổng đơn: ${profile.totalOrders} | Chi tiêu: $${profile.totalSpent} | Trung bình: $${profile.averageOrderValue}/đơn
-- Danh mục yêu thích: ${profile.favoriteCategories.join(", ") || "Chưa xác định"}
-- Sản phẩm mua gần đây: ${profile.recentProducts.slice(0, 5).join(", ")}
-- Phân loại: ${profile.segments.join(", ")}
-→ Dùng thông tin này để GỢI Ý CÁ NHÂN HÓA cho khách hàng!`);
-    }
-
-    // ★ NEW: User order tracking
-    const orderInfo = await getUserRecentOrders(userId);
-    if (orderInfo) {
-      parts.push(`\n${orderInfo}`);
-    }
-
-    // ★ NEW: User points balance
-    const pointsInfo = await getUserPointsBalance(userId);
-    if (pointsInfo) {
-      parts.push(`\n${pointsInfo}`);
-    }
-  }
-
-  // Search results matching query
-  const recs = await getSmartRecommendations(query, userId, 6);
-  if (recs.products.length > 0) {
-    parts.push(`\n🎯 SẢN PHẨM PHÙ HỢP VỚI CÂU HỎI "${query}":
-${recs.products.map((p, i) =>
-  `${i + 1}. ${p.name} — $${p.price}${p.salePrice ? ` (sale $${p.salePrice})` : ""} | ⭐${p.rating.toFixed(1)} (${p.reviewCount} đánh giá) | Kho: ${p.inventory} | Đã bán: ${p.soldCount} | slug: ${p.slug}
-   Thương hiệu: ${p.brand || "LIKEFOOD"} | Danh mục: ${p.category}
-   Mô tả: ${(p.description || "Đặc sản Việt Nam").slice(0, 400)}`
-).join("\n")}
-Lý do: ${recs.reason}`);
-
-    // Get reviews for top matched products
-    try {
-      const topProductIds = recs.products.slice(0, 3).map(p => p.id);
-      const reviews = await prisma.review.findMany({
-        where: {
-          productId: { in: topProductIds },
-          status: "APPROVED",
-          comment: { not: null },
-        },
-        include: {
-          user: { select: { name: true } },
-          product: { select: { name: true } },
-        },
-        orderBy: { rating: "desc" },
-        take: 5,
+  // ★ FAST data fetch with 8s timeout
+  try {
+    const contextPromise = (async () => {
+      // Layer 1: Product catalog (cached 5min, single lightweight query)
+      const catalog = await cached("catalog", async () => {
+        const products = await prisma.product.findMany({
+          where: { isDeleted: false },
+          select: {
+            name: true, price: true, salePrice: true, category: true,
+            inventory: true, isOnSale: true, soldCount: true, ratingAvg: true,
+          },
+          orderBy: { soldCount: "desc" },
+        });
+        if (products.length === 0) return "";
+        // Group by category
+        const byCategory: Record<string, typeof products> = {};
+        for (const p of products) {
+          if (!byCategory[p.category]) byCategory[p.category] = [];
+          byCategory[p.category].push(p);
+        }
+        return `📦 TOÀN BỘ SẢN PHẨM (${products.length} SP):\n` +
+          Object.entries(byCategory).map(([cat, items]) =>
+            `\n📂 ${cat} (${items.length} SP):\n` +
+            items.map(p => {
+              const sale = p.salePrice ? ` ⚡SALE $${p.salePrice}` : "";
+              const stock = p.inventory < 10 ? " ⚠️SẮP HẾT" : "";
+              return `- ${p.name} — $${p.price}${sale} | Kho: ${p.inventory}${stock}`;
+            }).join("\n")
+          ).join("\n");
       });
+      if (catalog) parts.push(catalog);
 
-      if (reviews.length > 0) {
-        parts.push(`\n⭐ ĐÁNH GIÁ THẬT CỦA KHÁCH HÀNG:
-${reviews.map(r =>
-  `- [${r.product?.name}] ⭐${r.rating}/5 — "${r.comment?.slice(0, 120)}" — ${r.user?.name ?? "Khách"}`
-).join("\n")}
-→ Dùng reviews thật này để tư vấn cho khách hàng`);
+      // Layer 2: Knowledge search (cached per query)  
+      try {
+        const knowledge = await cached(`kb:${query.slice(0, 40)}`, () => searchKnowledge(query, "vi", 3));
+        if (knowledge.length > 0) {
+          parts.push(`\n📚 KIẾN THỨC:\n${knowledge.map(k => `❓ ${k.question}\n✅ ${k.answer}`).join("\n")}`);
+        }
+      } catch { /* skip if fails */ }
+
+      // Layer 3: Active coupons (cached 5min)
+      try {
+        const coupons = await cached("coupons", async () => {
+          const c = await prisma.coupon.findMany({
+            where: { isActive: true, endDate: { gte: new Date() }, startDate: { lte: new Date() } },
+            take: 5,
+            orderBy: { discountValue: "desc" },
+          });
+          return c.length > 0 ? `\n🎟 MÃ GIẢM GIÁ:\n${c.map(x => `- **${x.code}**: Giảm ${x.discountType === "PERCENT" ? `${x.discountValue}%` : `$${x.discountValue}`}${x.minOrderValue ? ` (min $${x.minOrderValue})` : ""}`).join("\n")}` : "";
+        });
+        if (coupons) parts.push(coupons);
+      } catch { /* skip if fails */ }
+
+      // Layer 4: User data (only if logged in, cached 2min)
+      if (userId) {
+        try {
+          const [profile, points] = await Promise.all([
+            cached(`user:profile:${userId}`, () => getUserPurchaseProfile(userId), USER_CACHE_TTL_MS),
+            cached(`user:points:${userId}`, () => getUserPointsBalance(userId), USER_CACHE_TTL_MS),
+          ]);
+          if (profile.totalOrders > 0) {
+            parts.push(`\n👤 KH: ${profile.totalOrders} đơn | $${profile.totalSpent} | Yêu thích: ${profile.favoriteCategories.join(", ")} | Gần đây: ${profile.recentProducts.slice(0, 4).join(", ")}`);
+          }
+          if (points) parts.push(points);
+        } catch { /* skip if fails */ }
       }
-    } catch {
-      // Silent fail for reviews
+    })();
+
+    // Timeout 8 seconds — don't let context building block forever
+    await Promise.race([
+      contextPromise,
+      new Promise<void>((_, reject) => setTimeout(() => reject(new Error("Context timeout")), 8000)),
+    ]);
+  } catch (err) {
+    // If timeout or error → still return what we have (identity is always included)
+    if ((err as Error)?.message !== "Context timeout") {
+      console.error("[AI] Context build error:", err);
     }
   }
 
-  // Active coupons
-  try {
-    const activeCoupons = await prisma.coupon.findMany({
-      where: {
-        isActive: true,
-        endDate: { gte: new Date() },
-        startDate: { lte: new Date() },
-      },
-      take: 5,
-      orderBy: { discountValue: "desc" },
-    });
-
-    if (activeCoupons.length > 0) {
-      parts.push(`\n🎫 MÃ GIẢM GIÁ ĐANG ACTIVE:
-${activeCoupons.map(c =>
-  `- ${c.code}: Giảm ${c.discountType === "PERCENT" ? `${c.discountValue}%` : `$${c.discountValue}`}${c.minOrderValue ? ` (đơn tối thiểu $${c.minOrderValue})` : ""} — HSD: ${c.endDate.toLocaleDateString("vi-VN")}`
-).join("\n")}
-→ Gợi ý mã giảm giá cho khách khi phù hợp!`);
-    }
-  } catch {
-    // Silent fail for coupons
-  }
-
-  // ★ Knowledge Base — FAQ, Policies, Shipping, Payment
-  try {
-    const knowledgeResults = await searchKnowledge(query, "vi", 3);
-    if (knowledgeResults.length > 0) {
-      parts.push(`\n📚 KIẾN THỨC CỬA HÀNG (dùng để trả lời chính sách, vận chuyển, thanh toán...):
-${knowledgeResults.map(k => `Q: ${k.question}\nA: ${k.answer}`).join("\n\n")}`);
-    }
-  } catch {
-    // Silent fail for knowledge base
-  }
-
-  // ★ NEW: Blog highlights (recipes, tips, news)
-  const blogContext = await getBlogHighlights(query);
-  if (blogContext) {
-    parts.push(`\n${blogContext}`);
-  }
-
-  // AI counseling instructions
-  parts.push(`\n📋 HƯỚNG DẪN TƯ VẤN (hệ thống, không hiển thị cho KH):
-- Khi KH hỏi về sản phẩm: SO SÁNH 2-3 sản phẩm, nêu ưu nhược điểm rõ ràng
-- Khi KH chọn mua: gợi ý SẢN PHẨM KẾT HỢP (combo), mã giảm giá nếu có
-- Nêu reviews thật để tạo niềm tin
-- Nếu sắp hết hàng (kho < 10): nhấn mạnh để tạo urgency
-- Luôn nêu giá cụ thể, tồn kho, và rating từ data
-- Khi KH hỏi về chính sách: dùng phần 📚 KIẾN THỨC bên trên
-- Khi KH hỏi về mô tả SP: dùng nội dung từ phần 🎯 SẢN PHẨM PHÙ HỢP
-- Khi KH hỏi về đơn hàng: dùng phần 📦 ĐƠN HÀNG GẦN ĐÂY
-- Khi KH hỏi cách nấu/chế biến: dùng phần 📝 BÀI VIẾT LIÊN QUAN
-- Khi KH hỏi địa chỉ/liên hệ: dùng phần 🏪 CẤU HÌNH CỬA HÀNG`);
+  // AI instructions (compact)
+  parts.push(`\n📋 TƯ VẤN: Dùng data THẬT, **bold** tên SP/giá. Gợi ý combo, mã giảm giá, freeship. Cross-sell SP liên quan.`);
 
   return parts.join("\n");
 }
-
 

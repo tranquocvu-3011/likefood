@@ -32,22 +32,53 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const slugPath = slug.join("/");
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.vudev.io.vn";
+  const pageUrl = `${baseUrl}/${slugPath}`;
+  const cookieStore = await cookies();
+  const locale = cookieStore.get("language")?.value || "vi";
+  const isEn = locale === "en";
 
   const page = await prisma.dynamicPage.findUnique({
-    where: { slug: slugPath, isPublished: true },
+    where: { slug: slugPath },
   });
 
-  if (!page) {
-    const cookieStore = await cookies();
-    const locale = cookieStore.get("language")?.value || "vi";
+  if (page && !page.isPublished) {
     return {
       title: locale === "en" ? "Page not found" : "Không tìm thấy trang",
+      robots: { index: false, follow: false },
     };
   }
 
+  if (!page) {
+    return {
+      title: locale === "en" ? "Page not found" : "Không tìm thấy trang",
+      robots: { index: false, follow: false },
+    };
+  }
+
+  const title = isEn ? (page.titleEn || page.metaTitle || page.title) : (page.metaTitle || page.title);
+  const description = isEn ? (page.excerptEn || page.metaDescription || page.excerpt || undefined) : (page.metaDescription || page.excerpt || undefined);
+
   return {
-    title: page.metaTitle || page.title,
-    description: page.metaDescription || page.excerpt || undefined,
+    title,
+    description,
+    alternates: {
+      canonical: `/${slugPath}`,
+      languages: {
+        vi: `/${slugPath}?lang=vi`,
+        en: `/${slugPath}?lang=en`,
+        "x-default": `/${slugPath}`,
+      },
+    },
+    openGraph: {
+      type: "article",
+      locale: isEn ? "en_US" : "vi_VN",
+      alternateLocale: isEn ? "vi_VN" : "en_US",
+      url: pageUrl,
+      title,
+      description,
+      images: page.image ? [{ url: page.image }] : undefined,
+    },
   };
 }
 
@@ -56,10 +87,10 @@ export default async function DynamicPage({ params }: Props) {
   const slugPath = slug.join("/");
 
   const page = await prisma.dynamicPage.findUnique({
-    where: { slug: slugPath, isPublished: true },
+    where: { slug: slugPath },
   });
 
-  if (!page) {
+  if (!page || !page.isPublished) {
     notFound();
   }
 

@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import {
     Lock, Mail, User, Phone, ChevronDown,
     Loader2, ChefHat, ShieldCheck, Zap, AlertCircle,
-    Eye, EyeOff
+    Eye, EyeOff, Gift
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { clsx, type ClassValue } from "clsx";
@@ -43,6 +43,7 @@ export default function RegisterPage() {
         phone: "",
         password: "",
         confirmPassword: "",
+        referralCode: "",
     });
     const [country, setCountry] = useState(countries[0]);
     const [showCountrySelector, setShowCountrySelector] = useState(false);
@@ -105,6 +106,7 @@ export default function RegisterPage() {
                     email: formData.email,
                     phone: fullPhone,
                     password: formData.password,
+                    referralCode: formData.referralCode.trim() || undefined,
                     turnstileToken
                 }),
             });
@@ -325,6 +327,18 @@ export default function RegisterPage() {
                                             </div>
                                         </div>
                                     )}
+                                </div>
+
+                                {/* Referral Code */}
+                                <div className="relative group">
+                                    <Gift className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-emerald-500 transition-colors" />
+                                    <input
+                                        type="text" value={formData.referralCode}
+                                        onChange={(e) => setFormData({ ...formData, referralCode: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12) })}
+                                        autoComplete="off"
+                                        className="w-full pl-14 pr-6 py-4 bg-slate-50 border-slate-100 border rounded-2xl outline-none focus:bg-white focus:border-emerald-500/30 focus:ring-4 focus:ring-emerald-500/5 transition-all font-medium text-sm uppercase tracking-wider"
+                                        placeholder={tr("Mã giới thiệu (nếu có)", "auth.referralCodePlaceholder")}
+                                    />
                                 </div>
 
                                 <div className="flex items-start gap-3 px-1">

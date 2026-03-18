@@ -9,6 +9,21 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import AdminLayoutClient from "./AdminLayoutClient";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+    robots: {
+        index: false,
+        follow: false,
+        googleBot: {
+            index: false,
+            follow: false,
+            "max-snippet": 0,
+            "max-image-preview": "none",
+            "max-video-preview": 0,
+        },
+    },
+};
 
 export default async function AdminLayout({
     children,

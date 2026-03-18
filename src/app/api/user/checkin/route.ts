@@ -19,6 +19,9 @@ const CHECKIN_MILESTONES = [
     { points: 1000, code: "CHECKIN-1000", discountType: "PERCENTAGE", discountValue: 40, maxDiscount: 10, minOrderValue: 0, category: "checkin", description: "Giảm giá 40%, tối đa $10", descriptionEn: "40% off, max $10" },
 ] as const;
 
+// Points per day: Mon-Fri = 10, Sat = 20, Sun = 50
+const DAILY_POINTS = [10, 10, 10, 10, 10, 20, 50]; // index 0=Mon...6=Sun
+
 export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -64,13 +67,11 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        // Points logic: 10 points per check-in
-        const pointsToEarn = 10;
-
-        const eligibleMilestones = CHECKIN_MILESTONES.filter(
-            (milestone) => user.points + pointsToEarn >= milestone.points
-        );
-        const newlyClaimedMilestones: { points: number; code: string; discountValue: number }[] = [];
+        // Points logic: Variable based on day (Mon-Fri=10, Sat=20, Sun=50)
+        const vnNowForPoints = new Date(Date.now() + 7 * 60 * 60 * 1000);
+        const vnDayOfWeek = vnNowForPoints.getUTCDay(); // 0=Sun, 1=Mon...
+        const dayIdx = vnDayOfWeek === 0 ? 6 : vnDayOfWeek - 1; // 0=Mon...6=Sun
+        const pointsToEarn = DAILY_POINTS[dayIdx] ?? 10;
 
         const updatedUser = await prisma.$transaction(async (tx) => {
             const u = await tx.user.update({
@@ -90,92 +91,60 @@ export async function POST(req: NextRequest) {
                 }
             });
 
-            for (const milestone of eligibleMilestones) {
-                const coupon = await tx.coupon.upsert({
-                    where: { code: milestone.code },
-                    update: {
-                        isActive: true,
-                        endDate: new Date("2035-12-31T23:59:59.999Z"),
-                        category: milestone.category,
-                        discountType: milestone.discountType,
-                        discountValue: milestone.discountValue,
-                        minOrderValue: milestone.minOrderValue,
-                        maxDiscount: milestone.maxDiscount,
-                    },
-                    create: {
-                        code: milestone.code,
-                        discountType: milestone.discountType,
-                        discountValue: milestone.discountValue,
-                        minOrderValue: milestone.minOrderValue,
-                        maxDiscount: milestone.maxDiscount,
-                        startDate: now,
-                        endDate: new Date("2035-12-31T23:59:59.999Z"),
-                        isActive: true,
-                        usageLimit: null,
-                        usedCount: 0,
-                        category: milestone.category,
-                    },
-                });
-
-                const existingClaim = await tx.uservoucher.findUnique({
-                    where: {
-                        userId_couponId: {
-                            userId,
-                            couponId: coupon.id,
-                        },
-                    },
-                    select: { id: true },
-                });
-
-                if (!existingClaim) {
-                    await tx.uservoucher.create({
-                        data: {
-                            userId,
-                            couponId: coupon.id,
-                            status: "CLAIMED",
-                        },
-                    });
-
-                    await tx.notification.create({
-                        data: {
-                            userId,
-                            type: "VOUCHER",
-                            title: `Mở khóa voucher mốc ${milestone.points} Xu`,
-                            message: `Bạn vừa nhận voucher ${milestone.code} từ mốc điểm danh ${milestone.points} Xu.`,
-                            link: "/profile/vouchers",
-                        },
-                    });
-
-                    newlyClaimedMilestones.push({
-                        points: milestone.points,
-                        code: milestone.code,
-                        discountValue: milestone.discountValue,
-                    });
-                }
-            }
-
             return u;
         });
 
-        const milestoneStatuses = CHECKIN_MILESTONES.map((milestone) => ({
-            points: milestone.points,
-            code: milestone.code,
-            discountType: milestone.discountType,
-            discountValue: milestone.discountValue,
-            maxDiscount: milestone.maxDiscount,
-            category: milestone.category,
-            description: milestone.description,
-            descriptionEn: milestone.descriptionEn,
-            reached: updatedUser.points >= milestone.points,
-            claimed: updatedUser.points >= milestone.points,
-        }));
+        // Check which milestones are claimed (user must manually claim via /api/user/checkin/claim)
+        const claimedMilestoneVouchers = await prisma.uservoucher.findMany({
+            where: {
+                userId,
+                coupon: {
+                    category: {
+                        in: CHECKIN_MILESTONES.map((m) => `checkin-milestone-${m.points}`),
+                    },
+                },
+            },
+            select: { coupon: { select: { category: true } } },
+        });
+        const claimedCategories = new Set(claimedMilestoneVouchers.map((v) => v.coupon.category));
+
+        // Also check legacy claims (old code-based system)
+        const legacyCoupons = await prisma.coupon.findMany({
+            where: { code: { in: CHECKIN_MILESTONES.map((m) => m.code) } },
+            select: { id: true, code: true },
+        });
+        const legacyCodeMap = new Map(legacyCoupons.map((c) => [c.code, c.id]));
+        const legacyClaimed = new Set(
+            (await prisma.uservoucher.findMany({
+                where: { userId, couponId: { in: legacyCoupons.map((c) => c.id) } },
+                select: { couponId: true },
+            })).map((r) => r.couponId)
+        );
+
+        const currentPoints = Number(updatedUser.points) || 0;
+        const milestoneStatuses = CHECKIN_MILESTONES.map((milestone) => {
+            const legacyId = legacyCodeMap.get(milestone.code);
+            const isClaimed = claimedCategories.has(`checkin-milestone-${milestone.points}`) ||
+                (legacyId ? legacyClaimed.has(legacyId) : false);
+            return {
+                points: milestone.points,
+                code: milestone.code,
+                discountType: milestone.discountType,
+                discountValue: milestone.discountValue,
+                maxDiscount: milestone.maxDiscount,
+                category: milestone.category,
+                description: milestone.description,
+                descriptionEn: milestone.descriptionEn,
+                reached: currentPoints >= milestone.points,
+                claimed: isClaimed,
+            };
+        });
 
         return NextResponse.json({
             message: "Điểm danh thành công!",
             earned: pointsToEarn,
-            totalPoints: updatedUser.points,
+            totalPoints: currentPoints,
             lastCheckIn: updatedUser.lastCheckIn,
-            unlockedVouchers: newlyClaimedMilestones,
             milestones: milestoneStatuses,
         });
 
@@ -243,27 +212,39 @@ export async function GET(_req: Request) {
             return dow === 0 ? 6 : dow - 1; // 0=Mon...6=Sun
         });
 
-        const milestoneCoupons = await prisma.coupon.findMany({
+        // Check claimed milestones (new system: category-based)
+        const claimedMilestoneVouchers = await prisma.uservoucher.findMany({
             where: {
-                code: { in: CHECKIN_MILESTONES.map((m) => m.code) },
+                userId: sessionUserId,
+                coupon: {
+                    category: {
+                        in: CHECKIN_MILESTONES.map((m) => `checkin-milestone-${m.points}`),
+                    },
+                },
             },
+            select: { coupon: { select: { category: true } } },
+        });
+        const claimedCategories = new Set(claimedMilestoneVouchers.map((v) => v.coupon.category));
+
+        // Also check legacy claims (old code-based system for backward compat)
+        const legacyCoupons = await prisma.coupon.findMany({
+            where: { code: { in: CHECKIN_MILESTONES.map((m) => m.code) } },
             select: { id: true, code: true },
         });
-
-        const couponIdByCode = new Map(milestoneCoupons.map((coupon) => [coupon.code, coupon.id]));
-        const claimedCouponIds = new Set(
+        const legacyCodeMap = new Map(legacyCoupons.map((c) => [c.code, c.id]));
+        const legacyClaimed = new Set(
             (await prisma.uservoucher.findMany({
-                where: {
-                    userId: sessionUserId,
-                    couponId: { in: milestoneCoupons.map((coupon) => coupon.id) },
-                },
+                where: { userId: sessionUserId, couponId: { in: legacyCoupons.map((c) => c.id) } },
                 select: { couponId: true },
-            })).map((record) => record.couponId)
+            })).map((r) => r.couponId)
         );
 
+        const currentPoints = Number(user.points) || 0;
         const milestones = CHECKIN_MILESTONES.map((milestone) => {
-            const couponId = couponIdByCode.get(milestone.code);
-            const reached = user.points >= milestone.points;
+            const reached = currentPoints >= milestone.points;
+            const legacyId = legacyCodeMap.get(milestone.code);
+            const isClaimed = claimedCategories.has(`checkin-milestone-${milestone.points}`) ||
+                (legacyId ? legacyClaimed.has(legacyId) : false);
             return {
                 points: milestone.points,
                 code: milestone.code,
@@ -274,12 +255,12 @@ export async function GET(_req: Request) {
                 description: milestone.description,
                 descriptionEn: milestone.descriptionEn,
                 reached,
-                claimed: couponId ? claimedCouponIds.has(couponId) : false,
+                claimed: isClaimed,
             };
         });
 
         return NextResponse.json({
-            points: user.points,
+            points: currentPoints,
             lastCheckIn: user.lastCheckIn,
             canCheckIn,
             checkedDaysThisWeek,

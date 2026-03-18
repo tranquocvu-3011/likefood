@@ -51,7 +51,7 @@ export default function AdminBrandsPage() {
             const data = await res.json();
             setBrands(data.brands || []);
             setTotal(data.brands?.length || 0);
-        } catch (err) {
+        } catch {
             toast.error("Không tải được danh sách thương hiệu");
         } finally {
             setIsLoading(false);
@@ -70,7 +70,7 @@ export default function AdminBrandsPage() {
             const url = editingBrand ? "/api/admin/brands" : "/api/admin/brands";
             const method = editingBrand ? "PATCH" : "POST";
 
-            const body: any = { name: formData.name };
+            const body: Record<string, string | number> = { name: formData.name };
             if (formData.logo) body.logo = formData.logo;
             if (editingBrand) body.id = editingBrand.id;
 

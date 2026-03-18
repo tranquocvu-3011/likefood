@@ -7,11 +7,9 @@
 
 import { NextResponse } from "next/server";
 import prisma from "../../../lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { generateSlug } from "@/lib/utils/slug";
 import { logger } from "@/lib/logger";
-import { Prisma } from "../../../generated/client";
+import type { Prisma as PrismaTypes } from "../../../generated/client";
 
 type CategoryFilter =
     | { mode: "tagsContains"; value: string }
@@ -108,8 +106,8 @@ export async function GET(req: Request) {
         const skip = (page - 1) * limit;
 
         // Build where clause
-        const where: Prisma.productWhereInput = {};
-        const andConditions: Prisma.productWhereInput[] = [];
+        const where: PrismaTypes.productWhereInput = {};
+        const andConditions: PrismaTypes.productWhereInput[] = [];
 
         // Storefront visibility constraints
         where.isDeleted = false;
@@ -120,6 +118,7 @@ export async function GET(req: Request) {
             // LOWER() + utf8mb4_bin for accent-sensitive + case-insensitive
             const like = `%${search}%`;
             const likeLower = `%${search.toLowerCase()}%`;
+            const { Prisma } = await import("../../../generated/client");
 
             // Detect if query contains Vietnamese diacritics
             const hasDiacritics = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]/.test(search);
@@ -224,7 +223,7 @@ export async function GET(req: Request) {
         }
 
         // Build orderBy
-        let orderBy: Prisma.productOrderByWithRelationInput = {};
+        let orderBy: PrismaTypes.productOrderByWithRelationInput = {};
         switch (sort) {
             case "price-asc":
                 orderBy = { price: "asc" };
@@ -406,6 +405,8 @@ export async function GET(req: Request) {
 
 // POST new product
 export async function POST(req: Request) {
+    const { getServerSession } = await import("next-auth");
+    const { authOptions } = await import("@/lib/auth");
     const session = await getServerSession(authOptions);
 
     if (!session || (session.user.role !== "ADMIN")) {
@@ -581,6 +582,8 @@ export async function POST(req: Request) {
 
 // DELETE product
 export async function DELETE(req: Request) {
+    const { getServerSession } = await import("next-auth");
+    const { authOptions } = await import("@/lib/auth");
     const session = await getServerSession(authOptions);
 
     if (!session || (session.user.role !== "ADMIN")) {

@@ -9,7 +9,247 @@
 
 import { callGPT } from "@/lib/ai/ai-provider";
 import prisma from "@/lib/prisma";
-import type { ChurnRiskCustomer, CampaignAnalysis, ShoppingTrend, RevenueBreakdown } from "./ai-types";
+// ─── Prospect Customer Analysis ──────────────────────────────
+
+import type { ChurnRiskCustomer, CampaignAnalysis, ShoppingTrend, RevenueBreakdown, ProspectCustomer, ActiveVisitor, SmartCustomerProfile, HotLead, AISalesRecommendation } from "./ai-types";
+
+/**
+ * Phân tích khách hàng tiềm năng — dựa trên hành vi 7 ngày gần nhất
+ * Trả về danh sách KH có hành vi cho thấy sự quan tâm cao
+ */
+export async function getProspectCustomers(days = 7): Promise<ProspectCustomer[]> {
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+  // Get all behavior events with userId in the period
+  const events = await prisma.behaviorEvent.findMany({
+    where: { createdAt: { gte: since }, userId: { not: null } },
+    orderBy: { createdAt: "desc" },
+    take: 5000,
+  });
+
+  if (events.length === 0) return [];
+
+  // Group events by userId
+  interface UserBehavior {
+    userId: number;
+    pageViews: number;
+    productViews: Map<number, { name: string; price: number; count: number; category: string }>;
+    searchQueries: string[];
+    addToCartCount: number;
+    sessions: Set<string>;
+    firstSeen: Date;
+    lastSeen: Date;
+    totalDurationMs: number;
+    visitDays: Set<string>;
+  }
+
+  const userBehaviorMap = new Map<number, UserBehavior>();
+
+  for (const event of events) {
+    if (!event.userId) continue;
+    const userId = event.userId;
+
+    const behavior: UserBehavior = userBehaviorMap.get(userId) ?? {
+      userId,
+      pageViews: 0,
+      productViews: new Map(),
+      searchQueries: [],
+      addToCartCount: 0,
+      sessions: new Set(),
+      firstSeen: event.createdAt,
+      lastSeen: event.createdAt,
+      totalDurationMs: 0,
+      visitDays: new Set(),
+    };
+
+    behavior.pageViews += 1;
+    behavior.sessions.add(event.sessionId);
+    behavior.visitDays.add(event.createdAt.toISOString().split("T")[0]);
+
+    if (event.createdAt < behavior.firstSeen) behavior.firstSeen = event.createdAt;
+    if (event.createdAt > behavior.lastSeen) behavior.lastSeen = event.createdAt;
+
+    if (event.eventData) {
+      try {
+        const data = JSON.parse(event.eventData);
+        if (event.eventType === "product_view" && data.productId) {
+          const existing = behavior.productViews.get(data.productId);
+          if (existing) {
+            existing.count += 1;
+          } else {
+            behavior.productViews.set(data.productId, {
+              name: data.productName || `SP #${data.productId}`,
+              price: data.price || 0,
+              count: 1,
+              category: data.category || "",
+            });
+          }
+        }
+        if (event.eventType === "search_query" && data.query && !behavior.searchQueries.includes(String(data.query))) {
+          behavior.searchQueries.push(String(data.query));
+        }
+        if (event.eventType === "add_to_cart") behavior.addToCartCount += 1;
+      } catch { /* ignore malformed */ }
+    }
+
+    userBehaviorMap.set(userId, behavior);
+  }
+
+  // Filter: only users with meaningful activity (>= 3 page views OR >= 1 product view)
+  const activeUsers = [...userBehaviorMap.values()].filter(
+    (u) => u.pageViews >= 3 || u.productViews.size >= 1
+  );
+
+  if (activeUsers.length === 0) return [];
+
+  // Get user info
+  const userIds = activeUsers.map((u) => u.userId);
+  const users = await prisma.user.findMany({
+    where: { id: { in: userIds }, role: "USER" },
+    select: { id: true, name: true, email: true, phone: true, points: true },
+  });
+  const userMap = new Map(users.map((u) => [u.id, u]));
+
+  // Check which users already have recent orders (to exclude already-converted)
+  const recentOrders = await prisma.order.findMany({
+    where: { userId: { in: userIds }, createdAt: { gte: since }, status: { not: "CANCELLED" } },
+    select: { userId: true },
+  });
+  const recentBuyerIds = new Set(recentOrders.map((o) => o.userId));
+
+  // Get top products for cross-reference
+  const topProducts = await prisma.product.findMany({
+    where: { isDeleted: false, isVisible: true, inventory: { gt: 0 } },
+    select: { id: true, name: true, price: true, category: true, soldCount: true, salePrice: true },
+    orderBy: { soldCount: "desc" },
+    take: 30,
+  });
+
+  const prospects: ProspectCustomer[] = [];
+
+  for (const behavior of activeUsers) {
+    const user = userMap.get(behavior.userId);
+    if (!user) continue;
+
+    // Skip users who already bought in this period
+    if (recentBuyerIds.has(behavior.userId)) continue;
+
+    // Calculate prospect score
+    let score = 0;
+    const summaryParts: string[] = [];
+
+    // Product views scoring
+    if (behavior.productViews.size >= 10) { score += 25; summaryParts.push(`Xem ${behavior.productViews.size} SP khác nhau`); }
+    else if (behavior.productViews.size >= 5) { score += 18; summaryParts.push(`Xem ${behavior.productViews.size} SP`); }
+    else if (behavior.productViews.size >= 1) { score += 10; summaryParts.push(`Xem ${behavior.productViews.size} SP`); }
+
+    // Repeated views (strong buy signal)
+    const repeatedViews = [...behavior.productViews.values()].filter((v) => v.count >= 2);
+    if (repeatedViews.length > 0) { score += 15; summaryParts.push(`Xem lại ${repeatedViews.length} SP nhiều lần`); }
+
+    // Add to cart (very strong signal)
+    if (behavior.addToCartCount > 0) {
+      score += 25; summaryParts.push(`Thêm ${behavior.addToCartCount} SP vào giỏ hàng`);
+    }
+
+    // Search activity
+    if (behavior.searchQueries.length >= 3) { score += 15; summaryParts.push(`Tìm kiếm ${behavior.searchQueries.length} lần`); }
+    else if (behavior.searchQueries.length >= 1) { score += 8; summaryParts.push(`Tìm kiếm ${behavior.searchQueries.length} lần`); }
+
+    // Visit frequency
+    if (behavior.visitDays.size >= 3) { score += 12; summaryParts.push(`Quay lại ${behavior.visitDays.size} ngày`); }
+    else if (behavior.visitDays.size >= 2) { score += 6; summaryParts.push(`Quay lại ${behavior.visitDays.size} ngày`); }
+
+    // Page views volume
+    if (behavior.pageViews >= 20) { score += 8; summaryParts.push(`${behavior.pageViews} lượt xem trang`); }
+
+    score = Math.min(100, score);
+    if (score < 15) continue; // Skip very low-score prospects
+
+    // Duration estimate (average per session in minutes)
+    const durationMs = behavior.lastSeen.getTime() - behavior.firstSeen.getTime();
+    const avgSessionMinutes = behavior.sessions.size > 0
+      ? Math.max(1, Math.round(durationMs / (behavior.sessions.size * 60000)))
+      : 1;
+
+    // Products viewed (sorted by view count)
+    const productsViewed = [...behavior.productViews.entries()]
+      .sort((a, b) => b[1].count - a[1].count)
+      .slice(0, 10)
+      .map(([id, p]) => ({ id, name: p.name, price: p.price, viewCount: p.count, category: p.category }));
+
+    // Predict interested products based on behavior
+    const viewedCategories = new Set(productsViewed.map((p) => p.category).filter(Boolean));
+    const viewedProductIds = new Set(productsViewed.map((p) => p.id));
+    const predictedProducts = topProducts
+      .filter((p) => !viewedProductIds.has(p.id) && viewedCategories.has(p.category))
+      .slice(0, 3)
+      .map((p, i) => ({
+        id: p.id,
+        name: p.name,
+        price: p.salePrice ?? p.price,
+        reason: `Cùng danh mục "${p.category}" — ${p.soldCount} đã bán`,
+        confidence: Math.max(0.5, 0.9 - i * 0.15),
+      }));
+
+    // If not enough from same category, add bestsellers
+    if (predictedProducts.length < 3) {
+      const remaining = topProducts
+        .filter((p) => !viewedProductIds.has(p.id) && !predictedProducts.some((pp) => pp.id === p.id))
+        .slice(0, 3 - predictedProducts.length)
+        .map((p, i) => ({
+          id: p.id,
+          name: p.name,
+          price: p.salePrice ?? p.price,
+          reason: `Bán chạy nhất — ${p.soldCount} đã bán`,
+          confidence: Math.max(0.4, 0.7 - i * 0.1),
+        }));
+      predictedProducts.push(...remaining);
+    }
+
+    // Determine segment
+    let segment = "Đang tìm hiểu";
+    if (score >= 70) segment = "Rất tiềm năng";
+    else if (score >= 50) segment = "Tiềm năng cao";
+    else if (score >= 30) segment = "Tiềm năng";
+
+    // Suggested contact method
+    let suggestedContactMethod = "📧 Email";
+    if (user.phone) suggestedContactMethod = "📱 Gọi điện / Zalo";
+    if (score >= 70 && user.phone) suggestedContactMethod = "📱 Gọi ngay";
+
+    // Generate suggested message
+    const topViewedName = productsViewed[0]?.name || "sản phẩm LIKEFOOD";
+    const suggestedMessage = `Chào ${user.name || "anh/chị"}, em thấy ${user.name ? "" : "quý khách "}đang quan tâm đến ${topViewedName}. Bên em đang có ưu đãi đặc biệt, ${user.name ? "" : "quý khách "}có cần em tư vấn thêm không ạ?`;
+
+    prospects.push({
+      id: user.id,
+      name: user.name || "Chưa cập nhật",
+      email: user.email,
+      phone: user.phone || undefined,
+      avatarInitial: (user.name || user.email).charAt(0).toUpperCase(),
+      prospectScore: score,
+      visitDays: behavior.visitDays.size,
+      totalPageViews: behavior.pageViews,
+      totalProductViews: behavior.productViews.size,
+      totalSearches: behavior.searchQueries.length,
+      addToCartCount: behavior.addToCartCount,
+      avgSessionMinutes,
+      lastVisit: behavior.lastSeen.toISOString(),
+      firstVisit: behavior.firstSeen.toISOString(),
+      productsViewed,
+      searchQueries: behavior.searchQueries.slice(0, 10),
+      predictedProducts,
+      behaviorSummary: summaryParts,
+      segment,
+      suggestedContactMethod,
+      suggestedMessage,
+    });
+  }
+
+  return prospects.sort((a, b) => b.prospectScore - a.prospectScore).slice(0, 30);
+}
+
 
 interface SalesData {
   date: string;
@@ -622,8 +862,6 @@ export async function getRevenueBreakdown(days = 30): Promise<RevenueBreakdown> 
 }
 
 // ─── AI Command Center Functions ─────────────────────────────
-
-import type { ActiveVisitor, SmartCustomerProfile, HotLead, AISalesRecommendation } from "./ai-types";
 
 /**
  * Get active visitors on the website (within last 15 minutes)

@@ -43,6 +43,7 @@ export default function ReferralPage() {
   const [customCode, setCustomCode] = useState("");
   const [editingCode, setEditingCode] = useState(false);
   const [savingCode, setSavingCode] = useState(false);
+  const [claimingMilestoneId, setClaimingMilestoneId] = useState<number | null>(null);
 
   const t = useCallback(
     (vi: string, en: string) => (language === "vi" ? vi : en),
@@ -198,6 +199,35 @@ export default function ReferralPage() {
       }
     } catch { toast.error(t("Lỗi kết nối", "Connection error")); }
     finally { setCashoutLoading(false); }
+  };
+
+  const handleClaimMilestone = async (milestoneId: number) => {
+    setClaimingMilestoneId(milestoneId);
+    try {
+      const res = await fetch("/api/user/referrals/milestones/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ milestoneId }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.error || t("Không thể nhận thưởng", "Could not claim reward"));
+        return;
+      }
+
+      toast.success(
+        data.alreadyClaimed
+          ? t("Mốc này đã nhận trước đó", "This milestone was already claimed")
+          : t("Nhận thưởng thành công!", "Reward claimed successfully!")
+      );
+
+      await Promise.all([fetchMilestones(), fetchDashboard()]);
+    } catch {
+      toast.error(t("Lỗi kết nối", "Connection error"));
+    } finally {
+      setClaimingMilestoneId(null);
+    }
   };
 
   if (sessionStatus === "loading" || isLoading) {
@@ -505,10 +535,23 @@ export default function ReferralPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-black text-slate-900">{ms.milestone} {t("người bạn", "friends")}</p>
-                        <p className="text-sm text-slate-500 font-medium">{language === "vi" ? ms.label : ms.labelEn || ms.label} — <span className="text-emerald-600 font-bold">{ms.rewardType} ${ms.rewardValue}</span></p>
+                        <p className="text-sm text-slate-500 font-medium">{language === "vi" ? ms.label : ms.labelEn || ms.label} — <span className="text-emerald-600 font-bold">{t("Thưởng tiền", "Cash reward")} ${ms.rewardValue}</span></p>
                       </div>
-                      {ms.achieved ? (
+                      {ms.claimed ? (
                         <span className="px-4 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-xs font-black rounded-full shadow-md shrink-0">{t("Đã nhận", "Claimed")}</span>
+                      ) : ms.claimable ? (
+                        <button
+                          onClick={() => void handleClaimMilestone(ms.id)}
+                          disabled={claimingMilestoneId === ms.id}
+                          className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-black rounded-full shadow-md shrink-0 hover:opacity-90 disabled:opacity-60"
+                        >
+                          {claimingMilestoneId === ms.id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Gift className="w-3.5 h-3.5" />
+                          )}
+                          {t("Nhận thưởng", "Claim reward")}
+                        </button>
                       ) : (
                         <span className="px-3 py-1 bg-slate-100 text-slate-500 text-xs font-bold rounded-full shrink-0">{t("Còn", "Need")} {ms.remaining}</span>
                       )}

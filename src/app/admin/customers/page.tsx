@@ -6,24 +6,16 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { 
   Download, 
-  Eye, 
-  Heart, 
   Loader2, 
   Mail, 
-  Package, 
   Phone, 
   RefreshCw, 
   Search, 
-  Sparkles,
   Star,
-  TrendingUp,
-  TrendingDown,
   X,
   Calendar,
-  CreditCard,
   Award,
   User,
   ArrowUpRight
@@ -83,7 +75,7 @@ export default function CustomersPage() {
       if (!response.ok) throw new Error('Failed to load customers');
       setCustomers(Array.isArray(data.customers) ? data.customers : []);
       setTotal(data.pagination?.total || 0);
-    } catch (error) {
+    } catch {
       toast.error('Failed to load customers');
     } finally {
       setIsLoading(false);
@@ -105,8 +97,8 @@ export default function CustomersPage() {
         const data = await res.json();
         setSegments(data.segments || []);
       }
-    } catch (error) {
-      console.error('Failed to load segments:', error);
+    } catch (_error) {
+      console.error('Failed to load segments:', _error);
     }
   };
 
@@ -122,8 +114,8 @@ export default function CustomersPage() {
         const data = await res.json();
         setCustomerOrders(data.orders || []);
       }
-    } catch (error) {
-      console.error('Failed to load orders:', error);
+    } catch (_error) {
+      console.error('Failed to load orders:', _error);
     } finally {
       setOrdersLoading(false);
     }

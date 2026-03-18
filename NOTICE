@@ -1,0 +1,65 @@
+LIKEFOOD — Nền Tảng Thương Mại Điện Tử Đặc Sản Việt Nam
+Copyright (c) 2026 Trần Quốc Vũ
+
+Dự án này được phát hành theo giấy phép MIT License.
+Xem file LICENSE để biết toàn văn giấy phép.
+
+===================================================================
+THÔNG BÁO VỀ CÁC THƯ VIỆN BÊN THỨ BA
+===================================================================
+
+Dự án LIKEFOOD sử dụng các thư viện phần mềm nguồn mở sau đây.
+Tất cả các thư viện đều sử dụng giấy phép tương thích với MIT License.
+Chi tiết xem tại file DEPENDENCIES.md.
+
+---
+
+Core Framework:
+  - Next.js (MIT License) - https://nextjs.org/
+  - React (MIT License) - https://react.dev/
+  - TypeScript (Apache-2.0) - https://www.typescriptlang.org/
+
+Database & ORM:
+  - Prisma (Apache-2.0) - https://www.prisma.io/
+  - MySQL (GPL/Commercial) - https://www.mysql.com/
+    Ghi chú: MySQL được sử dụng như một phần mềm riêng biệt,
+    không bundle cùng mã nguồn dự án.
+
+Authentication:
+  - NextAuth.js (ISC License) - https://next-auth.js.org/
+  - bcryptjs (MIT License)
+
+Payment:
+  - Stripe SDK (MIT License) - https://stripe.com/
+
+AI:
+  - OpenAI SDK (Apache-2.0) - https://openai.com/
+
+Security:
+  - DOMPurify (Apache-2.0/MPL-2.0 dual-license) - https://github.com/cure53/DOMPurify
+  - Zod (MIT License) - https://zod.dev/
+
+UI:
+  - Tailwind CSS (MIT License) - https://tailwindcss.com/
+  - Lucide React (ISC License) - https://lucide.dev/
+  - Framer Motion (MIT License) - https://www.framer.com/motion/
+  - Radix UI (MIT License) - https://www.radix-ui.com/
+
+Monitoring:
+  - Sentry (MIT License) - https://sentry.io/
+
+Caching:
+  - Upstash Redis (MIT License) - https://upstash.com/
+
+Utilities:
+  - date-fns (MIT License) - https://date-fns.org/
+  - Nodemailer (MIT-0 License) - https://nodemailer.com/
+
+===================================================================
+KHÔNG CÓ XUNG ĐỘT GIẤY PHÉP
+===================================================================
+
+Tất cả dependencies sử dụng giấy phép permissive (MIT, Apache-2.0,
+ISC, MIT-0) hoàn toàn tương thích với MIT License của dự án.
+Không có thư viện nào sử dụng giấy phép copyleft (GPL, AGPL, LGPL)
+được bundle trong mã nguồn.

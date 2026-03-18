@@ -29,6 +29,7 @@ import {
   getSmartCustomerProfile,
   getHotLeads,
   getAISalesRecommendations,
+  getProspectCustomers,
 } from "@/lib/ai/admin-service";
 import { getAIUsageStats } from "@/lib/ai/ai-logger";
 
@@ -215,6 +216,12 @@ export async function GET(req: NextRequest) {
         const profile = await getSmartCustomerProfile(userId);
         if (!profile) return NextResponse.json({ error: "Customer not found" }, { status: 404 });
         return NextResponse.json({ profile });
+      }
+
+      case "prospects": {
+        const prospectDays = parseInt(searchParams.get("days") || "7", 10);
+        const prospects = await getProspectCustomers(prospectDays);
+        return NextResponse.json({ prospects });
       }
 
       default:

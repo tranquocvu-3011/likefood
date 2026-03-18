@@ -73,6 +73,7 @@ export default function VoucherWalletPage() {
     const [copiedCode, setCopiedCode] = useState<string | null>(null);
     const [points, setPoints] = useState(0);
     const [milestones, setMilestones] = useState<VoucherMilestone[]>([]);
+    const [claimingMilestone, setClaimingMilestone] = useState<number | null>(null);
 
     const fetchVouchers = useCallback(async () => {
         try {
@@ -123,6 +124,38 @@ export default function VoucherWalletPage() {
             setTimeout(() => setCopiedCode(null), 2000);
         } catch {
             toast.error(isVietnamese ? "Không thể sao chép mã" : "Unable to copy code");
+        }
+    };
+
+    const handleClaimMilestone = async (milestonePoints: number) => {
+        setClaimingMilestone(milestonePoints);
+        try {
+            const res = await fetch("/api/user/checkin/claim", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ milestonePoints }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                toast.success(
+                    isVietnamese ? "Nhận voucher thành công!" : "Voucher claimed!",
+                    {
+                        description: isVietnamese
+                            ? `Mã của bạn: ${data.code} — ${data.description}`
+                            : `Your code: ${data.code} — ${data.descriptionEn}`,
+                        duration: 6000,
+                    }
+                );
+                // Refresh milestones and vouchers
+                fetchCheckInMilestones();
+                fetchVouchers();
+            } else {
+                toast.error(data.error || (isVietnamese ? "Không thể nhận voucher" : "Failed to claim voucher"));
+            }
+        } catch {
+            toast.error(isVietnamese ? "Lỗi kết nối máy chủ" : "Connection error");
+        } finally {
+            setClaimingMilestone(null);
         }
     };
 
@@ -339,6 +372,26 @@ export default function VoucherWalletPage() {
                                                 }`}>
                                                     {isVietnamese ? m.description : m.descriptionEn}
                                                 </p>
+
+                                                {/* Claim button for reached but not claimed */}
+                                                {m.reached && !m.claimed && (
+                                                    <motion.button
+                                                        whileHover={{ scale: 1.03 }}
+                                                        whileTap={{ scale: 0.97 }}
+                                                        onClick={() => handleClaimMilestone(m.points)}
+                                                        disabled={claimingMilestone === m.points}
+                                                        className={`mt-3 w-full py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 bg-gradient-to-r ${colors.bg} text-white shadow-lg ${colors.shadow} hover:opacity-90 disabled:opacity-60`}
+                                                    >
+                                                        {claimingMilestone === m.points ? (
+                                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                        ) : (
+                                                            <>
+                                                                <Gift className="w-3.5 h-3.5" />
+                                                                {isVietnamese ? "Nhận ngay" : "Claim now"}
+                                                            </>
+                                                        )}
+                                                    </motion.button>
+                                                )}
 
                                                 {/* Progress mini bar for locked */}
                                                 {isLocked && (

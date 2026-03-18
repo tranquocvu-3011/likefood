@@ -33,7 +33,7 @@ export async function GET(req: NextRequest, context: RouteParams) {
     // Verify access: user is owner or admin
     const chat = await prisma.livechat.findUnique({
       where: { id: chatId },
-      select: { userId: true },
+      select: { userId: true, status: true },
     });
 
     if (!chat) {
@@ -48,6 +48,15 @@ export async function GET(req: NextRequest, context: RouteParams) {
     const isAdmin = user && ["ADMIN", "SUPER_ADMIN"].includes(user.role);
     if (chat.userId !== userId && !isAdmin) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    // For customer side, once chat is closed, do not return old history anymore.
+    if (chat.status === "CLOSED" && !isAdmin) {
+      return NextResponse.json({
+        messages: [],
+        chatStatus: "CLOSED",
+        serverTime: new Date().toISOString(),
+      });
     }
 
     // Polling: get messages since timestamp
@@ -85,6 +94,7 @@ export async function GET(req: NextRequest, context: RouteParams) {
         isRead: msg.isRead,
         createdAt: msg.createdAt.toISOString(),
       })),
+      chatStatus: chat.status,
       serverTime: new Date().toISOString(),
     });
   } catch (error) {

@@ -165,7 +165,7 @@ export default function FlashSalePage() {
     return (
         <div className="min-h-screen bg-[#fefcfd]">
             {/* Breadcrumb */}
-            <div className="page-container-wide pt-4 pb-2">
+            <div className="page-container-wide pt-3 pb-1">
                 <div className="flex items-center gap-2 text-sm">
                     <Link href="/" className="text-slate-400 hover:text-rose-400 transition-colors">
                         {flashT("goHome", "Trang chủ", "Home")}
@@ -190,7 +190,7 @@ export default function FlashSalePage() {
                 <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-pink-100/50 to-transparent rounded-full blur-3xl translate-y-1/3 -translate-x-1/4" />
 
                 {/* Content */}
-                <div className="relative page-container-wide py-6 lg:py-8">
+                <div className="relative page-container-wide py-4 lg:py-5">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -202,7 +202,7 @@ export default function FlashSalePage() {
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: 0.15 }}
-                            className="inline-flex items-center gap-2 px-4 py-1.5 bg-rose-100/80 rounded-full mb-5 border border-rose-200/60"
+                            className="inline-flex items-center gap-2 px-4 py-1.5 bg-rose-100/80 rounded-full mb-3 border border-rose-200/60"
                         >
                             <Zap className="w-3.5 h-3.5 text-rose-400" />
                             <span className="text-xs font-semibold uppercase tracking-wider text-rose-500">
@@ -216,7 +216,7 @@ export default function FlashSalePage() {
                             <span className="text-rose-400">SALE</span>
                         </h1>
 
-                        <p className="text-base md:text-lg text-slate-500 font-medium mb-8 max-w-md mx-auto">
+                        <p className="text-base md:text-lg text-slate-500 font-medium mb-5 max-w-md mx-auto">
                             {shopT("flashSaleSubtitle", "Ưu đãi chớp nhoáng, số lượng có hạn!", "Flash deals, limited quantity!")}
                         </p>
 

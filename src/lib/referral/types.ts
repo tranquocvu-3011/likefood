@@ -345,6 +345,9 @@ export interface MilestoneItem {
   labelEn: string | null;
   isActive: boolean;
   achieved: boolean;
+  reached: boolean;
+  claimed: boolean;
+  claimable: boolean;
   grantedAt: string | null;
   status: string | null;
   remaining: number;

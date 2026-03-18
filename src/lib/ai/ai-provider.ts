@@ -25,27 +25,26 @@ import type { GPTCallOptions, GPTResult, AIHealthStatus } from "./ai-types";
 
 const DEFAULT_MODEL = "gpt-4o-mini";
 const PREMIUM_MODEL = "gpt-4o";
-const DEFAULT_TIMEOUT_MS = 25_000;
-const PREMIUM_TIMEOUT_MS = 45_000;
+const DEFAULT_TIMEOUT_MS = 15_000;
+const PREMIUM_TIMEOUT_MS = 30_000;
 const MAX_RETRIES = 1;
-const RETRY_DELAY_MS = 400;
+const RETRY_DELAY_MS = 200;
 
-/** Map task → model. Simple tasks use mini; complex reasoning uses gpt-4o. */
 const TASK_MODEL_MAP: Record<string, string> = {
-  // Customer-facing (fast, cost-effective)
+  // Customer-facing chat — dùng mini cho NHANH, context tốt = thông minh đủ
   chat: DEFAULT_MODEL,
   chatbot: DEFAULT_MODEL,
+  // Simple tasks
   summarize: DEFAULT_MODEL,
   recommend: DEFAULT_MODEL,
   translate: DEFAULT_MODEL,
   classify: DEFAULT_MODEL,
   "review-summary": DEFAULT_MODEL,
   "health-check": DEFAULT_MODEL,
-  // Combo & Advisor
   combo: DEFAULT_MODEL,
+  // Premium tasks (catalog listing, advisor, analysis)
   advisor: PREMIUM_MODEL,
   "product-compare": PREMIUM_MODEL,
-  // Admin & deep analysis (premium quality)
   "product-analysis": PREMIUM_MODEL,
   "admin-insight": PREMIUM_MODEL,
   "content-generation": PREMIUM_MODEL,
@@ -53,7 +52,7 @@ const TASK_MODEL_MAP: Record<string, string> = {
   "content-email": PREMIUM_MODEL,
   "content-caption": DEFAULT_MODEL,
   "behavior-insight": DEFAULT_MODEL,
-  premium: DEFAULT_MODEL,
+  premium: PREMIUM_MODEL,
 };
 
 /** Tasks that benefit from premium timeout */

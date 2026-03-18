@@ -310,6 +310,32 @@ export interface AISalesRecommendation {
   urgencyLevel: 'high' | 'medium' | 'low';
 }
 
+// ─── Prospect Customer Types ─────────────────────────────────
+
+export interface ProspectCustomer {
+  id: number;
+  name: string;
+  email: string;
+  phone?: string;
+  avatarInitial: string;
+  prospectScore: number;
+  visitDays: number;
+  totalPageViews: number;
+  totalProductViews: number;
+  totalSearches: number;
+  addToCartCount: number;
+  avgSessionMinutes: number;
+  lastVisit: string;
+  firstVisit: string;
+  productsViewed: { id: number; name: string; price: number; viewCount: number; category: string }[];
+  searchQueries: string[];
+  predictedProducts: { id: number; name: string; price: number; reason: string; confidence: number }[];
+  behaviorSummary: string[];
+  segment: string;
+  suggestedContactMethod: string;
+  suggestedMessage: string;
+}
+
 // ─── AI Logger Types ─────────────────────────────────────────
 
 export interface AIUsageEntry {

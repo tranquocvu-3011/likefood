@@ -24,7 +24,7 @@ export async function POST(req: Request) {
             return rateResult.error;
         }
 
-        const { email, password, name, phone, turnstileToken } = await req.json();
+        const { email, password, name, phone, referralCode, turnstileToken } = await req.json();
 
         if (!email || !password || !name || !phone) {
             return NextResponse.json(
@@ -99,7 +99,7 @@ export async function POST(req: Request) {
 
         const hashedPassword = await bcrypt.hash(password, 12);
 
-        await prisma.user.create({
+        const newUser = await prisma.user.create({
             data: {
                 email,
                 password: hashedPassword,
@@ -108,6 +108,47 @@ export async function POST(req: Request) {
                 role: "USER"
             }
         });
+
+        // Process referral code (non-blocking, don't fail registration)
+        if (referralCode && typeof referralCode === "string" && referralCode.trim()) {
+            try {
+                const code = referralCode.trim().toUpperCase();
+                const referrerProfile = await prisma.referralprofile.findFirst({
+                    where: {
+                        OR: [
+                            { customCode: code },
+                            { systemCode: code },
+                        ],
+                        isLocked: false,
+                    },
+                });
+                if (referrerProfile && referrerProfile.userId !== newUser.id) {
+                    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
+                    const ua = req.headers.get("user-agent") || "";
+                    await prisma.$transaction([
+                        prisma.referralrelation.create({
+                            data: {
+                                referrerUserId: referrerProfile.userId,
+                                referredUserId: newUser.id,
+                                referralCodeUsed: code,
+                                source: "REGISTER",
+                                status: "SIGNED_UP",
+                                ip,
+                                userAgent: ua,
+                            },
+                        }),
+                        prisma.referralprofile.update({
+                            where: { id: referrerProfile.id },
+                            data: { totalInvites: { increment: 1 } },
+                        }),
+                    ]);
+                    logger.info("[REFERRAL] New referral created", { referrer: referrerProfile.userId, referred: newUser.id, code });
+                }
+            } catch (refErr) {
+                logger.error("[REFERRAL] Failed to process referral code", refErr as Error, { referralCode });
+                // Don't fail registration for referral errors
+            }
+        }
 
         // Tạo mã OTP 6 ký tự (Chữ in hoa và số)
         const generateOTP = () => {

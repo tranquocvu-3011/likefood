@@ -8,7 +8,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { CheckCircle2, Sparkles, X, Trophy, Star, Gift, Flame, Truck, Percent, Crown } from "lucide-react";
+import { CheckCircle2, Sparkles, X, Trophy, Star, Gift, Flame, Truck, Percent, Crown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -67,6 +67,7 @@ export default function DailyCheckIn({ onClose }: { onClose?: () => void }) {
     const [isLoading, setIsLoading] = useState(true);
     const [isCheckingIn, setIsCheckingIn] = useState(false);
     const [justCheckedIn, setJustCheckedIn] = useState(false);
+    const [claimingMilestone, setClaimingMilestone] = useState<number | null>(null);
 
     useEffect(() => {
         fetchStatus();
@@ -100,17 +101,6 @@ export default function DailyCheckIn({ onClose }: { onClose?: () => void }) {
                         : `You have earned ${data.earned} LIKEFOOD points!`,
                     icon: <Sparkles className="w-5 h-5 text-amber-500" />,
                 });
-                if (Array.isArray(data.unlockedVouchers) && data.unlockedVouchers.length > 0) {
-                    const codes = data.unlockedVouchers.map((item: { code: string }) => item.code).join(", ");
-                    toast.success(
-                        isVietnamese ? "Đã mở khóa voucher mới" : "New voucher unlocked",
-                        {
-                            description: isVietnamese
-                                ? `Mã nhận được: ${codes}`
-                                : `Unlocked codes: ${codes}`,
-                        }
-                    );
-                }
                 const todayIdx = getTodayIdx();
                 setStatus((prev) => ({
                     points: data.totalPoints,
@@ -138,6 +128,36 @@ export default function DailyCheckIn({ onClose }: { onClose?: () => void }) {
     const weekDates = getWeekDates();
     const checkedSet = new Set(status?.checkedDaysThisWeek ?? []);
     const streakDays = checkedSet.size;
+
+    const handleClaimMilestone = async (milestonePoints: number) => {
+        setClaimingMilestone(milestonePoints);
+        try {
+            const res = await fetch("/api/user/checkin/claim", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ milestonePoints }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                toast.success(
+                    isVietnamese ? "Nhận voucher thành công!" : "Voucher claimed!",
+                    {
+                        description: isVietnamese
+                            ? `Mã: ${data.code} — ${data.description}`
+                            : `Code: ${data.code} — ${data.descriptionEn}`,
+                        duration: 5000,
+                    }
+                );
+                fetchStatus();
+            } else {
+                toast.error(data.error || (isVietnamese ? "Lỗi" : "Error"));
+            }
+        } catch {
+            toast.error(isVietnamese ? "Lỗi kết nối" : "Connection error");
+        } finally {
+            setClaimingMilestone(null);
+        }
+    };
 
     if (isLoading) return (
         <div className="bg-white rounded-[2rem] p-8 shadow-2xl border border-slate-100 w-full">
@@ -379,8 +399,26 @@ export default function DailyCheckIn({ onClose }: { onClose?: () => void }) {
                                                 <p className={`mt-0.5 text-[8px] font-bold ${reached ? "text-emerald-600" : "text-slate-400"}`}>
                                                     {claimed
                                                         ? (isVietnamese ? "✓ Đã nhận" : "✓ Claimed")
-                                                        : (isVietnamese ? "Chưa mở" : "Locked")}
+                                                        : reached
+                                                            ? ""
+                                                            : (isVietnamese ? "Chưa mở" : "Locked")}
                                                 </p>
+                                                {reached && !claimed && (
+                                                    <button
+                                                        onClick={() => handleClaimMilestone(milestone.points)}
+                                                        disabled={claimingMilestone === milestone.points}
+                                                        className="mt-1 w-full py-1 rounded-lg text-[8px] font-black uppercase bg-gradient-to-r from-primary to-emerald-500 text-white hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-1"
+                                                    >
+                                                        {claimingMilestone === milestone.points ? (
+                                                            <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                                                        ) : (
+                                                            <>
+                                                                <Gift className="w-2.5 h-2.5" />
+                                                                {isVietnamese ? "Nhận ngay" : "Claim"}
+                                                            </>
+                                                        )}
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                     );

@@ -24,7 +24,7 @@ interface BannerForm {
 export default function AdminCmsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
-    const [settings, setSettings] = useState<any>({});
+    const [settings, setSettings] = useState<Record<string, string | number>>({});
     const [banner, setBanner] = useState<BannerForm>({
         imageUrl: "/banner.png",
         title: "",
@@ -77,7 +77,7 @@ export default function AdminCmsPage() {
     };
 
     const updateSetting = (key: string, value: string | number) => {
-        setSettings((prev: any) => ({ ...prev, [key]: value }));
+        setSettings((prev: Record<string, string | number>) => ({ ...prev, [key]: value }));
     };
 
     const handleSave = async () => {

@@ -9,7 +9,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { 
   MessageCircle, Send, X, CheckCheck, Clock, 
-  RefreshCw, ChevronLeft, Bot, Loader2
+  RefreshCw, ChevronLeft, Bot, Loader2, UserCheck, ShieldX
 } from "lucide-react";
 
 interface ChatSummary {
@@ -63,6 +63,9 @@ export default function AdminLiveChatPage() {
   const [sending, setSending] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("OPEN");
   const [unreadTotal, setUnreadTotal] = useState(0);
+  const [assigningChatId, setAssigningChatId] = useState<number | null>(null);
+  const [closingChatId, setClosingChatId] = useState<number | null>(null);
+  const [refreshingMessages, setRefreshingMessages] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const pollRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -90,11 +93,14 @@ export default function AdminLiveChatPage() {
   // Fetch messages for selected chat
   const fetchMessages = useCallback(async (chatId: number) => {
     try {
+      setRefreshingMessages(true);
       const res = await fetch(`/api/live-chat/${chatId}/messages`);
       const data = await res.json();
       setMessages(data.messages ?? []);
     } catch (err) {
       console.error("Fetch messages error:", err);
+    } finally {
+      setRefreshingMessages(false);
     }
   }, []);
 
@@ -132,20 +138,37 @@ export default function AdminLiveChatPage() {
 
   // Actions
   const handleAssign = async (chatId: number) => {
-    await fetch(`/api/live-chat/${chatId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "assign" }),
-    });
-    void fetchChats();
+    setAssigningChatId(chatId);
+    try {
+      await fetch(`/api/live-chat/${chatId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "assign" }),
+      });
+
+      setSelectedChat((prev) =>
+        prev && prev.id === chatId ? { ...prev, status: "ASSIGNED" } : prev
+      );
+      setChats((prev) => prev.map((c) => (c.id === chatId ? { ...c, status: "ASSIGNED" } : c)));
+      void fetchChats();
+    } finally {
+      setAssigningChatId(null);
+    }
   };
 
   const handleClose = async (chatId: number) => {
-    await fetch(`/api/live-chat/${chatId}/close`, {
-      method: "POST",
-    });
-    setSelectedChat(null);
-    void fetchChats();
+    setClosingChatId(chatId);
+    try {
+      await fetch(`/api/live-chat/${chatId}/close`, {
+        method: "POST",
+      });
+      setSelectedChat((prev) => (prev && prev.id === chatId ? { ...prev, status: "CLOSED" } : prev));
+      setChats((prev) => prev.map((c) => (c.id === chatId ? { ...c, status: "CLOSED" } : c)));
+      void fetchMessages(chatId);
+      void fetchChats();
+    } finally {
+      setClosingChatId(null);
+    }
   };
 
   if (loading) {
@@ -269,32 +292,61 @@ export default function AdminLiveChatPage() {
                   {selectedChat.status === "OPEN" && (
                     <button
                       onClick={() => handleAssign(selectedChat.id)}
-                      className="px-3 py-1.5 rounded-md bg-blue-500/10 text-blue-400 text-xs font-medium hover:bg-blue-500/20 transition"
+                      disabled={assigningChatId === selectedChat.id || closingChatId === selectedChat.id}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-500/10 text-blue-400 text-xs font-medium hover:bg-blue-500/20 disabled:opacity-60 transition"
                     >
+                      {assigningChatId === selectedChat.id ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <UserCheck className="w-3.5 h-3.5" />
+                      )}
                       Nhận xử lý
                     </button>
+                  )}
+                  {selectedChat.status === "ASSIGNED" && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-500/10 text-blue-400 text-xs font-medium">
+                      <UserCheck className="w-3.5 h-3.5" />
+                      Đang xử lý
+                    </span>
                   )}
                   {selectedChat.status !== "CLOSED" && (
                     <button
                       onClick={() => handleClose(selectedChat.id)}
-                      className="px-3 py-1.5 rounded-md border border-zinc-700 bg-zinc-900 text-zinc-400 text-xs font-medium hover:bg-zinc-800 transition"
+                      disabled={closingChatId === selectedChat.id || assigningChatId === selectedChat.id}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-rose-700/40 bg-rose-950/20 text-rose-300 text-xs font-medium hover:bg-rose-950/40 disabled:opacity-60 transition"
                     >
-                      <X className="w-3.5 h-3.5 inline mr-1" />
-                      Đóng
+                      {closingChatId === selectedChat.id ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <ShieldX className="w-3.5 h-3.5" />
+                      )}
+                      Đóng chat
                     </button>
                   )}
                   <button
                     onClick={() => fetchMessages(selectedChat.id)}
-                    className="p-1.5 rounded-md hover:bg-zinc-800 transition"
+                    disabled={refreshingMessages}
+                    className="p-1.5 rounded-md hover:bg-zinc-800 disabled:opacity-60 transition"
                     title="Refresh"
                   >
-                    <RefreshCw className="w-4 h-4 text-zinc-500" />
+                    <RefreshCw className={`w-4 h-4 text-zinc-500 ${refreshingMessages ? "animate-spin" : ""}`} />
                   </button>
                 </div>
               </div>
 
+              {selectedChat.status === "CLOSED" && (
+                <div className="mx-4 mt-3 rounded-lg border border-zinc-700/70 bg-zinc-900/50 px-3 py-2 text-xs text-zinc-400">
+                  Phiên chat đã đóng. Chỉ xem lịch sử, không thể gửi thêm tin nhắn.
+                </div>
+              )}
+
               {/* Messages */}
               <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+                {messages.length === 0 && (
+                  <div className="h-full flex items-center justify-center text-xs text-zinc-500">
+                    Chưa có tin nhắn trong phiên này.
+                  </div>
+                )}
                 {messages.map(msg => (
                   <div key={msg.id} className={`flex ${msg.senderType === "USER" ? "justify-start" : "justify-end"}`}>
                     <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm ${

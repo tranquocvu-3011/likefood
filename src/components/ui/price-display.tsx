@@ -12,7 +12,7 @@ interface PriceDisplayProps {
     originalPrice?: number | null;
     salePrice?: number | null;
     isOnSale?: boolean;
-    size?: "sm" | "md" | "lg" | "xl";
+    size?: "xs" | "sm" | "md" | "lg" | "xl";
     className?: string;
     showDiscountBadge?: boolean;
 }
@@ -33,6 +33,7 @@ export default function PriceDisplay({
     const discountPercent = hasDiscount ? Math.round(((basePrice - effectivePrice) / basePrice) * 100) : 0;
 
     const sizeClasses = {
+        xs: { current: "text-[13px]", original: "text-[10px]", percent: "text-[10px]", badge: "text-[9px] px-1.5 py-0.5" },
         sm: { current: "text-lg", original: "text-xs", percent: "text-[11px]", badge: "text-[10px] px-2 py-0.5" },
         md: { current: "text-2xl", original: "text-sm", percent: "text-sm", badge: "text-xs px-3 py-1" },
         lg: { current: "text-3xl", original: "text-lg", percent: "text-base", badge: "text-xs px-3 py-1" },
@@ -42,7 +43,7 @@ export default function PriceDisplay({
     const s = sizeClasses[size];
 
     return (
-        <div className={cn("flex items-baseline gap-3 flex-wrap", className)}>
+        <span className={cn("inline-flex items-baseline gap-1.5 flex-wrap", className)}>
             {hasDiscount && (
                 <span className={cn("text-slate-400 line-through font-medium", s.original)}>
                     {formatPrice(basePrice)}
@@ -78,6 +79,6 @@ export default function PriceDisplay({
                     )}
                 </>
             )}
-        </div>
+        </span>
     );
 }

@@ -300,7 +300,7 @@ export async function POST(req: Request) {
                 p.isOnSale && p.salePrice && p.saleStartAt && p.saleEndAt
             );
             
-            let flashSaleOrderQuantities: Map<string, number> = new Map();
+            const flashSaleOrderQuantities: Map<string, number> = new Map();
             if (flashSaleProducts.length > 0) {
                 // Single bulk query: get all flash sale orders for all products in this order
                 const flashSaleProductIds = flashSaleProducts.map(p => p.id);

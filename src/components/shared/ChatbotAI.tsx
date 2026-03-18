@@ -37,6 +37,7 @@ interface Message {
 }
 
 type ChatMode = "ai" | "live";
+type LiveChatStatus = "OPEN" | "ASSIGNED" | "CLOSED" | null;
 
 const INITIAL_MESSAGE_VI = {
   id: 1,
@@ -173,23 +174,28 @@ function MessageBubble({ message, isLast }: { message: Message; isLast: boolean 
 }
 
 /* ─── Waiting for Agent Banner ─── */
-function WaitingBanner({ isVietnamese }: { isVietnamese: boolean }) {
+function WaitingBanner({ isVietnamese, status }: { isVietnamese: boolean; status: "OPEN" | "ASSIGNED" }) {
+  const isAssigned = status === "ASSIGNED";
   return (
     <motion.div
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
-      className="mx-3 mb-2 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 px-3.5 py-3"
+      className={`mx-3 mb-2 rounded-xl border px-3.5 py-3 ${
+        isAssigned
+          ? "bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-100"
+          : "bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-100"
+      }`}
     >
       {/* Pulsing indicator */}
       <div className="flex items-center gap-2 mb-2.5">
         <div className="relative flex items-center justify-center">
-          <span className="absolute h-3 w-3 rounded-full bg-blue-400 animate-ping opacity-50" />
-          <span className="relative h-2.5 w-2.5 rounded-full bg-blue-500" />
+          <span className={`absolute h-3 w-3 rounded-full animate-ping opacity-50 ${isAssigned ? "bg-emerald-400" : "bg-blue-400"}`} />
+          <span className={`relative h-2.5 w-2.5 rounded-full ${isAssigned ? "bg-emerald-500" : "bg-blue-500"}`} />
         </div>
-        <p className="text-[11.5px] font-semibold text-blue-700">
-          {isVietnamese
-            ? "Vui lòng đợi nhân viên kết nối..."
-            : "Please wait for an agent to connect..."}
+        <p className={`text-[11.5px] font-semibold ${isAssigned ? "text-emerald-700" : "text-blue-700"}`}>
+          {isAssigned
+            ? (isVietnamese ? "Đã kết nối với nhân viên" : "Connected with support agent")
+            : (isVietnamese ? "Vui lòng đợi nhân viên kết nối..." : "Please wait for an agent to connect...")}
         </p>
       </div>
 
@@ -262,9 +268,71 @@ export default function ChatbotAI() {
   // ─── Live Chat State ───────────────────────────────────────
   const [chatMode, setChatMode] = useState<ChatMode>("ai");
   const [liveChatId, setLiveChatId] = useState<number | null>(null);
+  const [liveChatStatus, setLiveChatStatus] = useState<LiveChatStatus>(null);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isEndingLiveChat, setIsEndingLiveChat] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastPollTimeRef = useRef<string | null>(null);
+  const closeNoticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isShowingCloseNoticeRef = useRef(false);
+
+  const resetToAiMode = useCallback(() => {
+    if (closeNoticeTimerRef.current) {
+      clearTimeout(closeNoticeTimerRef.current);
+      closeNoticeTimerRef.current = null;
+    }
+    isShowingCloseNoticeRef.current = false;
+    setChatMode("ai");
+    setLiveChatId(null);
+    setLiveChatStatus(null);
+    lastPollTimeRef.current = null;
+    if (pollRef.current) clearInterval(pollRef.current);
+    setInput("");
+    setShowQuickReplies(true);
+    setMessages([isVietnamese ? INITIAL_MESSAGE_VI : INITIAL_MESSAGE_EN]);
+  }, [isVietnamese]);
+
+  const showClosedNoticeThenExit = useCallback(() => {
+    if (isShowingCloseNoticeRef.current) return;
+    isShowingCloseNoticeRef.current = true;
+
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+
+    setIsLoading(false);
+    setIsConnecting(false);
+    setIsEndingLiveChat(false);
+    setInput("");
+
+    const closeNotice = isVietnamese
+      ? "Phiên chat đã được đóng bởi nhân viên. Cảm ơn bạn đã liên hệ LIKEFOOD! Đang chuyển hướng🙏"
+      : "The chat session has been closed by support. Thank you for contacting LIKEFOOD! Redirecting🙏";
+
+    setMessages((prev) => {
+      const exists = prev.some((m) => m.content.includes("Đang chuyển hướng🙏") || m.content.includes("Redirecting🙏"));
+      if (exists) return prev;
+      return [
+        ...prev,
+        {
+          id: Date.now() + 99,
+          role: "model",
+          content: closeNotice,
+          timestamp: new Date(),
+          senderType: "ADMIN",
+        },
+      ];
+    });
+
+    if (closeNoticeTimerRef.current) clearTimeout(closeNoticeTimerRef.current);
+    closeNoticeTimerRef.current = setTimeout(() => {
+      resetToAiMode();
+      setIsOpen(false);
+      setIsMinimized(false);
+      setChatOpen(false);
+    }, 3000);
+  }, [isVietnamese, resetToAiMode, setChatOpen]);
 
   /* ─ Scroll hide for FAB ─ */
   useEffect(() => {
@@ -316,6 +384,15 @@ export default function ChatbotAI() {
         const data = await res.json();
         if (data.serverTime) lastPollTimeRef.current = data.serverTime;
 
+        if (data.chatStatus === "OPEN" || data.chatStatus === "ASSIGNED") {
+          setLiveChatStatus(data.chatStatus);
+        }
+
+        if (data.chatStatus === "CLOSED") {
+          showClosedNoticeThenExit();
+          return;
+        }
+
         if (data.messages?.length > 0) {
           setMessages(prev => {
             const existingIds = new Set(prev.map(m => m.id));
@@ -350,12 +427,13 @@ export default function ChatbotAI() {
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
     };
-  }, [chatMode, liveChatId, isOpen]);
+  }, [chatMode, liveChatId, isOpen, resetToAiMode, showClosedNoticeThenExit]);
 
   /* ─ Cleanup on unmount ─ */
   useEffect(() => {
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
+      if (closeNoticeTimerRef.current) clearTimeout(closeNoticeTimerRef.current);
     };
   }, []);
 
@@ -390,8 +468,31 @@ export default function ChatbotAI() {
     if (pollRef.current) clearInterval(pollRef.current);
   };
 
+  const endLiveChat = async () => {
+    if (!liveChatId || chatMode !== "live") {
+      resetToAiMode();
+      return;
+    }
+
+    setIsEndingLiveChat(true);
+    try {
+      await fetch(`/api/live-chat/${liveChatId}/close`, { method: "POST" });
+    } catch {
+      // Even if close API fails transiently, user side still resets to a new AI conversation.
+    } finally {
+      showClosedNoticeThenExit();
+    }
+  };
+
   /* ─── Switch to Live Chat ─── */
-  const switchToLiveChat = async () => {
+  const enterLiveChatMode = () => {
+    setChatMode("live");
+    setLiveChatId(null);
+    setLiveChatStatus(null);
+    setShowQuickReplies(false);
+  };
+
+  const startLiveChatSession = async () => {
     setIsConnecting(true);
     try {
       const res = await fetch("/api/live-chat", {
@@ -424,18 +525,9 @@ export default function ChatbotAI() {
       const data = await res.json();
       setLiveChatId(data.chatId);
       setChatMode("live");
+      // Always start in waiting state; switch to ASSIGNED only when admin clicks "Nhận xử lí".
+      setLiveChatStatus("OPEN");
       lastPollTimeRef.current = null;
-
-      if (!data.existing) {
-        setMessages(prev => [...prev, {
-          id: Date.now(),
-          role: "model",
-          content: isVietnamese
-            ? "🔔 **Đã chuyển sang Live Chat!**\n\nVui lòng đợi nhân viên kết nối. Trong khi chờ, bạn có thể liên hệ qua:\n\n✉️ Email: **tranquocvu3011@gmail.com**\n✈️ Telegram: **t.me/tranquocvu3011**\n💬 Facebook: **fb.com/vudev05**\n📞 Hotline: **402-315-8105**\n\n🛒 Hoặc [xem sản phẩm LIKEFOOD](/products) — có lẽ bạn sẽ thích đấy! 😊"
-            : "🔔 **Switched to Live Chat!**\n\nPlease wait for an agent to connect. Meanwhile, you can reach us via:\n\n✉️ Email: **tranquocvu3011@gmail.com**\n✈️ Telegram: **t.me/tranquocvu3011**\n💬 Facebook: **fb.com/vudev05**\n📞 Hotline: **402-315-8105**\n\n🛒 Or [browse LIKEFOOD products](/products) — you might love them! 😊",
-          timestamp: new Date(),
-        }]);
-      }
     } catch (error) {
       setMessages(prev => [...prev, {
         id: Date.now(),
@@ -454,6 +546,7 @@ export default function ChatbotAI() {
   const switchToAI = () => {
     setChatMode("ai");
     setLiveChatId(null);
+    setLiveChatStatus(null);
     lastPollTimeRef.current = null;
     if (pollRef.current) clearInterval(pollRef.current);
   };
@@ -489,7 +582,12 @@ export default function ChatbotAI() {
         });
 
         if (!res.ok) {
-          throw new Error("Không thể gửi tin nhắn.");
+          const data = await res.json().catch(() => ({}));
+          if (data?.error === "Phiên chat đã được đóng.") {
+            showClosedNoticeThenExit();
+            return;
+          }
+          throw new Error(data?.error || "Không thể gửi tin nhắn.");
         }
 
         // Update local message ID with server DB ID to prevent polling duplicates
@@ -512,7 +610,7 @@ export default function ChatbotAI() {
           body: JSON.stringify({
             message: nextInput,
             sessionId: analytics.getSessionId(),
-            history: messages.map((m) => ({ role: m.role, content: m.content })),
+            history: messages.slice(-6).map((m) => ({ role: m.role, content: m.content })),
           }),
         });
 
@@ -522,9 +620,6 @@ export default function ChatbotAI() {
         }
 
         const replyContent = data.content ?? data.response ?? (isVietnamese ? "Mình chưa có câu trả lời phù hợp. Bạn thử hỏi lại cụ thể hơn nhé! 😊" : "I don't have a suitable answer. Try asking more specifically! 😊");
-
-        const typingDelay = Math.min(200 + replyContent.length * 2, 800);
-        await new Promise((r) => setTimeout(r, typingDelay));
 
         const modelMessage: Message = {
           id: Number(Date.now() + 1),
@@ -677,18 +772,32 @@ export default function ChatbotAI() {
                     <div className="flex items-center gap-1">
                       {/* Switch mode button */}
                       {chatMode === "live" ? (
-                        <button
-                          onClick={switchToAI}
-                          className="flex h-8 items-center gap-1 rounded-full bg-white/15 px-2.5 text-[10px] font-bold text-white transition hover:bg-white/25"
-                          title={isVietnamese ? "Quay về AI" : "Back to AI"}
-                          aria-label={isVietnamese ? "Quay về chat AI" : "Switch back to AI chat"}
-                        >
-                          <ArrowLeft className="h-3 w-3" />
-                          AI
-                        </button>
+                        <>
+                          <button
+                            onClick={switchToAI}
+                            className="flex h-8 items-center gap-1 rounded-full bg-white/15 px-2.5 text-[10px] font-bold text-white transition hover:bg-white/25"
+                            title={isVietnamese ? "Quay về AI" : "Back to AI"}
+                            aria-label={isVietnamese ? "Quay về chat AI" : "Switch back to AI chat"}
+                          >
+                            <ArrowLeft className="h-3 w-3" />
+                            AI
+                          </button>
+                          <button
+                            onClick={() => void endLiveChat()}
+                            disabled={isEndingLiveChat}
+                            className="flex h-8 items-center gap-1 rounded-full bg-red-500/20 px-2.5 text-[10px] font-bold text-white transition hover:bg-red-500/30 disabled:opacity-60"
+                            title={isVietnamese ? "Kết thúc đoạn chat" : "End chat session"}
+                            aria-label={isVietnamese ? "Kết thúc đoạn chat" : "End current chat session"}
+                          >
+                            <X className="h-3 w-3" />
+                            {isEndingLiveChat
+                              ? (isVietnamese ? "Đang đóng..." : "Closing...")
+                              : (isVietnamese ? "Kết thúc đoạn chat" : "End chat")}
+                          </button>
+                        </>
                       ) : (
                         <button
-                          onClick={() => void switchToLiveChat()}
+                          onClick={enterLiveChatMode}
                           disabled={isConnecting}
                           className="flex h-8 items-center gap-1 rounded-full bg-white/15 px-2.5 text-[10px] font-bold text-white transition hover:bg-white/25 disabled:opacity-50"
                           title={isVietnamese ? "Chat với nhân viên" : "Chat with agent"}
@@ -730,8 +839,37 @@ export default function ChatbotAI() {
                   </div>
                 ) : (
                   <>
+                    {chatMode === "live" && !liveChatId && (
+                      <div className="mx-3 mt-3 rounded-xl border border-blue-100 bg-gradient-to-br from-blue-50 to-indigo-50 p-3.5">
+                        <p className="text-xs font-semibold text-blue-700">
+                          {isVietnamese
+                            ? "Bấm để bắt đầu cuộc trò chuyện với nhân viên"
+                            : "Click to start conversation with support"}
+                        </p>
+                        <p className="mt-1 text-[11px] text-slate-500">
+                          {isVietnamese
+                            ? "Khi bắt đầu, hệ thống sẽ gửi thông báo đến nhân viên qua Telegram."
+                            : "Once started, the system will notify support via Telegram."}
+                        </p>
+                        <button
+                          onClick={() => void startLiveChatSession()}
+                          disabled={isConnecting}
+                          className="mt-2.5 inline-flex items-center rounded-full bg-blue-600 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-blue-700 disabled:opacity-60"
+                        >
+                          {isConnecting
+                            ? (isVietnamese ? "Đang bắt đầu..." : "Starting...")
+                            : (isVietnamese ? "Bắt đầu cuộc trò chuyện" : "Start conversation")}
+                        </button>
+                      </div>
+                    )}
+
                     {/* ─── Live Chat Waiting Banner ─── */}
-                    {chatMode === "live" && <WaitingBanner isVietnamese={isVietnamese} />}
+                    {chatMode === "live" && liveChatId && liveChatStatus !== "CLOSED" && (
+                      <WaitingBanner
+                        isVietnamese={isVietnamese}
+                        status={liveChatStatus === "ASSIGNED" ? "ASSIGNED" : "OPEN"}
+                      />
+                    )}
 
                     {/* ─── Messages ─── */}
                     <div
@@ -805,7 +943,7 @@ export default function ChatbotAI() {
                         <motion.button
                           whileTap={{ scale: 0.9 }}
                           onClick={() => void sendMessage()}
-                          disabled={!input.trim() || isLoading}
+                          disabled={!input.trim() || isLoading || isEndingLiveChat}
                           className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all ${input.trim() && !isLoading
                             ? chatMode === "live"
                               ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-200/50 hover:shadow-lg"

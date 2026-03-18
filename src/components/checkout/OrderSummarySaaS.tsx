@@ -9,7 +9,8 @@
  */
 
 import Image from "next/image";
-import { ShieldCheck, Lock, ChevronDown, Tag, Coins, Package } from "lucide-react";
+import { ShieldCheck, Lock, ChevronDown, Tag, Coins, Package, Star } from "lucide-react";
+import { POINTS_PER_DOLLAR } from "@/lib/commerce";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import PriceDisplay from "@/components/ui/price-display";
@@ -95,48 +96,59 @@ export default function OrderSummarySaaS({
                 </div>
 
                 {/* Divider */}
-                <div className="h-px bg-slate-200" />
+                <div className="h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
 
-                {/* Cost breakdown */}
-                <div className="space-y-1.5 text-xs">
-                    <div className="flex justify-between">
-                        <span className="text-slate-500">{vi ? "Tạm tính" : "Subtotal"}</span>
-                        <span className="font-medium text-slate-900">
-                            <PriceDisplay currentPrice={totalPrice} size="sm" showDiscountBadge={false} />
+                {/* Cost breakdown — aligned grid */}
+                <div className="space-y-2 text-[13px]">
+                    {/* Subtotal row */}
+                    <div className="flex items-center justify-between">
+                        <span className="text-slate-500 font-medium">{vi ? "Tạm tính" : "Subtotal"}</span>
+                        <span className="font-semibold text-slate-800 tabular-nums">
+                            <PriceDisplay currentPrice={totalPrice} size="xs" showDiscountBadge={false} />
                         </span>
                     </div>
 
+                    {/* Voucher discount row */}
                     {selectedVoucher && (
-                        <div className="flex justify-between text-emerald-600">
-                            <span className="flex items-center gap-1">
-                                <Tag className="w-3 h-3 flex-shrink-0" />
-                                {vi ? "Giảm giá" : "Discount"}
-                                <span className="text-[9px] bg-emerald-50 border border-emerald-200 px-1 py-0.5 rounded font-medium">
+                        <div className="flex items-center justify-between">
+                            <span className="flex items-center gap-1.5 text-emerald-600 font-medium">
+                                <Tag className="w-3.5 h-3.5 flex-shrink-0" />
+                                <span>{vi ? "Mã giảm giá" : "Coupon"}</span>
+                                <span className="text-[10px] bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-md font-bold tracking-wide">
                                     {selectedVoucher.code}
                                 </span>
                             </span>
-                            <span className="font-medium">-<PriceDisplay currentPrice={discount} size="sm" showDiscountBadge={false} /></span>
-                        </div>
-                    )}
-
-                    {pointsUsed > 0 && (
-                        <div className="flex justify-between text-amber-600">
-                            <span className="flex items-center gap-1">
-                                <Coins className="w-3 h-3 flex-shrink-0" />
-                                {vi ? "Dùng Xu" : "Points"} ({pointsUsed})
+                            <span className="inline-flex items-baseline gap-0.5 whitespace-nowrap font-semibold text-emerald-600 tabular-nums">
+                                <span aria-hidden="true">-</span>
+                                <PriceDisplay currentPrice={discount} size="xs" showDiscountBadge={false} className="whitespace-nowrap" />
                             </span>
-                            <span className="font-medium">-<PriceDisplay currentPrice={pointsDiscount} size="sm" showDiscountBadge={false} /></span>
                         </div>
                     )}
 
-                    <div className="flex justify-between">
-                        <span className="text-slate-500">{vi ? "Phí vận chuyển" : "Shipping"}</span>
+                    {/* Points used row */}
+                    {pointsUsed > 0 && (
+                        <div className="flex items-center justify-between">
+                            <span className="flex items-center gap-1.5 text-amber-600 font-medium">
+                                <Coins className="w-3.5 h-3.5 flex-shrink-0" />
+                                <span>{vi ? "Dùng Xu" : "Points used"}</span>
+                                <span className="text-[10px] text-amber-500">({pointsUsed} xu)</span>
+                            </span>
+                            <span className="inline-flex items-baseline gap-0.5 whitespace-nowrap font-semibold text-amber-600 tabular-nums">
+                                <span aria-hidden="true">-</span>
+                                <PriceDisplay currentPrice={pointsDiscount} size="xs" showDiscountBadge={false} className="whitespace-nowrap" />
+                            </span>
+                        </div>
+                    )}
+
+                    {/* Shipping row */}
+                    <div className="flex items-center justify-between">
+                        <span className="text-slate-500 font-medium">{vi ? "Phí vận chuyển" : "Shipping"}</span>
                         {shippingFee > 0 ? (
-                            <span className="font-medium text-slate-900">
-                                <PriceDisplay currentPrice={shippingFee} size="sm" showDiscountBadge={false} />
+                            <span className="font-semibold text-slate-800 tabular-nums">
+                                <PriceDisplay currentPrice={shippingFee} size="xs" showDiscountBadge={false} />
                             </span>
                         ) : (
-                            <span className="text-[10px] font-semibold uppercase tracking-wide text-emerald-600">
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
                                 {vi ? "Miễn phí" : "Free"}
                             </span>
                         )}
@@ -144,20 +156,54 @@ export default function OrderSummarySaaS({
                 </div>
 
                 {/* Total */}
-                <div className="h-px bg-slate-200" />
-                <div className="flex justify-between items-center">
-                    <span className="text-xs font-semibold text-slate-700">
+                <div className="h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent" />
+                <div className="flex items-center justify-between py-1">
+                    <span className="text-sm font-bold text-slate-800">
                         {vi ? "Tổng cộng" : "Total due"}
                     </span>
                     <div className="text-right">
-                        <div className="text-base font-bold text-slate-900 tracking-tight">
+                        <div className="text-lg font-extrabold text-slate-900 tracking-tight">
                             <PriceDisplay currentPrice={finalTotal} showDiscountBadge={false} />
                         </div>
-                        <p className="text-[9px] text-slate-400 font-medium uppercase tracking-wide mt-0.5">
-                            {vi ? "Bao gồm thuế & phí" : "Incl. taxes & fees"}
+                        <p className="text-[9px] text-slate-400 font-semibold uppercase tracking-widest mt-0.5">
+                            {vi ? "Đã gồm thuế & phí" : "Incl. taxes & fees"}
                         </p>
                     </div>
                 </div>
+
+                {/* ★ Earned points CTA banner */}
+                {(() => {
+                    const earnedPoints = Math.floor(totalPrice * POINTS_PER_DOLLAR);
+                    if (earnedPoints <= 0) return null;
+                    return (
+                        <div className="relative overflow-hidden bg-gradient-to-r from-amber-50 via-orange-50 to-yellow-50 border border-amber-200/50 rounded-xl px-3.5 py-3">
+                            {/* Decorative sparkles */}
+                            <div className="absolute top-1 right-2 text-amber-300/40 text-lg">✦</div>
+                            
+                            <div className="flex items-center gap-2.5 relative">
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 via-orange-400 to-yellow-500 flex items-center justify-center flex-shrink-0 shadow-sm shadow-amber-200/50">
+                                    <Star className="w-4 h-4 text-white fill-white drop-shadow-sm" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-[11px] font-bold text-amber-900 leading-snug">
+                                        {vi
+                                            ? `Thanh toán ngay để nhận `
+                                            : `Pay now to earn `}
+                                        <span className="inline-flex items-center gap-0.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[11px] font-extrabold px-1.5 py-0.5 rounded-md mx-0.5 shadow-sm">
+                                            +{earnedPoints} {vi ? "xu" : "pts"}
+                                        </span>
+                                        {vi ? " đổi thưởng!" : " rewards!"}
+                                    </p>
+                                    <p className="text-[9px] text-amber-600/70 mt-0.5 font-medium">
+                                        {vi
+                                            ? `Tích ${POINTS_PER_DOLLAR} xu cho mỗi $1 • Đổi voucher giảm giá`
+                                            : `${POINTS_PER_DOLLAR} pts per $1 • Redeem for discount vouchers`}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })()}
 
                 {/* Trust indicators – desktop only */}
                 {!isMobile && (
