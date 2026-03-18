@@ -72,8 +72,8 @@ git clone https://github.com/tranquocvu-3011/likefood.git /opt/likefood
 ### Kịch bản 3: SSL Certificate Expired
 ```bash
 sudo certbot renew --force-renewal
-sudo cp /etc/letsencrypt/live/likefood.vudev.io.vn/fullchain.pem /opt/likefood/nginx/ssl/
-sudo cp /etc/letsencrypt/live/likefood.vudev.io.vn/privkey.pem /opt/likefood/nginx/ssl/
+sudo cp /etc/letsencrypt/live/likefood.app/fullchain.pem /opt/likefood/nginx/ssl/
+sudo cp /etc/letsencrypt/live/likefood.app/privkey.pem /opt/likefood/nginx/ssl/
 docker compose restart nginx
 ```
 

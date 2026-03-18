@@ -8,7 +8,7 @@
 import { MetadataRoute } from "next";
 import prisma from "@/lib/prisma";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.vudev.io.vn";
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.app";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();

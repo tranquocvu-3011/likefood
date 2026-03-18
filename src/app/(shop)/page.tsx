@@ -94,7 +94,7 @@ export async function generateMetadata(): Promise<Metadata> {
       type: "website",
       locale: isEn ? "en_US" : "vi_VN",
       alternateLocale: isEn ? "vi_VN" : "en_US",
-      url: process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.vudev.io.vn",
+      url: process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.app",
       siteName: "LIKEFOOD",
       title,
       description,

@@ -14,9 +14,9 @@ function getBaseUrl() {
         process.env.NEXT_PUBLIC_SEO_SITE_URL;
 
     try {
-        return envUrl ? new URL(envUrl).origin : "https://likefood.vudev.io.vn";
+        return envUrl ? new URL(envUrl).origin : "https://likefood.app";
     } catch {
-        return "https://likefood.vudev.io.vn";
+        return "https://likefood.app";
     }
 }
 

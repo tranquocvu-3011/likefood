@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   authors: [{ name: "Trần Quốc Vũ", url: "https://www.facebook.com/profile.php?id=100076170558548" }],
   creator: "Trần Quốc Vũ",
   publisher: "LIKEFOOD",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.vudev.io.vn"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.app"),
   alternates: {
     canonical: "/",
     languages: {
@@ -59,7 +59,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "vi_VN",
-    url: process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.vudev.io.vn",
+    url: process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.app",
     siteName: "LIKEFOOD",
     title: "LIKEFOOD | Đặc sản Việt Nam tại Mỹ",
     description: "Nền tảng thương mại điện tử chuyên cung cấp đặc sản Việt Nam chất lượng cao tại Hoa Kỳ. Giao hàng nhanh, đảm bảo vệ sinh ATTP.",

@@ -794,7 +794,7 @@ function ProductCatalogContent() {
 }
 
 export default function ProductCatalog() {
-    const SITE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.vudev.io.vn";
+    const SITE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.app";
     const breadcrumbSchema = {
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",

@@ -8,7 +8,7 @@
  * Added @id to BreadcrumbList so WebPage can reference it.
  */
 
-const SITE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.vudev.io.vn";
+const SITE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.app";
 const SITE_NAME = "LIKEFOOD";
 
 export default function StructuredData() {

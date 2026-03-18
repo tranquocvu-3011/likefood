@@ -47,7 +47,7 @@ export async function generateMetadata({
         return { title: isEn ? "Product not found" : "Sản phẩm không tồn tại" };
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.vudev.io.vn";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.app";
     const url = `${baseUrl}/products/${product.slug || product.id}`;
     const price = product.salePrice || product.price;
 
@@ -238,7 +238,7 @@ export default async function ProductDetailPage({
     const serializedProduct = JSON.parse(JSON.stringify(product));
     const serializedRelated = JSON.parse(JSON.stringify(relatedProducts));
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.vudev.io.vn";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.app";
     const productUrl = `${baseUrl}/products/${product.slug || product.id}`;
 
     return (

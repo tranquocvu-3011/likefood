@@ -31,7 +31,7 @@ export async function GET() {
       select: { milestone: true, rewardType: true, rewardValue: true },
     });
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.vudev.io.vn";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.app";
     const shareCode = profile.customCode || profile.systemCode;
 
     const dashboard: ReferralDashboard = {

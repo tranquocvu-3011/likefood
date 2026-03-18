@@ -32,7 +32,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const slugPath = slug.join("/");
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.vudev.io.vn";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.app";
   const pageUrl = `${baseUrl}/${slugPath}`;
   const cookieStore = await cookies();
   const locale = cookieStore.get("language")?.value || "vi";

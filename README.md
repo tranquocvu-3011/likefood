@@ -235,7 +235,7 @@ docker compose exec -T mysql mysql -u likefood -p weblikefood < weblikefood.sql
 
 ```bash
 # Certbot auto-renewal
-sudo certbot certonly --webroot -w /opt/likefood/public -d likefood.vudev.io.vn
+sudo certbot certonly --webroot -w /opt/likefood/public -d likefood.app
 ```
 
 ---

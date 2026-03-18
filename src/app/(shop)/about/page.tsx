@@ -96,7 +96,7 @@ export async function generateMetadata(): Promise<Metadata> {
     const cookieStore = await cookies();
     const locale: Locale = cookieStore.get("language")?.value === "en" ? "en" : "vi";
     const copy = META_COPY[locale];
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.vudev.io.vn";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.app";
     return {
         title: copy.title,
         description: copy.description,
@@ -135,7 +135,7 @@ export default async function AboutPage() {
     const testimonials = TESTIMONIALS_COPY[locale];
     const products = PRODUCT_CATEGORIES[locale];
 
-    const SITE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.vudev.io.vn";
+    const SITE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.app";
 
     const aboutBreadcrumb = {
         "@context": "https://schema.org",

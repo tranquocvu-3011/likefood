@@ -38,7 +38,7 @@ export interface OrderNotificationData {
 
 // ─── Config ─────────────────────────────────────────────────
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://likefood.vudev.io.vn";
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://likefood.app";
 
 export async function getTelegramConfig(): Promise<TelegramConfig | null> {
     const botToken = (await getSystemSettingTrimmed("telegram_bot_token")) || process.env.TELEGRAM_BOT_TOKEN || "";

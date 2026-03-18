@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
             };
         }
 
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.vudev.io.vn";
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.app";
         const url = `${baseUrl}/posts/${slug}`;
 
         return {
@@ -76,7 +76,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
             },
         };
     } catch {
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.vudev.io.vn";
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.app";
         return {
             title: lang === "en" ? "LIKEFOOD Blog" : "Blog LIKEFOOD",
             description: lang === "en" ? "News and articles from LIKEFOOD" : "Tin tức và bài viết từ LIKEFOOD",
@@ -117,7 +117,7 @@ export default async function PostDetailPage({ params }: PageProps) {
         });
 
         if (post) {
-            const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.vudev.io.vn";
+            const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.app";
             blogJsonLd = {
                 "@context": "https://schema.org",
                 "@type": "BlogPosting",

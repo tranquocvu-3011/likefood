@@ -14,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
     const description = isEn
         ? "LIKEFOOD return and refund policy. Learn about eligible return cases, the return process, and our commitment to customer satisfaction."
         : "Chính sách đổi trả và hoàn tiền tại LIKEFOOD. Tìm hiểu các trường hợp đổi trả, quy trình và cam kết chất lượng khách hàng.";
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.vudev.io.vn";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.app";
 
     return {
         title,

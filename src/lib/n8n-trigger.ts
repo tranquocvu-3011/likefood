@@ -10,7 +10,7 @@
  * Copyright (c) 2026 LIKEFOOD Team
  */
 
-const N8N_BASE_URL = process.env.N8N_WEBHOOK_URL || "https://n8n.likefood.vudev.io.vn";
+const N8N_BASE_URL = process.env.N8N_WEBHOOK_URL || "https://n8n.likefood.app";
 const WEBHOOK_SECRET = process.env.N8N_WEBHOOK_SECRET || "n8n_webhook_secret_likefood_2026";
 
 export interface N8NTriggerResult {

@@ -6,7 +6,7 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.vudev.io.vn";
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.app";
 
 export async function generateMetadata(): Promise<Metadata> {
     const cookieStore = await cookies();

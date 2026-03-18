@@ -16,7 +16,7 @@ interface CustomerInfo {
   customerEmail?: string;
 }
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://likefood.vudev.io.vn";
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://likefood.app";
 
 function vnTime(): string {
   return new Date().toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });

@@ -214,7 +214,7 @@ export default function FeaturedStickyShowcase({ products: initialProducts }: Fe
                         <FeaturedProductPreview
                             key={`left-${prevIndex}`}
                             side="left"
-                            image={initialProducts[prevIndex].image || null}
+                            image={initialProducts[prevIndex]?.image || null}
                             onClick={prevStep}
                             direction={direction}
                         />
@@ -224,7 +224,7 @@ export default function FeaturedStickyShowcase({ products: initialProducts }: Fe
                         <FeaturedProductPreview
                             key={`right-${nextIndex}`}
                             side="right"
-                            image={initialProducts[nextIndex].image || null}
+                            image={initialProducts[nextIndex]?.image || null}
                             onClick={nextStep}
                             direction={direction}
                         />

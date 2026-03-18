@@ -4,11 +4,12 @@
 module.exports = {
   apps: [
     {
-      name: "weblikefood",
-      script: "node_modules/.bin/next",
+      name: "likefood",
+      cwd: "/home/student/likefood",
+      script: "npm",
       args: "start",
-      instances: "max",        // Fork 1 instance mỗi CPU core
-      exec_mode: "cluster",
+      instances: 1,
+      exec_mode: "fork",
       autorestart: true,
       watch: false,
       max_memory_restart: "1G",

@@ -3,7 +3,7 @@
  * Renders Product JSON-LD server-side for Google rich results.
  */
 
-const SITE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.vudev.io.vn";
+const SITE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.app";
 
 interface ProductForSchema {
     name: string;

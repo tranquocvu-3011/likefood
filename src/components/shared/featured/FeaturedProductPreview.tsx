@@ -49,7 +49,6 @@ const previewVariants = {
 export default function FeaturedProductPreview({ image, onClick, side, direction }: FeaturedProductPreviewProps) {
     return (
         <motion.div
-            key={`preview-${side}-${image}`}
             custom={{ side, direction }}
             variants={previewVariants}
             initial="enter"

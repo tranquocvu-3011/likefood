@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 /**
  * LIKEFOOD - Vietnamese Specialty Marketplace
@@ -91,7 +91,7 @@ export default function MegaMenu({ isOpen, onClose }: MegaMenuProps) {
                         <div className="h-[2px] w-full bg-gradient-to-r from-emerald-400 via-primary to-teal-400" />
 
                         <div className="flex">
-                            {/* ── Left: Category list ── */}
+                            {/* -- Left: Category list -- */}
                             <aside className="w-[190px] flex-shrink-0 bg-slate-50/80 border-r border-slate-100 py-4">
                                 <p className="text-[9px] font-extrabold uppercase tracking-[0.18em] text-slate-400 px-5 mb-3">
                                     {t("navbar.categoriesSummary")}
@@ -132,7 +132,7 @@ export default function MegaMenu({ isOpen, onClose }: MegaMenuProps) {
                                 </div>
                             </aside>
 
-                            {/* ── Right: Products grid ── */}
+                            {/* -- Right: Products grid -- */}
                             <div className="flex-1 p-5 min-h-[280px]">
                                 {activeCategory ? (
                                     <motion.div

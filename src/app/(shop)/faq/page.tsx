@@ -19,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
     const description = isEn
             ? "Answers for common questions about ordering, shipping, payments, and return policies at LIKEFOOD."
             : "Giải đáp các câu hỏi thường gặp về đặt hàng, vận chuyển, thanh toán và chính sách đổi trả tại LIKEFOOD.";
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.vudev.io.vn";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.app";
 
     return {
         title,
@@ -73,7 +73,7 @@ export default async function FAQPage() {
     const cookieStore = await cookies();
     const locale = cookieStore.get("language")?.value === "en" ? "en" : "vi";
 
-    const SITE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.vudev.io.vn";
+    const SITE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.app";
 
     const faqBreadcrumb = {
         "@context": "https://schema.org",

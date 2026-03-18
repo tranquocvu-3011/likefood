@@ -6,7 +6,7 @@
  * Licensed under the MIT License
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import NextImage, { ImageProps } from "next/image";
 
 const FALLBACK_SRC = "/placeholder.svg";
@@ -26,9 +26,16 @@ export default function ImageWithFallback({
     alt,
     ...props
 }: ImageWithFallbackProps) {
-    const initial = src || fallbackSrc;
-    const [imgSrc, setImgSrc] = useState<string>(initial);
+    const resolved = src || fallbackSrc;
+    const [imgSrc, setImgSrc] = useState<string>(resolved);
     const [errored, setErrored] = useState(false);
+
+    // Sync imgSrc when the src prop changes (e.g. carousel slide change)
+    useEffect(() => {
+        const next = src || fallbackSrc;
+        setImgSrc(next);
+        setErrored(false);
+    }, [src, fallbackSrc]);
 
     return (
         <NextImage

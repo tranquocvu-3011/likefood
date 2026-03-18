@@ -9,7 +9,7 @@ import { Metadata } from "next";
 import { cookies } from "next/headers";
 import prisma from "@/lib/prisma";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.vudev.io.vn";
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://likefood.app";
 
 export async function generateMetadata(
     { params }: { params: Promise<{ slug: string }> }
