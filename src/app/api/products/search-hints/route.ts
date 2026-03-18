@@ -59,9 +59,9 @@ export async function GET(req: NextRequest) {
             category: string | null;
             price: number;
             image: string | null;
-            slug: string | null;
+            slug: string;
         }>>(Prisma.sql`
-            SELECT id, name, category, price, image, slug
+            SELECT id, name, category, price, image, COALESCE(slug, CAST(id AS CHAR)) AS slug
             FROM product
             WHERE (
                 name COLLATE utf8mb4_general_ci LIKE ${like}
@@ -85,9 +85,9 @@ export async function GET(req: NextRequest) {
                 category: string | null;
                 price: number;
                 image: string | null;
-                slug: string | null;
+                slug: string;
             }>>(Prisma.sql`
-                SELECT id, name, category, price, image, slug
+                SELECT id, name, category, price, image, COALESCE(slug, CAST(id AS CHAR)) AS slug
                 FROM product
                 WHERE (
                     LOWER(name) COLLATE utf8mb4_general_ci LIKE ${likeLower}
@@ -109,9 +109,9 @@ export async function GET(req: NextRequest) {
                 category: string | null;
                 price: number;
                 image: string | null;
-                slug: string | null;
+                slug: string;
             }>>(Prisma.sql`
-                SELECT id, name, category, price, image, slug
+                SELECT id, name, category, price, image, COALESCE(slug, CAST(id AS CHAR)) AS slug
                 FROM product
                 WHERE inventory > 0
                 AND isDeleted = 0

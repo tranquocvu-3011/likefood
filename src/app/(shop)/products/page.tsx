@@ -590,7 +590,7 @@ function ProductCatalogContent() {
 
                                         {/* Search hints + recent searches dropdown */}
                                 {showSearchHints && (searchHints.length > 0 || recentSearches.length > 0) && (
-                                    <div className="absolute z-20 mt-2 w-full bg-white rounded-2xl border border-slate-100 shadow-xl max-h-80 overflow-y-auto">
+                                    <div className="absolute z-20 mt-2 w-full bg-white rounded-2xl border border-slate-100 shadow-xl max-h-96 overflow-y-auto">
                                         {recentSearches.length > 0 && (
                                             <div className="px-4 pt-3 pb-2 border-b border-slate-50">
                                                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2">
@@ -616,56 +616,68 @@ function ProductCatalogContent() {
 
                                         {searchHints.length > 0 && (
                                             <div className="py-2">
+                                                <p className="px-4 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                                                    {t("common.suggestionsFor") || "Gợi ý cho"} &quot;{searchQuery}&quot;
+                                                </p>
                                                 {searchHints.map((hint) => (
                                                     <button
                                                         key={hint.id}
                                                         onMouseDown={(e) => {
                                                             e.preventDefault();
-                                                            // Nếu có slug thì đi đến trang chi tiết, không thì search theo tên
-                                                            if (hint.slug) {
-                                                                router.push(`/products/${hint.slug}`);
-                                                            } else {
-                                                                setSearchQuery(hint.name);
-                                                            }
-                                                            setShowSearchHints(false);
-
-                                                            // Lưu vào recent searches
-                                                            try {
-                                                                const next = [
-                                                                    hint.name,
-                                                                    ...recentSearches.filter(
-                                                                        (t) => t !== hint.name
-                                                                    ),
-                                                                ].slice(0, 8);
-                                                                setRecentSearches(next);
-                                                                if (typeof window !== "undefined") {
-                                                                    window.localStorage.setItem(
-                                                                        "lf_recent_searches",
-                                                                        JSON.stringify(next)
-                                                                    );
-                                                                }
-                                                            } catch {
-                                                                // ignore
-                                                            }
+                                                            e.stopPropagation();
                                                         }}
-                                                        className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 text-left"
+                                                        onClick={() => {
+                                                            setShowSearchHints(false);
+                                                            // LUÔN navigate đến trang chi tiết sản phẩm
+                                                            const productUrl = `/products/${hint.slug || hint.id}`;
+                                                            router.push(productUrl);
+                                                        }}
+                                                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-primary/5 text-left transition-colors group cursor-pointer"
                                                     >
-                                                        <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 text-xs font-bold">
-                                                            <Search className="w-4 h-4" />
+                                                        {/* Thumbnail */}
+                                                        <div className="w-12 h-12 rounded-xl bg-slate-100 flex-shrink-0 overflow-hidden border border-slate-200/50 relative">
+                                                            {hint.image ? (
+                                                                <img
+                                                                    src={hint.image}
+                                                                    alt={hint.name}
+                                                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                                                    loading="lazy"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-full h-full flex items-center justify-center">
+                                                                    <Search className="w-4 h-4 text-slate-300" />
+                                                                </div>
+                                                            )}
                                                         </div>
-                                                        <div className="flex-1">
-                                                            <p className="text-sm font-bold text-slate-900">
+                                                        {/* Info */}
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-sm font-bold text-slate-900 group-hover:text-primary transition-colors truncate">
                                                                 {hint.name}
                                                             </p>
                                                             <p className="text-[11px] text-slate-400">
                                                                 {hint.category}
                                                             </p>
                                                         </div>
-                                                        <span className="text-[11px] font-black text-primary">
+                                                        {/* Price */}
+                                                        <span className="text-sm font-black text-primary flex-shrink-0">
                                                             {hint.price != null ? formatPrice(hint.price) : ""}
                                                         </span>
                                                     </button>
                                                 ))}
+
+                                                {/* Xem tất cả kết quả */}
+                                                <div className="px-3 py-2 border-t border-slate-100">
+                                                    <button
+                                                        onMouseDown={(e) => e.preventDefault()}
+                                                        onClick={() => {
+                                                            setShowSearchHints(false);
+                                                            // Giữ nguyên search query → filter products page
+                                                        }}
+                                                        className="w-full py-2.5 text-center text-[11px] font-black uppercase tracking-wider bg-slate-900 hover:bg-primary text-white rounded-xl transition-colors"
+                                                    >
+                                                        {t("common.viewAllResults") || "Xem tất cả kết quả"} &quot;{searchQuery}&quot;
+                                                    </button>
+                                                </div>
                                             </div>
                                         )}
                                     </div>
