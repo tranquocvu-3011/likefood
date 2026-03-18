@@ -12,6 +12,7 @@ import { Heart } from "lucide-react";
 import { useWishlistContext } from "@/contexts/WishlistContext";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/lib/i18n/context";
+import { analytics } from "@/lib/analytics/sdk";
 
 interface WishlistButtonProps {
     productId: number;
@@ -29,6 +30,12 @@ export default function WishlistButton({ productId }: WishlistButtonProps) {
         if (isLoading) return;
         setIsLoading(true);
         try {
+            // Track wishlist event before toggle
+            if (inWishlist) {
+                analytics.trackRemoveFromWishlist(productId, `product_${productId}`);
+            } else {
+                analytics.trackAddToWishlist(productId, `product_${productId}`);
+            }
             await toggleWishlist(productId);
         } finally {
             setIsLoading(false);

@@ -17,6 +17,7 @@ import WishlistButton from "./WishlistButton";
 import { useRouter } from "next/navigation";
 import { useCartState } from "@/contexts/CartContext";
 import { useLanguage } from "@/lib/i18n/context";
+import { analytics } from "@/lib/analytics/sdk";
 
 // Sub-components
 import ProductCardImage from "./ProductCardImage";
@@ -153,7 +154,10 @@ function ProductCardList({ product, meta }: { product: ProductCardProduct; meta:
     return (
         <div
             data-product-id={product.id}
-            onClick={() => router.push(meta.productUrl)}
+            onClick={() => {
+                analytics.trackProductClick(product.id, product.name, product.category, 0);
+                router.push(meta.productUrl);
+            }}
             onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); router.push(meta.productUrl); } }}
             tabIndex={0}
             role="article"
@@ -265,8 +269,9 @@ function ProductCardGrid({ product, meta }: { product: ProductCardProduct; meta:
     }, [meta.productUrl, router]);
 
     const handleCardClick = useCallback(() => {
+        analytics.trackProductClick(product.id, product.name, product.category, 0);
         router.push(meta.productUrl);
-    }, [meta.productUrl, router]);
+    }, [meta.productUrl, router, product.id, product.name, product.category]);
 
     return (
         <div

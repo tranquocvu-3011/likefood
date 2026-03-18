@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 // Stripe Checkout Sessions: no client-side SDK needed (redirect flow)
 import { tracking } from "@/lib/tracking";
+import { analytics } from "@/lib/analytics/sdk";
 import { logger } from "@/lib/logger";
 import { toast } from "sonner";
 import { getShippingFeeUsd } from "@/lib/commerce";
@@ -332,6 +333,18 @@ export function useCheckout(language: string) {
             tracking.beginCheckout(totalPrice, items.map(item => ({
                 item_id: String(item.id), item_name: item.name, price: item.price, quantity: item.quantity,
             })));
+
+            // Track begin_checkout (Analytics DB)
+            analytics.trackBeginCheckout(
+                totalPrice,
+                items.length,
+                items.map(item => ({
+                    id: String(item.productId),
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity,
+                }))
+            );
 
             if (saveInfo) {
                 localStorage.setItem("checkout_info", JSON.stringify({

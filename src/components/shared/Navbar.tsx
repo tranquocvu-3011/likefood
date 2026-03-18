@@ -30,6 +30,7 @@ import { useNavbarScroll } from "@/hooks/useNavbarScroll";
 import { useNavbarConfig } from "@/hooks/useNavbarConfig";
 import { useWishlistCount } from "@/hooks/useWishlistCount";
 import { useSearchHints } from "@/hooks/useSearchHints";
+import { analytics } from "@/lib/analytics/sdk";
 
 // ── Mobile inline search — expands in-header on tap, no drawer required
 // ─────────────────────────────────────────────────────────────────────────────
@@ -188,12 +189,16 @@ function NavbarContent() {
         const q = searchQuery.trim();
         if (!q) return;
         saveSearchHistory(q);
+        // Track search query (Analytics DB)
+        analytics.trackSearch(q, suggestions.length);
         setShowSuggestions(false);
         setMobileSearchActive(false);
         router.push(`/products?search=${encodeURIComponent(q)}`);
-    }, [searchQuery, router, saveSearchHistory]);
+    }, [searchQuery, router, saveSearchHistory, suggestions.length]);
 
     const handleSuggestionClick = useCallback((slug: string | undefined, id: string) => {
+        // Track search result click (Analytics DB)
+        analytics.trackSearchResultClick(searchQuery, Number(id), 0);
         setShowSuggestions(false);
         setMobileSearchActive(false);
         // Reset search query after navigation to prevent stale state
@@ -201,7 +206,7 @@ function NavbarContent() {
             setSearchQuery("");
         }, 100);
         router.push(`/products/${slug || id}`);
-    }, [router]);
+    }, [router, searchQuery]);
 
     const handleTrendingClick = useCallback((kw: string) => {
         saveSearchHistory(kw);

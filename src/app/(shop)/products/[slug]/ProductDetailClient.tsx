@@ -6,7 +6,8 @@
  * Copyright (c) 2026 LIKEFOOD Team
  */
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { analytics } from "@/lib/analytics/sdk";
 import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -163,6 +164,40 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
 
         return parts;
     }, [product?.description]);
+
+    // ──── Analytics: track product view + time spent ────
+    const viewStartRef = useRef<number>(0);
+
+    useEffect(() => {
+        if (!product) return;
+        viewStartRef.current = Date.now();
+        analytics.trackProductView(
+            product.id,
+            product.name,
+            product.category,
+            product.salePrice != null && product.salePrice < product.price
+                ? product.salePrice
+                : product.price,
+            window.location.href
+        );
+        return () => {
+            // Track time spent on product page when leaving
+            if (viewStartRef.current > 0) {
+                const durationMs = Date.now() - viewStartRef.current;
+                const durationSec = Math.round(durationMs / 1000);
+                if (durationSec >= 2) {
+                    analytics.track("page_view", {
+                        productId: product.id,
+                        productName: product.name,
+                        category: product.category,
+                        durationSeconds: durationSec,
+                        type: "product_detail_duration",
+                    });
+                }
+            }
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [product?.id]);
 
     useEffect(() => {
         if (initialProduct) {

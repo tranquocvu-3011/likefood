@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useLanguage } from "@/lib/i18n/context";
+import { analytics } from "@/lib/analytics/sdk";
 
 const POPULAR_SEARCHES_VI = [
     "Cá khô",
@@ -89,6 +90,13 @@ export default function HomeSearchBar() {
 
     // Handle click vào suggestion → đi đến trang chi tiết sản phẩm
     const handleSuggestionClick = (suggestion: SearchHint) => {
+        // Track search result click
+        analytics.trackSearchResultClick(
+            query || suggestion.name,
+            Number(suggestion.id),
+            suggestions.indexOf(suggestion)
+        );
+
         if (suggestion.slug) {
             // Navigate đến trang chi tiết sản phẩm
             router.push(`/products/${suggestion.slug}`);
@@ -107,6 +115,9 @@ export default function HomeSearchBar() {
     // Handle search từ khóa → đi đến trang danh sách sản phẩm
     const handleSearch = (searchQuery: string) => {
         if (searchQuery.trim()) {
+            // Track search query
+            analytics.trackSearch(searchQuery.trim(), suggestions.length);
+
             const encodedQuery = encodeURIComponent(searchQuery.trim());
             router.push(`/products?search=${encodedQuery}`);
             setTimeout(() => {

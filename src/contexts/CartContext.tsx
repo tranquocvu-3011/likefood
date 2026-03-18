@@ -10,6 +10,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "sonner";
 import { tracking } from "@/lib/tracking";
+import { analytics } from "@/lib/analytics/sdk";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
@@ -173,8 +174,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
             const newItems = [...current, newItem];
 
-            // Track add to cart
+            // Track add to cart (GA4)
             tracking.addToCart(product.productId, product.name, product.price, productQuantity);
+            // Track add to cart (Analytics DB)
+            analytics.trackAddToCart(
+                product.productId,
+                product.name,
+                product.price,
+                product.category || "unknown",
+                productQuantity,
+                product.variantId ? String(product.variantId) : undefined
+            );
 
             // Automatically open MiniCart when user adds an item
             if (typeof window !== "undefined" && !window.location.pathname.includes("/checkout")) {
@@ -218,8 +228,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                         id: `cart-${item.id}`,
                     }
                 );
-                // Track remove from cart
+                // Track remove from cart (GA4)
                 tracking.removeFromCart(Number(item.productId || item.id), item.name, item.price, item.quantity);
+                // Track remove from cart (Analytics DB)
+                analytics.trackRemoveFromCart(
+                    Number(item.productId || item.id),
+                    item.name,
+                    item.price,
+                    item.category || "unknown",
+                    item.quantity
+                );
             }
             return current.filter((item) => String(item.id) !== String(id));
         });
