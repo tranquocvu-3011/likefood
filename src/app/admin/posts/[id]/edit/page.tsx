@@ -1,23 +1,19 @@
 "use client";
 
-/**
- * LIKEFOOD - Vietnamese Specialty Marketplace
- * Copyright (c) 2026 LIKEFOOD Team
- * Licensed under the MIT License
- * https://github.com/tranquocvu-3011/likefood
- */
-
 import PostForm from "@/components/admin/PostForm";
-import { useEffect, useState, use } from "react";
+import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
+import { useParams } from "next/navigation";
 
-export default function EditPostPage(props: { params: Promise<{ id: string }> }) {
-    const params = use(props.params);
+export default function EditPostPage() {
+    const params = useParams();
     const [post, setPost] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        if (!params?.id) return;
+
         const fetchPost = async () => {
             try {
                 const res = await fetch(`/api/admin/posts/${params.id}`);
@@ -38,7 +34,7 @@ export default function EditPostPage(props: { params: Promise<{ id: string }> })
         };
 
         fetchPost();
-    }, [params.id]);
+    }, [params?.id]);
 
     if (isLoading) {
         return (
@@ -50,7 +46,7 @@ export default function EditPostPage(props: { params: Promise<{ id: string }> })
 
     if (error || !post) {
         return (
-            <div className="h-96 flex items-center justify-center text-zinc-400 font-bold">
+            <div className="h-96 flex items-center justify-center text-zinc-400 font-bold bg-zinc-900 rounded-3xl mt-4 border border-zinc-800">
                 {error || "Không tìm thấy bài viết"}
             </div>
         );
