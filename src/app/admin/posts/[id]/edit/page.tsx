@@ -8,21 +8,30 @@
  */
 
 import PostForm from "@/components/admin/PostForm";
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import { Loader2 } from "lucide-react";
 
-export default function EditPostPage({ params }: { params: { id: string } }) {
-    const [post, setPost] = useState(null);
+export default function EditPostPage(props: { params: Promise<{ id: string }> }) {
+    const params = use(props.params);
+    const [post, setPost] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchPost = async () => {
             try {
                 const res = await fetch(`/api/admin/posts/${params.id}`);
                 const data = await res.json();
-                setPost(data);
-            } catch (error) {
-                console.error("Fetch post error:", error);
+                
+                if (!res.ok) {
+                    setError(data.error || "Không thể tải dữ liệu bài viết");
+                    setPost(null);
+                } else {
+                    setPost(data);
+                }
+            } catch (err) {
+                console.error("Fetch post error:", err);
+                setError("Lỗi kết nối máy chủ");
             } finally {
                 setIsLoading(false);
             }
@@ -34,15 +43,15 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
     if (isLoading) {
         return (
             <div className="h-96 flex items-center justify-center">
-                <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                <Loader2 className="w-10 h-10 animate-spin text-emerald-500" />
             </div>
         );
     }
 
-    if (!post) {
+    if (error || !post) {
         return (
             <div className="h-96 flex items-center justify-center text-zinc-400 font-bold">
-                Không tìm thấy bài viết
+                {error || "Không tìm thấy bài viết"}
             </div>
         );
     }
