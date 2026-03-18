@@ -59,7 +59,7 @@ export default function SearchSuggestions({
         );
     };
 
-    if (query.length < 2) {
+    if (query.length < 1) {
         if (searchHistory.length === 0) return null;
         return (
             <div className="p-5">

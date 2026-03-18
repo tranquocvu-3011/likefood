@@ -218,7 +218,7 @@ function NavbarContent() {
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (!showSuggestions) return;
 
-        const navItemsCount = searchQuery.length < 2 
+        const navItemsCount = searchQuery.length < 1 
             ? TRENDING_KEYWORDS.length 
             : suggestions.length + 1; // +1 for "View All Results"
 
@@ -233,7 +233,7 @@ function NavbarContent() {
                 handleSearch();
             } else {
                 e.preventDefault();
-                if (searchQuery.length < 2) {
+                if (searchQuery.length < 1) {
                     handleTrendingClick(TRENDING_KEYWORDS[selectedIndex]);
                 } else if (selectedIndex < suggestions.length) {
                     const item = suggestions[selectedIndex];

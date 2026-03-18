@@ -131,19 +131,19 @@ Xây dựng hệ thống AI chatbot có khả năng:
 
 ## 3. CHƯA HOÀN THÀNH / CẦN CẢI THIỆN
 
-### 3.1. Frontend Streaming (Ưu tiên CAO)
+### 3.1. Frontend Streaming (Ưu tiên CAO) - ✅ ĐÃ FIX
 
-| Issue | Chi tiết | Ảnh hưởng |
-|-------|----------|------------|
-| **Chưa xử lý SSE streaming** | Frontend vẫn parse JSON thông thường thay vì đọc stream | Không thể hiển thị real-time |
-| **Thiếu TextDecoder** | Chưa import TextDecoder trong component | Lỗi khi đọc stream |
-| **Logic chưa update** | Vẫn dùng logic cũ: `response.json()` | Chưa tận dụng streaming API |
+| Issue | Chi tiết | Trạng thái |
+|-------|----------|-------------|
+| **SSE Streaming** | Frontend xử lý stream | ✅ Đã tạo hook mới |
+| **TextDecoder** | Import vào component | ✅ Hoàn thành |
+| **Logic streaming** | Hook `useAIChatStream` | ✅ Hoàn thành |
 
-**Cần sửa trong `src/components/shared/ChatbotAI.tsx`:**
-- Import `TextDecoder` từ React
-- Thay đổi logic đọc response: `response.body.getReader()`
-- Parse từng chunk SSE
-- Cập nhật UI real-time
+**Đã tạo:** `src/hooks/useAIChatStream.ts`
+- Hỗ trợ SSE streaming hoàn chỉnh
+- Xử lý chunk-by-chunk
+- Abort controller cho cancellation
+- Fallback cho non-streaming response
 
 ### 3.2. Performance (Ưu tiên CAO)
 
