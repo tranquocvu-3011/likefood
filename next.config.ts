@@ -228,6 +228,10 @@ const nextConfig: NextConfig = {
                 source: "/uploads/:path*",
                 destination: "/api/uploads/:path*",
             },
+            {
+                source: "/sanpham/:path*",
+                destination: "/api/static/sanpham/:path*",
+            },
         ];
     },
 };
