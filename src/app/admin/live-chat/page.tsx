@@ -227,7 +227,7 @@ export default function AdminLiveChatPage() {
               <button
                 key={chat.id}
                 onClick={() => setSelectedChat(chat)}
-                className={`w-full text-left px-4 py-3.5 border-b border-zinc-700/50/50 hover:bg-zinc-900/50 transition ${
+                className={`w-full text-left px-4 py-3.5 border-b border-zinc-800 hover:bg-zinc-900/50 transition ${
                   selectedChat?.id === chat.id ? "bg-teal-500/5 border-l-2 border-l-teal-500" : ""
                 }`}
               >

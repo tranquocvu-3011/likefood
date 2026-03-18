@@ -106,9 +106,9 @@ export default function AdminDashboardPage() {
   // Get greeting based on time
   const greeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return "Good morning";
-    if (hour < 18) return "Good afternoon";
-    return "Good evening";
+    if (hour < 12) return "Chào buổi sáng";
+    if (hour < 18) return "Chào buổi chiều";
+    return "Chào buổi tối";
   };
 
   if (isLoading || !data) {
@@ -128,7 +128,7 @@ export default function AdminDashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold text-zinc-100">{greeting()}, {session?.user?.name || 'Admin'}</h1>
-          <p className="text-sm text-zinc-500 mt-0.5">Here&apos;s what&apos;s happening today</p>
+          <p className="text-sm text-zinc-500 mt-0.5">Tổng quan hoạt động hôm nay</p>
         </div>
         <div className="flex items-center gap-2">
           <button 

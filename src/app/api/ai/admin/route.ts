@@ -108,7 +108,6 @@ export async function GET(req: NextRequest) {
 
       case "customers": {
         const customers = await prisma.user.findMany({
-          where: { role: "USER" },
           select: {
             id: true,
             name: true,
@@ -222,6 +221,53 @@ export async function GET(req: NextRequest) {
         const prospectDays = parseInt(searchParams.get("days") || "7", 10);
         const prospects = await getProspectCustomers(prospectDays);
         return NextResponse.json({ prospects });
+      }
+
+      // ── Behavioral Intelligence Endpoints ──
+
+      case "lead-scores": {
+        const { calculateLeadScores } = await import("@/lib/ai/behavioral-intelligence");
+        const leadDays = parseInt(searchParams.get("days") || "30", 10);
+        const leadScores = await calculateLeadScores(leadDays);
+        // Enrich with user names
+        const leadUserIds = leadScores.map(l => l.userId);
+        const leadUsers = leadUserIds.length > 0 
+          ? await prisma.user.findMany({ where: { id: { in: leadUserIds } }, select: { id: true, name: true, email: true } })
+          : [];
+        const leadUserMap = new Map(leadUsers.map(u => [u.id, u]));
+        const enrichedLeads = leadScores.map(l => ({
+          ...l,
+          userName: leadUserMap.get(l.userId)?.name || "Unknown",
+          userEmail: leadUserMap.get(l.userId)?.email || "",
+        }));
+        return NextResponse.json({ leadScores: enrichedLeads });
+      }
+
+      case "funnel": {
+        const { getFunnelAnalysis } = await import("@/lib/ai/behavioral-intelligence");
+        const funnelDays = parseInt(searchParams.get("days") || "30", 10);
+        const funnel = await getFunnelAnalysis(funnelDays);
+        return NextResponse.json({ funnel });
+      }
+
+      case "abandoned-sessions": {
+        const { getAbandonedSessions } = await import("@/lib/ai/behavioral-intelligence");
+        const abandonedSessions = await getAbandonedSessions();
+        return NextResponse.json({ sessions: abandonedSessions });
+      }
+
+      case "search-intents": {
+        const { getSearchIntents } = await import("@/lib/ai/behavioral-intelligence");
+        const searchDays = parseInt(searchParams.get("days") || "30", 10);
+        const intents = await getSearchIntents(searchDays);
+        return NextResponse.json({ intents });
+      }
+
+      case "retention-cohorts": {
+        const { getRetentionCohorts } = await import("@/lib/ai/behavioral-intelligence");
+        const retentionMonths = parseInt(searchParams.get("months") || "3", 10);
+        const cohorts = await getRetentionCohorts(retentionMonths);
+        return NextResponse.json({ cohorts });
       }
 
       default:

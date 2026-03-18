@@ -19,6 +19,7 @@ import StripeSdk from "stripe";
 import { getSystemSettingTrimmed } from "@/lib/system-settings";
 import { normalizeOrderStatus, POINTS_PER_DOLLAR } from "@/lib/commerce";
 import { notifyPaymentSuccess } from "@/lib/telegram";
+import { trackPurchase } from "@/lib/analytics/behavior";
 export async function POST(req: Request) {
     const sig = req.headers.get("stripe-signature");
     const webhookSecret =
@@ -395,6 +396,23 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, metadat
         userId: String(userId),
         total,
     });
+
+    // ── Track purchase behavior event for AI analytics ──
+    try {
+        await trackPurchase(
+            `webhook_${session.id}`,
+            userId,
+            order.id,
+            total,
+            items.map((item) => ({
+                productId: item.pid,
+                quantity: item.qty,
+                price: item.price,
+            }))
+        );
+    } catch (trackErr) {
+        logger.error("[STRIPE] Failed to track purchase event", trackErr as Error, { orderId: order.id });
+    }
 
     // ── Send notifications (non-blocking) ──
 

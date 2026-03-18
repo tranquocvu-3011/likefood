@@ -95,7 +95,7 @@ const STATUS_OPTIONS = [
 ];
 
 function formatDate(value: string) {
-  return new Date(value).toLocaleString("en-US", {
+  return new Date(value).toLocaleString("vi-VN", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -179,7 +179,7 @@ export default function AdminOrderDetailPage() {
   };
 
   if (isLoading) {
-    return <div className="flex h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+    return <div className="flex h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-teal-500" /></div>;
   }
 
   if (error || !order) {
@@ -304,7 +304,7 @@ export default function AdminOrderDetailPage() {
               <Card className="rounded-[2.25rem] border-zinc-700/50 bg-[#111113] shadow-sm">
                 <CardContent className="p-6 lg:p-8">
                   <div className="flex items-center gap-3">
-                    <FileText className="h-5 w-5 text-primary" />
+                    <FileText className="h-5 w-5 text-teal-500" />
                     <h2 className="text-2xl font-black tracking-tight text-zinc-100">Lịch sử trạng thái</h2>
                   </div>
                   <div className="mt-6 space-y-5">
@@ -367,15 +367,15 @@ export default function AdminOrderDetailPage() {
                 <div className="mt-6 grid gap-4">
                   <div>
                     <label className="text-xs font-black uppercase tracking-[0.22em] text-zinc-400">Mã vận đơn</label>
-                    <input value={trackingCode} onChange={(event) => setTrackingCode(event.target.value)} placeholder="UPS123456789" className="mt-2 h-12 w-full rounded-2xl border border-zinc-700/50 bg-zinc-900/50 px-4 text-sm font-medium text-zinc-300 outline-none transition focus:border-primary" />
+                    <input value={trackingCode} onChange={(event) => setTrackingCode(event.target.value)} placeholder="UPS123456789" className="mt-2 h-12 w-full rounded-2xl border border-zinc-700/50 bg-zinc-900/50 px-4 text-sm font-medium text-zinc-300 outline-none transition focus:border-teal-500" />
                   </div>
                   <div>
                     <label className="text-xs font-black uppercase tracking-[0.22em] text-zinc-400">Đơn vị vận chuyển</label>
-                    <input value={carrier} onChange={(event) => setCarrier(event.target.value)} placeholder="UPS, FedEx, USPS..." className="mt-2 h-12 w-full rounded-2xl border border-zinc-700/50 bg-zinc-900/50 px-4 text-sm font-medium text-zinc-300 outline-none transition focus:border-primary" />
+                    <input value={carrier} onChange={(event) => setCarrier(event.target.value)} placeholder="UPS, FedEx, USPS..." className="mt-2 h-12 w-full rounded-2xl border border-zinc-700/50 bg-zinc-900/50 px-4 text-sm font-medium text-zinc-300 outline-none transition focus:border-teal-500" />
                   </div>
                   <div>
                     <label className="text-xs font-black uppercase tracking-[0.22em] text-zinc-400">Ghi chú nội bộ</label>
-                    <textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Them ghi chu cho doi van hanh, giao nhan hoac ho tro khach hang..." className="mt-2 min-h-[150px] w-full rounded-[1.5rem] border border-zinc-700/50 bg-zinc-900/50 px-4 py-4 text-sm leading-6 text-zinc-300 outline-none transition focus:border-primary" />
+                    <textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Them ghi chu cho doi van hanh, giao nhan hoac ho tro khach hang..." className="mt-2 min-h-[150px] w-full rounded-[1.5rem] border border-zinc-700/50 bg-zinc-900/50 px-4 py-4 text-sm leading-6 text-zinc-300 outline-none transition focus:border-teal-500" />
                   </div>
                 </div>
 
@@ -409,7 +409,7 @@ export default function AdminOrderDetailPage() {
             <Card className="rounded-[2.25rem] border-zinc-700/50 bg-[#111113] shadow-sm">
               <CardContent className="p-6 lg:p-8">
                 <div className="flex items-center gap-3">
-                  <CreditCard className="h-5 w-5 text-primary" />
+                  <CreditCard className="h-5 w-5 text-teal-500" />
                   <h2 className="text-2xl font-black tracking-tight text-zinc-100">Tóm tắt vận hành</h2>
                 </div>
                 <div className="mt-6 grid gap-4">

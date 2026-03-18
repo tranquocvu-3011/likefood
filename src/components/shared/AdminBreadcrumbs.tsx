@@ -30,6 +30,14 @@ const PATH_LABELS: Record<string, string> = {
   'flash-sales': "Flash Sale",
   posts: "Bài viết",
   cms: "Quản lý nội dung",
+  reviews: "Đánh giá",
+  pages: "Trang tĩnh",
+  menu: "Menu",
+  homepage: "Trang chủ",
+  knowledge: "AI Knowledge",
+  'live-chat': "Live Chat",
+  verify: "Xác minh",
+  login: "Đăng nhập",
 };
 
 export default function AdminBreadcrumbs() {

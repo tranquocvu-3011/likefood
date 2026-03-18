@@ -7,11 +7,12 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
-import { AdminPageContainer } from "@/components/admin/AdminPageContainer";
 import {
   Star, Search, ChevronLeft, ChevronRight,
-  CheckCircle, XCircle, Trash2, MessageSquare, AlertCircle,
-  Eye, Clock, ThumbsUp, ThumbsDown } from "lucide-react";
+  CheckCircle, XCircle, Trash2, MessageSquare,
+  Eye, Clock, ThumbsUp, ThumbsDown, Loader2
+} from "lucide-react";
+import { toast } from "sonner";
 
 interface ReviewUser {
   id: number;
@@ -39,10 +40,10 @@ interface ReviewItem {
 }
 
 const STATUS_OPTIONS = [
-  { value: "PENDING", label: "Chờ duyệt", icon: Clock, color: "bg-amber-50 text-amber-600 border-amber-200" },
-  { value: "APPROVED", label: "Đã duyệt", icon: CheckCircle, color: "bg-emerald-50 text-emerald-600 border-emerald-200" },
-  { value: "REJECTED", label: "Đã từ chối", icon: XCircle, color: "bg-red-50 text-red-500 border-red-200" },
-  { value: "ALL", label: "Tất cả", icon: Eye, color: "bg-slate-50 text-slate-600 border-slate-200" },
+  { value: "PENDING", label: "Chờ duyệt", icon: Clock, color: "bg-amber-500/10 text-amber-400 border-amber-500/30" },
+  { value: "APPROVED", label: "Đã duyệt", icon: CheckCircle, color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30" },
+  { value: "REJECTED", label: "Đã từ chối", icon: XCircle, color: "bg-red-500/10 text-red-400 border-red-500/30" },
+  { value: "ALL", label: "Tất cả", icon: Eye, color: "bg-zinc-500/10 text-zinc-400 border-zinc-700" },
 ];
 
 export default function AdminReviewsPage() {
@@ -53,17 +54,11 @@ export default function AdminReviewsPage() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("PENDING");
   const [search, setSearch] = useState("");
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   // Reply modal
   const [replyTarget, setReplyTarget] = useState<ReviewItem | null>(null);
   const [replyText, setReplyText] = useState("");
   const [saving, setSaving] = useState(false);
-
-  const showToast = (message: string, type: "success" | "error" = "success") => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
 
   const fetchReviews = useCallback(async () => {
     setLoading(true);
@@ -81,7 +76,7 @@ export default function AdminReviewsPage() {
         setTotalPages(data.pagination?.totalPages || 1);
       }
     } catch {
-      showToast("Không thể tải danh sách đánh giá", "error");
+      toast.error("Không thể tải danh sách đánh giá");
     } finally {
       setLoading(false);
     }
@@ -98,16 +93,16 @@ export default function AdminReviewsPage() {
         body: JSON.stringify({ status, adminReply: adminReply || null }),
       });
       if (res.ok) {
-        showToast(status === "APPROVED" ? "Đã duyệt đánh giá!" : "Đã từ chối đánh giá!");
+        toast.success(status === "APPROVED" ? "Đã duyệt đánh giá!" : "Đã từ chối đánh giá!");
         setReplyTarget(null);
         setReplyText("");
         void fetchReviews();
       } else {
         const data = await res.json();
-        showToast(data.error || "Lỗi", "error");
+        toast.error(data.error || "Lỗi");
       }
     } catch {
-      showToast("Lỗi kết nối", "error");
+      toast.error("Lỗi kết nối");
     } finally {
       setSaving(false);
     }
@@ -118,18 +113,18 @@ export default function AdminReviewsPage() {
     try {
       const res = await fetch(`/api/admin/reviews/${reviewId}`, { method: "DELETE" });
       if (res.ok) {
-        showToast("Đã xóa đánh giá!");
+        toast.success("Đã xóa đánh giá!");
         void fetchReviews();
       }
     } catch {
-      showToast("Lỗi xóa", "error");
+      toast.error("Lỗi xóa");
     }
   };
 
   const renderStars = (rating: number) => (
     <div className="flex items-center gap-0.5">
       {[1, 2, 3, 4, 5].map(s => (
-        <Star key={s} className={`h-3.5 w-3.5 ${s <= rating ? "fill-amber-400 text-amber-400" : "text-slate-200"}`} />
+        <Star key={s} className={`h-3.5 w-3.5 ${s <= rating ? "fill-amber-400 text-amber-400" : "text-zinc-600"}`} />
       ))}
     </div>
   );
@@ -139,7 +134,7 @@ export default function AdminReviewsPage() {
     if (!opt) return null;
     const Icon = opt.icon;
     return (
-      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${opt.color}`}>
+      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase border ${opt.color}`}>
         <Icon className="h-3 w-3" />
         {opt.label}
       </span>
@@ -159,83 +154,89 @@ export default function AdminReviewsPage() {
   const pendingCount = statusFilter === "PENDING" ? total : 0;
 
   return (
-    <AdminPageContainer
-      title="Quản lý Đánh giá"
-      subtitle={`${total} đánh giá${pendingCount > 0 ? ` — ${pendingCount} chờ duyệt` : ""}`}
-    >
-      {/* Toast */}
-      {toast && (
-        <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-sm font-medium text-white transition-all ${toast.type === "success" ? "bg-emerald-500" : "bg-red-500"}`}>
-          {toast.type === "success" ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
-          {toast.message}
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-zinc-100">Quản lý Đánh giá</h1>
+          <p className="text-sm text-zinc-500 mt-0.5">
+            {total} đánh giá{pendingCount > 0 ? ` — ${pendingCount} chờ duyệt` : ""}
+          </p>
         </div>
-      )}
+      </div>
 
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-3 mb-6">
-        {/* Status tabs */}
-        <div className="flex items-center gap-1 bg-white rounded-xl border border-slate-200 p-1">
-          {STATUS_OPTIONS.map(opt => {
-            const Icon = opt.icon;
-            const active = statusFilter === opt.value;
-            return (
-              <button
-                key={opt.value}
-                onClick={() => { setStatusFilter(opt.value); setPage(1); }}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition ${active ? "bg-slate-800 text-white shadow-sm" : "text-slate-500 hover:bg-slate-50"}`}
-              >
-                <Icon className="h-3.5 w-3.5" />
-                {opt.label}
-              </button>
-            );
-          })}
-        </div>
+      <div className="rounded-lg border border-zinc-700/50 bg-[#111113] p-3">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          {/* Status tabs */}
+          <div className="flex items-center gap-1 rounded-md border border-zinc-700/50 bg-zinc-900 p-0.5">
+            {STATUS_OPTIONS.map(opt => {
+              const Icon = opt.icon;
+              const active = statusFilter === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  onClick={() => { setStatusFilter(opt.value); setPage(1); }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+                    active
+                      ? "bg-zinc-800 text-zinc-100"
+                      : "text-zinc-500 hover:text-zinc-300"
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
 
-        {/* Search */}
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Tìm theo sản phẩm, khách hàng..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none"
-          />
+          {/* Search */}
+          <div className="relative flex-1 max-w-md">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Tìm theo sản phẩm, khách hàng..."
+              className="h-9 w-full rounded-md border border-zinc-700 bg-zinc-900 pl-9 pr-4 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-teal-500 focus:outline-none"
+            />
+          </div>
         </div>
       </div>
 
       {/* Reviews List */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         {loading ? (
-          <div className="bg-white rounded-2xl border border-slate-200 px-6 py-16 text-center">
-            <div className="flex items-center justify-center gap-2 text-slate-400">
-              <div className="h-5 w-5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
-              Đang tải...
+          <div className="rounded-lg border border-zinc-700/50 bg-[#111113] px-6 py-16 text-center">
+            <div className="flex items-center justify-center gap-2 text-zinc-500">
+              <Loader2 className="h-5 w-5 animate-spin text-teal-500" />
+              <span className="text-sm">Đang tải...</span>
             </div>
           </div>
         ) : filteredReviews.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-200 px-6 py-16 text-center text-slate-400">
-            Không có đánh giá nào
+          <div className="rounded-lg border border-zinc-700/50 bg-[#111113] px-6 py-16 text-center">
+            <Star className="mx-auto h-10 w-10 text-zinc-600" />
+            <h3 className="mt-4 text-sm font-medium text-zinc-400">Không có đánh giá nào</h3>
           </div>
         ) : (
           filteredReviews.map(review => (
-            <div key={review.id} className="bg-white rounded-2xl border border-slate-200 hover:border-slate-300 transition overflow-hidden shadow-sm">
-              <div className="p-5">
+            <div key={review.id} className="rounded-lg border border-zinc-700/50 bg-[#111113] hover:border-zinc-600 transition overflow-hidden">
+              <div className="p-4">
                 {/* Header */}
                 <div className="flex items-start justify-between gap-4 mb-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       {renderStars(review.rating)}
                       {getStatusBadge(review.status)}
-                      <span className="text-xs text-slate-400">
+                      <span className="text-xs text-zinc-500">
                         #{review.id} • {new Date(review.createdAt).toLocaleDateString("vi-VN")}
                       </span>
                     </div>
-                    <p className="text-sm font-semibold text-slate-800 mt-1.5 truncate">
+                    <p className="text-sm font-semibold text-zinc-200 mt-1.5 truncate">
                       {review.product.name}
                     </p>
-                    <p className="text-xs text-slate-400">
-                      bởi <span className="text-slate-600 font-medium">{review.user.name || review.user.email}</span>
+                    <p className="text-xs text-zinc-500">
+                      bởi <span className="text-zinc-300 font-medium">{review.user.name || review.user.email}</span>
                     </p>
                   </div>
 
@@ -245,7 +246,7 @@ export default function AdminReviewsPage() {
                       <>
                         <button
                           onClick={() => void handleModerate(review.id, "APPROVED")}
-                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-600 text-xs font-medium hover:bg-emerald-100 transition"
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-md bg-emerald-500/10 text-emerald-400 text-xs font-medium hover:bg-emerald-500/20 transition-colors"
                           title="Duyệt"
                         >
                           <ThumbsUp className="h-3.5 w-3.5" />
@@ -253,7 +254,7 @@ export default function AdminReviewsPage() {
                         </button>
                         <button
                           onClick={() => void handleModerate(review.id, "REJECTED")}
-                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-50 text-red-500 text-xs font-medium hover:bg-red-100 transition"
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-md bg-red-500/10 text-red-400 text-xs font-medium hover:bg-red-500/20 transition-colors"
                           title="Từ chối"
                         >
                           <ThumbsDown className="h-3.5 w-3.5" />
@@ -263,14 +264,14 @@ export default function AdminReviewsPage() {
                     )}
                     <button
                       onClick={() => { setReplyTarget(review); setReplyText(review.adminReply || ""); }}
-                      className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-500 transition"
+                      className="p-1.5 rounded-md hover:bg-zinc-800 text-zinc-500 hover:text-teal-400 transition-colors"
                       title="Phản hồi"
                     >
                       <MessageSquare className="h-3.5 w-3.5" />
                     </button>
                     <button
                       onClick={() => void handleDelete(review.id)}
-                      className="p-1.5 rounded-lg hover:bg-red-50 text-red-400 transition"
+                      className="p-1.5 rounded-md hover:bg-zinc-800 text-zinc-500 hover:text-red-400 transition-colors"
                       title="Xóa"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -280,8 +281,8 @@ export default function AdminReviewsPage() {
 
                 {/* Comment */}
                 {review.comment && (
-                  <div className="bg-slate-50 rounded-xl p-3 mt-2">
-                    <p className="text-sm text-slate-700 leading-relaxed">{review.comment}</p>
+                  <div className="bg-zinc-900/50 rounded-md p-3 mt-2">
+                    <p className="text-sm text-zinc-300 leading-relaxed">{review.comment}</p>
                   </div>
                 )}
 
@@ -289,7 +290,7 @@ export default function AdminReviewsPage() {
                 {review.media && review.media.length > 0 && (
                   <div className="flex gap-2 mt-3 flex-wrap">
                     {review.media.map(m => (
-                      <a key={m.id} href={m.url} target="_blank" rel="noopener noreferrer" className="block w-16 h-16 rounded-lg overflow-hidden border border-slate-200 hover:border-emerald-400 transition">
+                      <a key={m.id} href={m.url} target="_blank" rel="noopener noreferrer" className="block w-16 h-16 rounded-md overflow-hidden border border-zinc-700 hover:border-teal-500 transition">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={m.url} alt="" className="w-full h-full object-cover" />
                       </a>
@@ -299,11 +300,11 @@ export default function AdminReviewsPage() {
 
                 {/* Admin Reply */}
                 {review.adminReply && (
-                  <div className="mt-3 bg-blue-50 rounded-xl p-3 border-l-3 border-blue-400">
-                    <p className="text-xs font-semibold text-blue-600 mb-1">💬 Phản hồi từ Admin</p>
-                    <p className="text-sm text-blue-800">{review.adminReply}</p>
+                  <div className="mt-3 bg-teal-500/5 rounded-md p-3 border-l-2 border-teal-500">
+                    <p className="text-xs font-semibold text-teal-400 mb-1">💬 Phản hồi từ Admin</p>
+                    <p className="text-sm text-zinc-300">{review.adminReply}</p>
                     {review.repliedAt && (
-                      <p className="text-xs text-blue-400 mt-1">{new Date(review.repliedAt).toLocaleDateString("vi-VN")}</p>
+                      <p className="text-xs text-zinc-500 mt-1">{new Date(review.repliedAt).toLocaleDateString("vi-VN")}</p>
                     )}
                   </div>
                 )}
@@ -315,24 +316,24 @@ export default function AdminReviewsPage() {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-6 bg-white rounded-xl border border-slate-200 px-4 py-3">
-          <p className="text-xs text-slate-400">
+        <div className="flex items-center justify-between rounded-lg border border-zinc-700/50 bg-[#111113] px-4 py-3">
+          <p className="text-xs text-zinc-500">
             Trang {page} / {totalPages} — Tổng {total} đánh giá
           </p>
           <div className="flex items-center gap-1">
             <button
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page <= 1}
-              className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-30 transition"
+              className="h-8 w-8 rounded-md border border-zinc-700 bg-zinc-900 text-zinc-500 hover:text-zinc-300 disabled:opacity-40 transition-colors"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-4 w-4 mx-auto" />
             </button>
             <button
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
               disabled={page >= totalPages}
-              className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-30 transition"
+              className="h-8 w-8 rounded-md border border-zinc-700 bg-zinc-900 text-zinc-500 hover:text-zinc-300 disabled:opacity-40 transition-colors"
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-4 w-4 mx-auto" />
             </button>
           </div>
         </div>
@@ -340,35 +341,35 @@ export default function AdminReviewsPage() {
 
       {/* Reply Modal */}
       {replyTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4">
-            <div className="px-6 py-4 border-b border-slate-100">
-              <h3 className="text-lg font-bold text-slate-800">💬 Phản hồi đánh giá</h3>
-              <p className="text-sm text-slate-400 mt-1">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => { setReplyTarget(null); setReplyText(""); }}>
+          <div className="bg-[#0A0A0B] rounded-lg border border-zinc-700/50 shadow-2xl w-full max-w-lg mx-4" onClick={e => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-zinc-700/50">
+              <h3 className="text-lg font-semibold text-zinc-100">💬 Phản hồi đánh giá</h3>
+              <p className="text-sm text-zinc-500 mt-1">
                 {replyTarget.product.name} — {renderStars(replyTarget.rating)} bởi {replyTarget.user.name || replyTarget.user.email}
               </p>
               {replyTarget.comment && (
-                <div className="bg-slate-50 rounded-lg p-3 mt-2 text-sm text-slate-600">
+                <div className="bg-zinc-900/50 rounded-md p-3 mt-2 text-sm text-zinc-400">
                   &ldquo;{replyTarget.comment}&rdquo;
                 </div>
               )}
             </div>
 
             <div className="px-6 py-5">
-              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Nội dung phản hồi</label>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-1.5">Nội dung phản hồi</label>
               <textarea
                 value={replyText}
                 onChange={e => setReplyText(e.target.value)}
                 rows={4}
                 placeholder="Cảm ơn bạn đã đánh giá..."
-                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-emerald-400 resize-y"
+                className="w-full px-3 py-2.5 rounded-md border border-zinc-700 bg-zinc-900 text-sm text-zinc-100 placeholder:text-zinc-500 outline-none focus:border-teal-500 resize-y"
               />
             </div>
 
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50 rounded-b-2xl">
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-zinc-700/50 bg-zinc-900/30 rounded-b-lg">
               <button
                 onClick={() => { setReplyTarget(null); setReplyText(""); }}
-                className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-100 transition"
+                className="px-4 py-2.5 rounded-md border border-zinc-700 text-sm font-medium text-zinc-400 hover:bg-zinc-800 transition-colors"
               >
                 Hủy
               </button>
@@ -376,24 +377,24 @@ export default function AdminReviewsPage() {
                 <button
                   onClick={() => void handleModerate(replyTarget.id, "APPROVED", replyText)}
                   disabled={saving}
-                  className="px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition disabled:opacity-50"
+                  className="px-4 py-2.5 rounded-md bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-500 transition-colors disabled:opacity-50"
                 >
-                  {saving ? "..." : "✅ Duyệt + Phản hồi"}
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "✅ Duyệt + Phản hồi"}
                 </button>
               )}
               {replyTarget.status !== "PENDING" && (
                 <button
                   onClick={() => void handleModerate(replyTarget.id, replyTarget.status as "APPROVED" | "REJECTED", replyText)}
                   disabled={saving || !replyText.trim()}
-                  className="px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50"
+                  className="px-4 py-2.5 rounded-md bg-teal-600 text-white text-sm font-medium hover:bg-teal-500 transition-colors disabled:opacity-50"
                 >
-                  {saving ? "..." : "💬 Gửi phản hồi"}
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "💬 Gửi phản hồi"}
                 </button>
               )}
             </div>
           </div>
         </div>
       )}
-    </AdminPageContainer>
+    </div>
   );
 }

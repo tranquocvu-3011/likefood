@@ -11,6 +11,7 @@ import CategoryShowcase from "@/components/shared/CategoryShowcase";
 import FlashSaleBanner from "@/components/shared/FlashSaleBanner";
 import HomeSearchBar from "@/components/shared/HomeSearchBar";
 import StructuredData from "@/components/seo/StructuredData";
+import FAQSchema from "@/components/seo/FAQSchema";
 import InternalLinks from "@/components/seo/InternalLinks";
 import { RecentlyViewedClient } from "@/components/shared/ClientWrappers";
 import { Suspense } from "react";
@@ -151,6 +152,13 @@ export default async function Home() {
   return (
     <>
       <StructuredData />
+      <FAQSchema />
+
+      {/* SEO: Hidden H1 for crawlers — visible content is in HeroCarousel */}
+      <h1 className="sr-only">
+        LIKEFOOD (Like Food) — Cửa Hàng Đặc Sản Việt Nam Chính Gốc Tại Mỹ | Mua Cá Khô, Tôm Khô, Mực Khô, Trái Cây Sấy Online | Ship Toàn Nước Mỹ 2-3 Ngày
+      </h1>
+
       <div className="flex flex-col gap-0">
         {/* Section 1: Hero Banner với Overlay */}
         {show("hero") && <section aria-label="Banner chính"><HeroCarousel /></section>}

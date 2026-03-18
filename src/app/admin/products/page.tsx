@@ -78,10 +78,8 @@ export default function AdminProductsPage() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [adminCategories, setAdminCategories] = useState<AdminCategoryOption[]>([]);
   
-  // Selection & Drawer
+  // Selection
   const [selectedProducts, setSelectedProducts] = useState<Set<number>>(new Set());
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
 
   // Fetch categories from admin API
   useEffect(() => {
@@ -326,7 +324,7 @@ export default function AdminProductsPage() {
             <button onClick={() => void handleBulkFeature()} className="h-8 px-3 rounded-md border border-zinc-700 bg-zinc-900 text-xs text-zinc-300 hover:bg-zinc-800">
               Set Featured
             </button>
-            <button disabled className="h-8 px-3 rounded-md border border-zinc-700 bg-zinc-900 text-xs text-zinc-500 cursor-not-allowed opacity-50">
+            <button disabled className="h-8 px-3 rounded-md border border-zinc-700 bg-zinc-900 text-xs text-zinc-500 cursor-not-allowed opacity-50" title="Tính năng đang phát triển">
               Set Category
             </button>
             <button onClick={() => void handleBulkDelete()} className="h-8 px-3 rounded-md border border-red-600/30 bg-red-600/10 text-xs text-red-400 hover:bg-red-600/20">

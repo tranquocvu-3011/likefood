@@ -134,9 +134,9 @@ export default function AdminBrandsPage() {
             action={
                 <Button 
                     onClick={openNewBrandModal}
-                    className="h-14 px-8 rounded-full bg-teal-500 hover:bg-teal-400 text-white font-bold uppercase tracking-widest shadow-xl shadow-teal-500/25 gap-2"
+                    className="px-4 py-2 rounded-md bg-teal-500 hover:bg-teal-400 text-white font-semibold shadow-lg shadow-teal-500/20 gap-2"
                 >
-                    <Plus className="w-5 h-5" /> Thêm thương hiệu
+                    <Plus className="w-4 h-4" /> Thêm thương hiệu
                 </Button>
             }
         >

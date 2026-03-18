@@ -7,10 +7,11 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
-import { AdminPageContainer } from "@/components/admin/AdminPageContainer";
 import {
   Plus, Search, Trash2, Edit3, Save, X, Filter,
-  ChevronLeft, ChevronRight, AlertCircle, CheckCircle } from "lucide-react";
+  ChevronLeft, ChevronRight, Brain, Loader2
+} from "lucide-react";
+import { toast } from "sonner";
 
 interface KnowledgeItem {
   id: number;
@@ -64,17 +65,11 @@ export default function AdminKnowledgePage() {
   const [search, setSearch] = useState("");
   const [filterCategory, setFilterCategory] = useState("");
   const [filterLanguage, setFilterLanguage] = useState("");
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   // Edit/Create modal
   const [editItem, setEditItem] = useState<Partial<KnowledgeItem> | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [saving, setSaving] = useState(false);
-
-  const showToast = (message: string, type: "success" | "error" = "success") => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
@@ -92,7 +87,7 @@ export default function AdminKnowledgePage() {
         setTotalPages(data.totalPages);
       }
     } catch {
-      showToast("Không thể tải dữ liệu", "error");
+      toast.error("Không thể tải dữ liệu");
     } finally {
       setLoading(false);
     }
@@ -102,7 +97,7 @@ export default function AdminKnowledgePage() {
 
   const handleSave = async () => {
     if (!editItem?.answer || !editItem?.category) {
-      showToast("Vui lòng nhập danh mục và câu trả lời", "error");
+      toast.error("Vui lòng nhập danh mục và câu trả lời");
       return;
     }
 
@@ -117,15 +112,15 @@ export default function AdminKnowledgePage() {
 
       const data = await res.json();
       if (data.success) {
-        showToast(isCreating ? "Đã tạo thành công!" : "Đã cập nhật!");
+        toast.success(isCreating ? "Đã tạo thành công!" : "Đã cập nhật!");
         setEditItem(null);
         setIsCreating(false);
         void fetchItems();
       } else {
-        showToast(data.error || "Lỗi", "error");
+        toast.error(data.error || "Lỗi");
       }
     } catch {
-      showToast("Lỗi kết nối", "error");
+      toast.error("Lỗi kết nối");
     } finally {
       setSaving(false);
     }
@@ -137,11 +132,11 @@ export default function AdminKnowledgePage() {
       const res = await fetch(`/api/admin/knowledge?id=${id}`, { method: "DELETE" });
       const data = await res.json();
       if (data.success) {
-        showToast("Đã xóa!");
+        toast.success("Đã xóa!");
         void fetchItems();
       }
     } catch {
-      showToast("Lỗi xóa", "error");
+      toast.error("Lỗi xóa");
     }
   };
 
@@ -154,7 +149,7 @@ export default function AdminKnowledgePage() {
       });
       void fetchItems();
     } catch {
-      showToast("Lỗi", "error");
+      toast.error("Lỗi");
     }
   };
 
@@ -170,130 +165,131 @@ export default function AdminKnowledgePage() {
 
   const getCategoryLabel = (val: string) => CATEGORIES.find(c => c.value === val)?.label || val;
 
+  const selectClass = "h-9 rounded-md border border-zinc-700 bg-zinc-900 px-3 text-sm text-zinc-100 focus:border-teal-500 focus:outline-none";
+
   return (
-    <AdminPageContainer
-      title="AI Knowledge Base"
-      subtitle={`Quản lý kiến thức cho AI Chatbot — ${total} entries`}
-    >
-      {/* Toast */}
-      {toast && (
-        <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-sm font-medium text-white transition-all ${toast.type === "success" ? "bg-emerald-500" : "bg-red-500"}`}>
-          {toast.type === "success" ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
-          {toast.message}
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-zinc-100">AI Knowledge Base</h1>
+          <p className="text-sm text-zinc-500 mt-0.5">Quản lý kiến thức cho AI Chatbot — {total} entries</p>
         </div>
-      )}
-
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-3 mb-6">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={e => { setSearch(e.target.value); setPage(1); }}
-            placeholder="Tìm kiếm câu hỏi, câu trả lời..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none"
-          />
-        </div>
-
-        <div className="flex items-center gap-1.5">
-          <Filter className="h-4 w-4 text-slate-400" />
-          <select
-            value={filterCategory}
-            onChange={e => { setFilterCategory(e.target.value); setPage(1); }}
-            className="px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:border-emerald-400"
-          >
-            {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-          </select>
-
-          <select
-            value={filterLanguage}
-            onChange={e => { setFilterLanguage(e.target.value); setPage(1); }}
-            className="px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:border-emerald-400"
-          >
-            <option value="">Ngôn ngữ</option>
-            {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
-          </select>
-        </div>
-
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition shadow-sm"
+          className="px-4 py-2 rounded-md bg-teal-600 text-white text-sm font-medium hover:bg-teal-500 transition-colors flex items-center gap-2"
         >
           <Plus className="h-4 w-4" />
           Thêm mới
         </button>
       </div>
 
+      {/* Toolbar */}
+      <div className="rounded-lg border border-zinc-700/50 bg-[#111113] p-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+            <input
+              type="text"
+              value={search}
+              onChange={e => { setSearch(e.target.value); setPage(1); }}
+              placeholder="Tìm kiếm câu hỏi, câu trả lời..."
+              className="h-9 w-full rounded-md border border-zinc-700 bg-zinc-900 pl-9 pr-4 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-teal-500 focus:outline-none"
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-zinc-500" />
+            <select
+              value={filterCategory}
+              onChange={e => { setFilterCategory(e.target.value); setPage(1); }}
+              className={selectClass}
+            >
+              {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+            </select>
+
+            <select
+              value={filterLanguage}
+              onChange={e => { setFilterLanguage(e.target.value); setPage(1); }}
+              className={selectClass}
+            >
+              <option value="">Ngôn ngữ</option>
+              {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
+            </select>
+          </div>
+        </div>
+      </div>
+
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+      <div className="rounded-lg border border-zinc-700/50 bg-[#111113] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="px-4 py-3 text-left font-semibold text-slate-600 w-12">#</th>
-                <th className="px-4 py-3 text-left font-semibold text-slate-600 w-24">Danh mục</th>
-                <th className="px-4 py-3 text-left font-semibold text-slate-600">Câu hỏi</th>
-                <th className="px-4 py-3 text-left font-semibold text-slate-600">Câu trả lời</th>
-                <th className="px-4 py-3 text-left font-semibold text-slate-600 w-16">Ngôn ngữ</th>
-                <th className="px-4 py-3 text-left font-semibold text-slate-600 w-16">Ưu tiên</th>
-                <th className="px-4 py-3 text-center font-semibold text-slate-600 w-20">Active</th>
-                <th className="px-4 py-3 text-center font-semibold text-slate-600 w-24">Thao tác</th>
+              <tr className="border-b border-zinc-700/50 bg-zinc-900/50">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500 w-12">#</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500 w-24">Danh mục</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Câu hỏi</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Câu trả lời</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500 w-16">Ngôn ngữ</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500 w-16">Ưu tiên</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-zinc-500 w-20">Active</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-zinc-500 w-24">Thao tác</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-zinc-800/50">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-slate-400">
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="h-5 w-5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
-                      Đang tải...
+                  <td colSpan={8} className="px-4 py-12 text-center">
+                    <div className="flex items-center justify-center gap-2 text-zinc-500">
+                      <Loader2 className="h-5 w-5 animate-spin text-teal-500" />
+                      <span className="text-sm">Đang tải...</span>
                     </div>
                   </td>
                 </tr>
               ) : items.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-slate-400">
-                    Không tìm thấy kết quả
+                  <td colSpan={8} className="px-4 py-16 text-center">
+                    <Brain className="mx-auto h-10 w-10 text-zinc-600" />
+                    <h3 className="mt-4 text-sm font-medium text-zinc-400">Không tìm thấy kết quả</h3>
                   </td>
                 </tr>
               ) : (
                 items.map((item, idx) => (
-                  <tr key={item.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition">
-                    <td className="px-4 py-3 text-slate-400 text-xs">{(page - 1) * 15 + idx + 1}</td>
+                  <tr key={item.id} className="hover:bg-zinc-800/40 transition-colors">
+                    <td className="px-4 py-3 text-zinc-500 text-xs">{(page - 1) * 15 + idx + 1}</td>
                     <td className="px-4 py-3">
-                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
+                      <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-emerald-500/10 text-emerald-400">
                         {getCategoryLabel(item.category)}
                       </span>
                     </td>
-                    <td className="px-4 py-3 max-w-[200px] truncate text-slate-700" title={item.question || ""}>
-                      {item.question || <span className="text-slate-300 italic">—</span>}
+                    <td className="px-4 py-3 max-w-[200px] truncate text-zinc-300" title={item.question || ""}>
+                      {item.question || <span className="text-zinc-600 italic">—</span>}
                     </td>
-                    <td className="px-4 py-3 max-w-[300px] truncate text-slate-600" title={item.answer}>
+                    <td className="px-4 py-3 max-w-[300px] truncate text-zinc-400" title={item.answer}>
                       {item.answer.slice(0, 100)}...
                     </td>
-                    <td className="px-4 py-3 text-xs text-slate-500">
+                    <td className="px-4 py-3 text-xs text-zinc-400">
                       {item.language === "vi" ? "🇻🇳" : item.language === "en" ? "🇺🇸" : "🌐"}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-0.5 rounded text-xs font-bold ${item.priority >= 9 ? "bg-red-50 text-red-600" : item.priority >= 7 ? "bg-amber-50 text-amber-600" : "bg-slate-100 text-slate-500"}`}>
+                      <span className={`px-2 py-0.5 rounded text-xs font-bold ${item.priority >= 9 ? "bg-red-500/10 text-red-400" : item.priority >= 7 ? "bg-amber-500/10 text-amber-400" : "bg-zinc-800 text-zinc-400"}`}>
                         {item.priority}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-center">
                       <button
                         onClick={() => void handleToggleActive(item)}
-                        className={`h-5 w-9 rounded-full transition relative ${item.isActive ? "bg-emerald-500" : "bg-slate-300"}`}
+                        className={`h-5 w-9 rounded-full transition relative ${item.isActive ? "bg-emerald-500" : "bg-zinc-600"}`}
                       >
                         <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition ${item.isActive ? "left-[18px]" : "left-0.5"}`} />
                       </button>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-center gap-1">
-                        <button onClick={() => openEdit(item)} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-500 transition" title="Sửa">
+                        <button onClick={() => openEdit(item)} className="p-1.5 rounded-md hover:bg-zinc-800 text-zinc-500 hover:text-teal-400 transition-colors" title="Sửa">
                           <Edit3 className="h-3.5 w-3.5" />
                         </button>
-                        <button onClick={() => void handleDelete(item.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-400 transition" title="Xóa">
+                        <button onClick={() => void handleDelete(item.id)} className="p-1.5 rounded-md hover:bg-zinc-800 text-zinc-500 hover:text-red-400 transition-colors" title="Xóa">
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       </div>
@@ -307,24 +303,24 @@ export default function AdminKnowledgePage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100">
-            <p className="text-xs text-slate-400">
+          <div className="flex items-center justify-between px-4 py-3 border-t border-zinc-700/50">
+            <p className="text-xs text-zinc-500">
               Trang {page} / {totalPages} — Tổng {total} entries
             </p>
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page <= 1}
-                className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-30 transition"
+                className="h-8 w-8 rounded-md border border-zinc-700 bg-zinc-900 text-zinc-500 hover:text-zinc-300 disabled:opacity-40 transition-colors"
               >
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft className="h-4 w-4 mx-auto" />
               </button>
               <button
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page >= totalPages}
-                className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-30 transition"
+                className="h-8 w-8 rounded-md border border-zinc-700 bg-zinc-900 text-zinc-500 hover:text-zinc-300 disabled:opacity-40 transition-colors"
               >
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="h-4 w-4 mx-auto" />
               </button>
             </div>
           </div>
@@ -333,13 +329,13 @@ export default function AdminKnowledgePage() {
 
       {/* Edit/Create Modal */}
       {editItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-              <h3 className="text-lg font-bold text-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => { setEditItem(null); setIsCreating(false); }}>
+          <div className="bg-[#0A0A0B] rounded-lg border border-zinc-700/50 shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-700/50">
+              <h3 className="text-lg font-semibold text-zinc-100">
                 {isCreating ? "➕ Thêm Knowledge Entry" : "✏️ Sửa Knowledge Entry"}
               </h3>
-              <button onClick={() => { setEditItem(null); setIsCreating(false); }} className="p-2 rounded-lg hover:bg-slate-100 transition">
+              <button onClick={() => { setEditItem(null); setIsCreating(false); }} className="p-2 rounded-md text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 transition-colors">
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -348,87 +344,87 @@ export default function AdminKnowledgePage() {
               {/* Category + Language + Priority row */}
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Danh mục *</label>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-1.5">Danh mục *</label>
                   <select
                     value={editItem.category || ""}
                     onChange={e => setEditItem(prev => ({ ...prev, category: e.target.value }))}
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-emerald-400"
+                    className={selectClass + " w-full"}
                   >
                     {CATEGORIES.filter(c => c.value).map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Ngôn ngữ</label>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-1.5">Ngôn ngữ</label>
                   <select
                     value={editItem.language || "both"}
                     onChange={e => setEditItem(prev => ({ ...prev, language: e.target.value }))}
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-emerald-400"
+                    className={selectClass + " w-full"}
                   >
                     {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Ưu tiên (1-10)</label>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-1.5">Ưu tiên (1-10)</label>
                   <input
                     type="number"
                     min={1}
                     max={10}
                     value={editItem.priority ?? 5}
                     onChange={e => setEditItem(prev => ({ ...prev, priority: parseInt(e.target.value) || 5 }))}
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-emerald-400"
+                    className="h-9 w-full rounded-md border border-zinc-700 bg-zinc-900 px-3 text-sm text-zinc-100 focus:border-teal-500 focus:outline-none"
                   />
                 </div>
               </div>
 
               {/* Question */}
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Câu hỏi</label>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-1.5">Câu hỏi</label>
                 <input
                   type="text"
                   value={editItem.question || ""}
                   onChange={e => setEditItem(prev => ({ ...prev, question: e.target.value }))}
                   placeholder="VD: Phí giao hàng bao nhiêu?"
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-emerald-400"
+                  className="h-9 w-full rounded-md border border-zinc-700 bg-zinc-900 px-3 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-teal-500 focus:outline-none"
                 />
               </div>
 
               {/* Answer */}
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Câu trả lời *</label>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-1.5">Câu trả lời *</label>
                 <textarea
                   value={editItem.answer || ""}
                   onChange={e => setEditItem(prev => ({ ...prev, answer: e.target.value }))}
                   rows={5}
                   placeholder="Phí giao hàng tùy khu vực..."
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-emerald-400 resize-y"
+                  className="w-full rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-teal-500 focus:outline-none resize-y"
                 />
               </div>
 
               {/* Keywords */}
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Từ khóa (phân cách bằng dấu phẩy)</label>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-1.5">Từ khóa (phân cách bằng dấu phẩy)</label>
                 <input
                   type="text"
                   value={editItem.keywords || ""}
                   onChange={e => setEditItem(prev => ({ ...prev, keywords: e.target.value }))}
                   placeholder="giao hang, phi ship, delivery"
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-emerald-400"
+                  className="h-9 w-full rounded-md border border-zinc-700 bg-zinc-900 px-3 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-teal-500 focus:outline-none"
                 />
               </div>
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50 rounded-b-2xl">
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-zinc-700/50 bg-zinc-900/30 rounded-b-lg">
               <button
                 onClick={() => { setEditItem(null); setIsCreating(false); }}
-                className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-100 transition"
+                className="px-4 py-2.5 rounded-md border border-zinc-700 text-sm font-medium text-zinc-400 hover:bg-zinc-800 transition-colors"
               >
                 Hủy
               </button>
               <button
                 onClick={() => void handleSave()}
                 disabled={saving}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition disabled:opacity-50 shadow-sm"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-md bg-teal-600 text-white text-sm font-medium hover:bg-teal-500 transition-colors disabled:opacity-50"
               >
                 <Save className="h-4 w-4" />
                 {saving ? "Đang lưu..." : "Lưu"}
@@ -437,6 +433,6 @@ export default function AdminKnowledgePage() {
           </div>
         </div>
       )}
-    </AdminPageContainer>
+    </div>
   );
 }

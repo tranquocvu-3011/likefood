@@ -112,7 +112,7 @@ export default function AdminUsersPage() {
     >
       <div className="grid gap-4 lg:grid-cols-3">
         <AdminCard className="p-5"><Stat label="Người dùng hiển thị" value={`${total}`} tone="text-zinc-200" /></AdminCard>
-        <AdminCard className="p-5"><Stat label="Thành viên" value={`${stats.members}`} tone="text-zinc-700" /></AdminCard>
+        <AdminCard className="p-5"><Stat label="Thành viên" value={`${stats.members}`} tone="text-zinc-300" /></AdminCard>
         <AdminCard className="p-5"><Stat label="Quản trị viên" value={`${stats.admins}`} tone="text-sky-600" /></AdminCard>
       </div>
 

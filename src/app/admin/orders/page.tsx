@@ -320,7 +320,7 @@ export default function AdminOrdersPage() {
             >
               Apply
             </button>
-            <button className="h-8 px-3 rounded-md border border-zinc-700 bg-zinc-900 text-xs text-zinc-300 hover:bg-zinc-800">
+            <button disabled className="h-8 px-3 rounded-md border border-zinc-700 bg-zinc-900 text-xs text-zinc-500 cursor-not-allowed opacity-50" title="Tính năng đang phát triển">
               Export Selected
             </button>
           </div>

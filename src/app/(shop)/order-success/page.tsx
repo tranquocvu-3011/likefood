@@ -21,6 +21,7 @@ import { motion } from "framer-motion";
 import { formatPrice } from "@/lib/currency";
 import { logger } from "@/lib/logger";
 import { useLanguage } from "@/lib/i18n/context";
+import { analytics } from "@/lib/analytics/sdk";
 
 // ─── Confetti Particle System ──────────────────────────────────────────
 interface Particle {
@@ -211,6 +212,7 @@ export default function OrderSuccessPage() {
     const [showConfetti, setShowConfetti] = useState(true);
     const { language } = useLanguage();
     const vi = language === "vi";
+    const trackedRef = useRef(false);
 
     const fetchOrder = useCallback(async () => {
         if (!orderId) {
@@ -243,6 +245,26 @@ export default function OrderSuccessPage() {
         const timer = setTimeout(() => setShowConfetti(false), 5000);
         return () => clearTimeout(timer);
     }, []);
+
+    // Track purchase event (only once)
+    useEffect(() => {
+        if (!order || trackedRef.current) return;
+        trackedRef.current = true;
+        try {
+            analytics.trackPurchase(
+                order.id,
+                order.total,
+                "USD",
+                order.items.map((item) => ({
+                    productId: item.product.id,
+                    quantity: item.quantity,
+                    price: item.price,
+                }))
+            );
+        } catch (err) {
+            logger.error("Failed to track purchase event", err as Error, { context: "order-success-page" });
+        }
+    }, [order]);
 
     const copyOrderId = () => {
         if (order) {

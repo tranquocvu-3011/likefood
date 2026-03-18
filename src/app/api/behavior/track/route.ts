@@ -1,8 +1,9 @@
 /**
- * LIKEFOOD - Vietnamese Specialty Marketplace
- * Copyright (c) 2026 LIKEFOOD Team
- * Licensed under the MIT License
- * https://github.com/tranquocvu-3011/likefood
+ * LIKEFOOD - Behavior Track API v2
+ * ─────────────────────────────────────────────────────────────
+ * Security: userId resolved from server session (never trusted from client)
+ * Batch: accepts single event or batch of events
+ * Validation: strict payload validation with size limits
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -12,100 +13,129 @@ import { logger } from "@/lib/logger";
 import { trackEvent, type EventType } from "@/lib/analytics/behavior";
 import { applyRateLimit, apiRateLimit, getRateLimitIdentifier } from "@/lib/ratelimit";
 
-// Validate event type
+// ─── Constants ───────────────────────────────────────────────
+
+const MAX_BATCH_SIZE = 25;
+const MAX_EVENT_DATA_SIZE = 4096; // bytes
+const MAX_URL_LENGTH = 500;
+
+const VALID_EVENT_TYPES = new Set([
+  "page_view", "product_view", "product_click",
+  "add_to_wishlist", "remove_from_wishlist",
+  "add_to_cart", "remove_from_cart", "update_cart_quantity",
+  "view_cart", "begin_checkout", "add_payment_info", "purchase",
+  "search_query", "search_result_click",
+  "chatbot_message", "chatbot_feedback",
+  "notification_click", "email_open", "email_click",
+  "signup", "login", "logout",
+]);
+
+const VALID_DEVICE_TYPES = new Set(["mobile", "desktop", "tablet"]);
+
+// ─── Helpers ─────────────────────────────────────────────────
+
 function isValidEventType(value: string): boolean {
-  const validTypes = [
-    "page_view",
-    "product_view",
-    "product_click",
-    "add_to_wishlist",
-    "remove_from_wishlist",
-    "add_to_cart",
-    "remove_from_cart",
-    "update_cart_quantity",
-    "view_cart",
-    "begin_checkout",
-    "add_payment_info",
-    "purchase",
-    "search_query",
-    "search_result_click",
-    "chatbot_message",
-    "chatbot_feedback",
-    "notification_click",
-    "email_open",
-    "email_click",
-    "signup",
-    "login",
-    "logout",
-  ];
-  return validTypes.includes(value);
+  return VALID_EVENT_TYPES.has(value);
 }
 
+function sanitizeString(value: unknown, maxLen: number): string | undefined {
+  if (typeof value !== "string") return undefined;
+  return value.slice(0, maxLen) || undefined;
+}
+
+function sanitizeEventData(data: unknown): Record<string, unknown> {
+  if (!data || typeof data !== "object" || Array.isArray(data)) return {};
+  const str = JSON.stringify(data);
+  if (str.length > MAX_EVENT_DATA_SIZE) return {};
+  return data as Record<string, unknown>;
+}
+
+interface RawEvent {
+  eventType?: string;
+  eventData?: unknown;
+  url?: unknown;
+  referrer?: unknown;
+  deviceType?: unknown;
+  sessionId?: string;
+  anonymousId?: string;
+  timestamp?: number;
+}
+
+// ─── POST Handler ────────────────────────────────────────────
+
 export async function POST(req: NextRequest) {
-  // Rate limit: 60 events per minute per IP to prevent analytics flooding
+  // Rate limit: 120 events per minute per IP (batches count as 1 request)
   const identifier = getRateLimitIdentifier(req);
-  const rateResult = await applyRateLimit(identifier, apiRateLimit, { windowMs: 60 * 1000, maxRequests: 60 });
+  const rateResult = await applyRateLimit(identifier, apiRateLimit, {
+    windowMs: 60_000,
+    maxRequests: 120,
+  });
   if (!rateResult.success) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
   try {
     const body = await req.json();
-    const {
-      eventType,
-      sessionId,
-      userId,
-      eventData,
-      url,
-      referrer,
-      deviceType,
-    } = body;
 
-    // Validate required fields
-    if (!eventType || !sessionId) {
-      return NextResponse.json(
-        { error: "Missing required fields: eventType, sessionId" },
-        { status: 400 }
-      );
+    // ── Resolve userId server-side (NEVER trust client) ──
+    let serverUserId: number | undefined;
+    try {
+      const session = await getServerSession(authOptions);
+      serverUserId = session?.user?.id ? Number(session.user.id) : undefined;
+    } catch {
+      // If session check fails, proceed as anonymous
     }
 
-    // Validate event type
-    if (!isValidEventType(eventType)) {
-      return NextResponse.json(
-        { error: `Invalid event type: ${eventType}` },
-        { status: 400 }
-      );
+    // ── Support single event or batch ──
+    const rawEvents: RawEvent[] = Array.isArray(body.events)
+      ? body.events.slice(0, MAX_BATCH_SIZE)
+      : [body];
+
+    const results: Array<{ eventId: number; eventType: string }> = [];
+
+    for (const raw of rawEvents) {
+      const eventType = raw.eventType;
+      const sessionId = raw.sessionId;
+
+      // Validate required fields
+      if (!eventType || !sessionId || typeof eventType !== "string" || typeof sessionId !== "string") {
+        continue; // Skip invalid events in batch
+      }
+
+      if (!isValidEventType(eventType)) {
+        continue;
+      }
+
+      // Validate & sanitize
+      const deviceType = VALID_DEVICE_TYPES.has(String(raw.deviceType))
+        ? (String(raw.deviceType) as "mobile" | "desktop" | "tablet")
+        : "desktop";
+
+      const eventId = await trackEvent({
+        userId: serverUserId, // Always from server session
+        sessionId: sessionId.slice(0, 100),
+        eventType: eventType as EventType,
+        eventData: sanitizeEventData(raw.eventData),
+        url: sanitizeString(raw.url, MAX_URL_LENGTH),
+        referrer: sanitizeString(raw.referrer, MAX_URL_LENGTH),
+        deviceType,
+      });
+
+      results.push({ eventId, eventType });
     }
-
-    // Validate device type
-    const validDeviceTypes = ["mobile", "desktop", "tablet"];
-    const validatedDeviceType = validDeviceTypes.includes(deviceType)
-      ? deviceType
-      : "desktop";
-
-    // Track the event
-    const eventId = await trackEvent({
-      userId: userId || undefined,
-      sessionId,
-      eventType: eventType as EventType,
-      eventData: eventData || {},
-      url,
-      referrer,
-      deviceType: validatedDeviceType,
-    });
 
     return NextResponse.json({
       success: true,
-      eventId,
+      tracked: results.length,
+      results,
     });
   } catch (error) {
     logger.error("Error tracking event", error as Error, { context: "behavior-track-api" });
-    return NextResponse.json(
-      { error: "Failed to track event" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to track event" }, { status: 500 });
   }
 }
+
+// ─── GET Handler ─────────────────────────────────────────────
 
 export async function GET(req: NextRequest) {
   try {
@@ -124,7 +154,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // If querying by userId, require auth - user can only see their own events
+    // If querying by userId, require auth
     if (userId) {
       const session = await getServerSession(authOptions);
       if (!session?.user) {
@@ -135,12 +165,9 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Import the function dynamically to avoid issues
     const { getRecentEvents } = await import("@/lib/analytics/behavior");
-
     const events = await getRecentEvents(sessionId || userId!, limit);
 
-    // Filter by event type if specified
     const filteredEvents = eventType
       ? events.filter((e) => e.eventType === eventType)
       : events;
@@ -152,9 +179,6 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     logger.error("Error getting events", error as Error, { context: "behavior-track-api" });
-    return NextResponse.json(
-      { error: "Failed to get events" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to get events" }, { status: 500 });
   }
 }

@@ -185,7 +185,7 @@ export default function CustomersPage() {
             <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
           </button>
-          <button className="px-3.5 py-2 rounded-md border border-zinc-700 bg-zinc-900 text-sm font-medium text-zinc-300 hover:bg-zinc-800 transition-colors flex items-center gap-2">
+          <button disabled className="px-3.5 py-2 rounded-md border border-zinc-700 bg-zinc-900 text-sm font-medium text-zinc-500 cursor-not-allowed opacity-50 flex items-center gap-2" title="Tính năng đang phát triển">
             <Download className="h-4 w-4" />
             Export
           </button>
@@ -488,10 +488,10 @@ function CustomerDrawer({
             <div className="rounded-lg border border-zinc-700/50 bg-[#111113] p-4">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-3">Quick Actions</h3>
               <div className="grid grid-cols-2 gap-2">
-                <button className="px-3 py-2 rounded-md border border-zinc-700 bg-zinc-900 text-xs text-zinc-300 hover:bg-zinc-800">
+                <button disabled className="px-3 py-2 rounded-md border border-zinc-700 bg-zinc-900 text-xs text-zinc-500 cursor-not-allowed opacity-50" title="Tính năng đang phát triển">
                   Send Email
                 </button>
-                <button className="px-3 py-2 rounded-md border border-zinc-700 bg-zinc-900 text-xs text-zinc-300 hover:bg-zinc-800">
+                <button disabled className="px-3 py-2 rounded-md border border-zinc-700 bg-zinc-900 text-xs text-zinc-500 cursor-not-allowed opacity-50" title="Tính năng đang phát triển">
                   Add to Segment
                 </button>
               </div>

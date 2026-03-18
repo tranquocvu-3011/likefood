@@ -299,7 +299,7 @@ export default function ProductImport({
                         {results.map((result, index) => (
                             <div 
                                 key={index}
-                                className="flex items-center gap-3 px-4 py-2 border-b border-zinc-700/40/50"
+                                className="flex items-center gap-3 px-4 py-2 border-b border-zinc-800"
                             >
                                 {result.status === "success" ? (
                                     <CheckCircle className="h-4 w-4 text-emerald-500" />
@@ -347,7 +347,7 @@ export default function ProductImport({
                                 </thead>
                                 <tbody>
                                     {previewData.map((product, index) => (
-                                        <tr key={index} className="border-b border-zinc-700/40/50">
+                                        <tr key={index} className="border-b border-zinc-800">
                                             <td className="p-3 text-sm text-zinc-200">{product.name}</td>
                                             <td className="p-3 text-sm text-zinc-200">${product.price}</td>
                                             <td className="p-3 text-sm text-zinc-200">{product.inventory || "-"}</td>

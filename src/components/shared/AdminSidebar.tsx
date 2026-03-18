@@ -157,13 +157,13 @@ export default function AdminSidebar() {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-zinc-700/50/60 bg-[#0A0A0B] transition-all duration-200",
+          "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-zinc-800 bg-[#0A0A0B] transition-all duration-200",
           collapsed ? "w-16" : "w-56",
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
         {/* Logo */}
-        <div className="flex h-14 items-center justify-between border-b border-zinc-700/50/50 px-3">
+        <div className="flex h-14 items-center justify-between border-b border-zinc-800 px-3">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-teal-500 to-teal-600 text-white">
               <Bot className="h-4 w-4" />
@@ -255,7 +255,7 @@ export default function AdminSidebar() {
         </nav>
 
         {/* Footer */}
-        <div className="border-t border-zinc-700/50/50 px-2 py-2">
+        <div className="border-t border-zinc-800 px-2 py-2">
           <button
             type="button"
             onClick={() => signOut({ callbackUrl: "/login" })}

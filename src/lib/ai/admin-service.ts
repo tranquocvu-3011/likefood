@@ -105,7 +105,7 @@ export async function getProspectCustomers(days = 7): Promise<ProspectCustomer[]
   // Get user info
   const userIds = activeUsers.map((u) => u.userId);
   const users = await prisma.user.findMany({
-    where: { id: { in: userIds }, role: "USER" },
+    where: { id: { in: userIds } },
     select: { id: true, name: true, email: true, phone: true, points: true },
   });
   const userMap = new Map(users.map((u) => [u.id, u]));
@@ -615,7 +615,6 @@ export async function detectChurnRisk(days = 30): Promise<ChurnRiskCustomer[]> {
   const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
   
   const users = await prisma.user.findMany({
-    where: { role: "USER" },
     select: {
       id: true,
       name: true,

@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useDebounce } from "@/hooks/useDebounce";
 import { toast } from "sonner";
 import ImageWithFallback from "@/components/shared/ImageWithFallback";
@@ -94,32 +94,33 @@ export default function AdminPostsPage() {
     const totalPages = Math.ceil(total / PAGE_SIZE);
 
     return (
-        <div className="space-y-10">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+        <div className="space-y-4">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-4xl font-black uppercase tracking-tighter mb-2 font-outfit">Quản lý bài viết</h1>
-                    <p className="text-slate-500 font-medium">Quản lý nội dung tin tức và Blog trên hệ thống.</p>
+                    <h1 className="text-xl font-semibold text-zinc-100">Quản lý bài viết</h1>
+                    <p className="text-sm text-zinc-500 mt-0.5">Quản lý nội dung tin tức và Blog trên hệ thống.</p>
                 </div>
                 <Link href="/admin/posts/new">
-                    <Button className="h-14 px-8 rounded-full bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest shadow-2xl shadow-primary/30 gap-2">
-                        <Plus className="w-5 h-5" /> Thêm bài viết
+                    <Button className="px-4 py-2 rounded-md bg-teal-500 hover:bg-teal-400 text-white font-semibold shadow-lg shadow-teal-500/20 gap-2">
+                        <Plus className="w-4 h-4" /> Thêm bài viết
                     </Button>
                 </Link>
             </div>
 
             {/* Search */}
-            <div className="bg-white p-6 rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 flex flex-col md:flex-row gap-4">
+            <div className="rounded-lg border border-zinc-700/50 bg-[#111113] p-3">
                 <div className="relative flex-1">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
+                    <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                     <input
                         type="text"
                         placeholder="Tìm kiếm tiêu đề, nội dung bài viết..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="w-full pl-12 pr-6 py-4 bg-slate-50 border-none ring-1 ring-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                        className="h-9 w-full rounded-md border border-zinc-700 bg-zinc-900 pl-9 pr-8 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-teal-500 focus:outline-none"
                     />
                     {search && (
-                        <button onClick={() => setSearch("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                        <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300">
                             <X className="w-4 h-4" />
                         </button>
                     )}
@@ -127,37 +128,37 @@ export default function AdminPostsPage() {
             </div>
 
             {/* Posts Table */}
-            <div className="bg-white rounded-[3rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+            <div className="rounded-lg border border-zinc-700/50 bg-[#111113] overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
-                            <tr className="border-b border-slate-50 bg-slate-50/50">
-                                <th className="px-8 py-6 text-xs font-black uppercase tracking-widest text-slate-400 font-outfit">Bài viết</th>
-                                <th className="px-6 py-6 text-xs font-black uppercase tracking-widest text-slate-400 font-outfit">Danh mục</th>
-                                <th className="px-6 py-6 text-xs font-black uppercase tracking-widest text-slate-400 font-outfit">Trạng thái</th>
-                                <th className="px-6 py-6 text-xs font-black uppercase tracking-widest text-slate-400 font-outfit">Ngày đăng</th>
-                                <th className="px-6 py-6 text-xs font-black uppercase tracking-widest text-slate-400 font-outfit">Thao tác</th>
+                            <tr className="border-b border-zinc-700/50 bg-zinc-900/50">
+                                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-500">Bài viết</th>
+                                <th className="px-4 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-500">Danh mục</th>
+                                <th className="px-4 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-500">Trạng thái</th>
+                                <th className="px-4 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-500">Ngày đăng</th>
+                                <th className="px-4 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-500">Thao tác</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-50">
+                        <tbody className="divide-y divide-zinc-800/50">
                             {isLoading ? (
                                 Array.from({ length: 5 }).map((_, i) => (
                                     <tr key={i} className="animate-pulse">
-                                        <td colSpan={5} className="px-8 py-10"><div className="h-4 bg-slate-100 rounded-full w-3/4" /></td>
+                                        <td colSpan={5} className="px-6 py-8"><div className="h-4 bg-zinc-800 rounded-full w-3/4" /></td>
                                     </tr>
                                 ))
                             ) : posts.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="text-center py-20">
-                                        <FileText className="w-12 h-12 text-slate-200 mx-auto mb-3" />
-                                        <p className="text-slate-400 font-bold">Không tìm thấy bài viết nào</p>
+                                        <FileText className="w-10 h-10 text-zinc-600 mx-auto mb-3" />
+                                        <p className="text-zinc-400 font-medium">Không tìm thấy bài viết nào</p>
                                     </td>
                                 </tr>
                             ) : posts.map((post) => (
-                                <tr key={post.id} className="group hover:bg-slate-50 transition-colors">
-                                    <td className="px-8 py-5">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-14 h-14 rounded-2xl bg-slate-100 overflow-hidden relative flex-shrink-0">
+                                <tr key={post.id} className="group hover:bg-zinc-800/40 transition-colors">
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-12 h-12 rounded-lg bg-zinc-800 overflow-hidden relative flex-shrink-0">
                                                 {post.image && (
                                                     <ImageWithFallback
                                                         src={post.image}
@@ -165,52 +166,52 @@ export default function AdminPostsPage() {
                                                         alt={post.title}
                                                         fill
                                                         className="object-cover"
-                                                        sizes="56px"
+                                                        sizes="48px"
                                                     />
                                                 )}
                                             </div>
                                             <div className="max-w-md">
-                                                <p className="font-black text-slate-900 group-hover:text-primary transition-colors line-clamp-1">{post.title}</p>
-                                                <p className="text-[10px] uppercase font-black text-slate-400 tracking-tighter">
+                                                <p className="font-semibold text-zinc-100 group-hover:text-teal-400 transition-colors line-clamp-1">{post.title}</p>
+                                                <p className="text-xs text-zinc-500 mt-0.5">
                                                     Slug: {post.slug}
                                                 </p>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-5">
-                                        <span className="text-xs font-black uppercase tracking-widest text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
+                                    <td className="px-4 py-4">
+                                        <span className="text-xs font-medium text-zinc-400 bg-zinc-800 px-2.5 py-1 rounded-md">
                                             {post.category || "Tin tức"}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-5">
+                                    <td className="px-4 py-4">
                                         {post.isPublished ? (
-                                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-50 text-green-600 text-[10px] font-black uppercase border border-green-100">
+                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 text-[10px] font-semibold uppercase">
                                                 Công khai
                                             </span>
                                         ) : (
-                                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-slate-50 text-slate-400 text-[10px] font-black uppercase border border-slate-100">
+                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-zinc-800 text-zinc-500 text-[10px] font-semibold uppercase">
                                                 Nháp
                                             </span>
                                         )}
                                     </td>
-                                    <td className="px-6 py-5 text-sm font-bold text-slate-500">
+                                    <td className="px-4 py-4 text-sm text-zinc-400">
                                         {new Date(post.publishedAt).toLocaleDateString('vi-VN')}
                                     </td>
-                                    <td className="px-6 py-5">
+                                    <td className="px-4 py-4">
                                         <div className="flex items-center gap-1">
                                             <Link href={`/posts/${post.slug}`} target="_blank">
-                                                <button className="p-2 rounded-xl hover:bg-white hover:shadow-lg transition-all text-slate-400 hover:text-emerald-500" title="Xem bài viết">
+                                                <button className="p-2 rounded-md hover:bg-zinc-800 text-zinc-500 hover:text-emerald-400 transition-colors" title="Xem bài viết">
                                                     <Eye className="w-4 h-4" />
                                                 </button>
                                             </Link>
                                             <Link href={`/admin/posts/${post.id}/edit`}>
-                                                <button className="p-2 rounded-xl hover:bg-white hover:shadow-lg transition-all text-slate-400 hover:text-primary" title="Sửa">
+                                                <button className="p-2 rounded-md hover:bg-zinc-800 text-zinc-500 hover:text-teal-400 transition-colors" title="Sửa">
                                                     <Edit className="w-4 h-4" />
                                                 </button>
                                             </Link>
                                             <button
                                                 onClick={() => setDeleteId(post.id)}
-                                                className="p-2 rounded-xl hover:bg-white hover:shadow-lg transition-all text-slate-400 hover:text-red-500"
+                                                className="p-2 rounded-md hover:bg-zinc-800 text-zinc-500 hover:text-red-400 transition-colors"
                                                 title="Xóa"
                                             >
                                                 <Trash2 className="w-4 h-4" />
@@ -225,25 +226,25 @@ export default function AdminPostsPage() {
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                    <div className="flex items-center justify-between px-8 py-6 border-t border-slate-50">
-                        <p className="text-sm text-slate-400 font-bold">
+                    <div className="flex items-center justify-between px-6 py-3 border-t border-zinc-700/50">
+                        <p className="text-xs text-zinc-500">
                             Hiển thị {(page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, total)} / {total} bài viết
                         </p>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
                             <button
                                 onClick={() => setPage(Math.max(1, page - 1))}
                                 disabled={page <= 1}
-                                className="p-2 rounded-xl hover:bg-slate-100 disabled:opacity-30 transition-all"
+                                className="h-8 w-8 rounded-md border border-zinc-700 bg-zinc-900 text-zinc-500 hover:text-zinc-300 disabled:opacity-40 transition-colors"
                             >
-                                <ChevronLeft className="w-5 h-5" />
+                                <ChevronLeft className="w-4 h-4 mx-auto" />
                             </button>
                             {Array.from({ length: totalPages }).map((_, i) => (
                                 <button
                                     key={i + 1}
                                     onClick={() => setPage(i + 1)}
-                                    className={`w-10 h-10 rounded-xl text-sm font-bold transition-all ${page === i + 1
-                                        ? "bg-primary text-white shadow-lg shadow-primary/30"
-                                        : "hover:bg-slate-100 text-slate-500"
+                                    className={`h-8 w-8 rounded-md text-xs font-medium transition-colors ${page === i + 1
+                                        ? "bg-teal-600 text-white"
+                                        : "border border-zinc-700 bg-zinc-900 text-zinc-400 hover:text-zinc-200"
                                         }`}
                                 >
                                     {i + 1}
@@ -252,9 +253,9 @@ export default function AdminPostsPage() {
                             <button
                                 onClick={() => setPage(Math.min(totalPages, page + 1))}
                                 disabled={page >= totalPages}
-                                className="p-2 rounded-xl hover:bg-slate-100 disabled:opacity-30 transition-all"
+                                className="h-8 w-8 rounded-md border border-zinc-700 bg-zinc-900 text-zinc-500 hover:text-zinc-300 disabled:opacity-40 transition-colors"
                             >
-                                <ChevronRight className="w-5 h-5" />
+                                <ChevronRight className="w-4 h-4 mx-auto" />
                             </button>
                         </div>
                     </div>
@@ -276,24 +277,25 @@ export default function AdminPostsPage() {
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="relative bg-white rounded-3xl p-10 shadow-2xl max-w-md w-full z-10 text-center"
+                            className="relative bg-[#18181B] rounded-xl border border-zinc-700 p-6 shadow-2xl max-w-md w-full z-10 text-center"
                         >
-                            <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-6">
-                                <Trash2 className="w-7 h-7 text-red-500" />
+                            <div className="w-14 h-14 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-5">
+                                <Trash2 className="w-7 h-7 text-red-400" />
                             </div>
-                            <h3 className="text-2xl font-black uppercase tracking-tighter mb-3">Xóa bài viết?</h3>
-                            <p className="text-slate-500 mb-8">Hành động này không thể hoàn tác. Bài viết sẽ bị xóa vĩnh viễn khỏi hệ thống.</p>
-                            <div className="flex gap-4">
+                            <h3 className="text-lg font-semibold text-zinc-100 mb-2">Xóa bài viết?</h3>
+                            <p className="text-zinc-500 text-sm mb-6">Hành động này không thể hoàn tác. Bài viết sẽ bị xóa vĩnh viễn khỏi hệ thống.</p>
+                            <div className="flex gap-3">
                                 <Button
                                     onClick={() => setDeleteId(null)}
-                                    className="flex-1 h-14 rounded-full bg-slate-100 text-slate-500 font-black uppercase tracking-widest hover:bg-slate-200"
+                                    className="flex-1 h-10 rounded-lg border border-zinc-600 text-zinc-300 hover:bg-zinc-800 font-medium"
+                                    variant="outline"
                                 >
                                     Hủy
                                 </Button>
                                 <Button
                                     onClick={confirmDelete}
                                     disabled={isDeleting}
-                                    className="flex-1 h-14 rounded-full bg-red-500 text-white font-black uppercase tracking-widest hover:bg-red-600 shadow-xl shadow-red-500/30"
+                                    className="flex-1 h-10 rounded-lg bg-red-500 hover:bg-red-400 text-white font-semibold shadow-lg shadow-red-500/20"
                                 >
                                     {isDeleting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Xóa ngay"}
                                 </Button>

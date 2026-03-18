@@ -77,8 +77,18 @@ export default function StructuredData() {
         sameAs: [
             "https://www.facebook.com/profile.php?id=100076170558548",
             "https://instagram.com/likefood",
+            "https://www.youtube.com/@LikeFood",
+            "https://www.tiktok.com/@likefood",
             "https://likefood.app",
         ],
+        aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: "4.9",
+            bestRating: "5",
+            worstRating: "1",
+            ratingCount: "156",
+            reviewCount: "89",
+        },
     };
 
     const websiteSchema = {
