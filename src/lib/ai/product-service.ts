@@ -289,8 +289,8 @@ export async function getFlashSaleProducts(limit = 5): Promise<FlashSaleInfo | n
 export async function getShippingInfo(location?: string): Promise<ShippingInfo> {
   return {
     zone: location || "domestic",
-    standardDays: 5,
-    expressDays: 2,
+    standardDays: 3,
+    expressDays: 1,
     standardFee: DEFAULT_SHIPPING_FEE_USD,
     expressFee: EXPRESS_SHIPPING_FEE_USD,
     freeShippingThreshold: FREE_SHIPPING_THRESHOLD_USD,

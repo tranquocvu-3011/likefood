@@ -42,7 +42,7 @@ const SHIPPING_COPY: Record<Locale, {
 }> = {
     vi: {
         title: "Chính Sách Vận Chuyển | LIKEFOOD",
-        metaDesc: "Chính sách giao hàng của LIKEFOOD - Miễn phí vận chuyển cho đơn từ $500, phạm vi toàn nước Mỹ.",
+        metaDesc: "Chính sách giao hàng của LIKEFOOD - Phí chỉ từ $5.99, phạm vi toàn nước Mỹ.",
         heroTitle: "Chính Sách Vận Chuyển",
         heroDesc: "LIKEFOOD cam kết mang đến dịch vụ giao hàng nhanh chóng, an toàn và minh bạch trên toàn nước Mỹ.",
         breadcrumbHome: "Trang chủ",
@@ -73,12 +73,12 @@ const SHIPPING_COPY: Record<Locale, {
                 heading: "3. Chi phí vận chuyển",
                 icon: "💰",
                 content: [
-                    "Đơn từ $500 trở lên được MIỄN PHÍ vận chuyển trên toàn quốc.",
-                    "Với đơn dưới $500, phí giao hàng sẽ được tính tự động và hiển thị rõ ràng trong bước checkout trước khi bạn xác nhận thanh toán.",
+                    "Đơn hàng lớn có thể được áp dụng chương trình MIỄN PHÍ vận chuyển tùy thời điểm.",
+                    "Phí giao hàng sẽ được tính tự động và hiển thị rõ ràng trong bước checkout trước khi bạn xác nhận thanh toán.",
                     "Phí vận chuyển phụ thuộc vào trọng lượng đơn, khoảng cách và phương thức giao hàng được chọn."
                 ],
                 highlight: [
-                    { label: "Miễn phí ship", value: "Đơn từ $500" },
+                    { label: "Nhận tại kho", value: "Miễn phí 100%" },
                     { label: "Phí rõ ràng", value: "Hiển thị tại checkout" },
                 ],
             },
@@ -103,9 +103,10 @@ const SHIPPING_COPY: Record<Locale, {
         ],
         shippingMethodsTitle: "Phương thức vận chuyển",
         shippingMethods: [
-            { name: "Tiêu chuẩn", time: "5-7 ngày làm việc", desc: "Phù hợp cho các đơn thông thường, tiết kiệm chi phí", icon: "📬" },
-            { name: "Nhanh", time: "2-3 ngày làm việc", desc: "Giao hàng ưu tiên, phù hợp đơn cần gấp", icon: "🚚" },
-            { name: "Ưu tiên", time: "1-2 ngày làm việc", desc: "Giao hàng nhanh nhất, đảm bảo đúng hẹn", icon: "⚡" },
+            { name: "Đến cửa hàng nhận", time: "Nhận ngay", desc: "Miễn phí 100%, tích lũy điểm thưởng nhân đôi", icon: "🏪" },
+            { name: "Tiêu chuẩn", time: "3-5 ngày làm việc", desc: "Phí $5.99, phù hợp đơn hàng thông thường", icon: "📬" },
+            { name: "Nhanh", time: "1-2 ngày làm việc", desc: "Phí $12.99, giao hàng ưu tiên", icon: "🚚" },
+            { name: "Trong ngày", time: "Trước 12h cùng ngày", desc: "Phí $24.99, giao hàng siêu tốc", icon: "⚡" },
         ],
         commitmentTitle: "Cam kết của LIKEFOOD",
         commitments: [
@@ -119,11 +120,11 @@ const SHIPPING_COPY: Record<Locale, {
         backHome: "Quay lại trang chủ",
         gotoReturn: "Chính sách đổi trả",
         gotoTerms: "Điều khoản dịch vụ",
-        freeShippingBanner: "🎉 MIỄN PHÍ vận chuyển cho tất cả đơn hàng từ $500 trở lên!",
+        freeShippingBanner: "🎉 Miễn phí 100% phí vận chuyển khi chọn 'Đến cửa hàng nhận'!",
     },
     en: {
         title: "Shipping Policy | LIKEFOOD",
-        metaDesc: "LIKEFOOD shipping policy - Free shipping for orders over $500, nationwide U.S. delivery.",
+        metaDesc: "LIKEFOOD shipping policy - Shipping starts from $5.99, nationwide U.S. delivery.",
         heroTitle: "Shipping Policy",
         heroDesc: "LIKEFOOD is committed to providing fast, safe, and transparent delivery service across the United States.",
         breadcrumbHome: "Home",
@@ -154,12 +155,12 @@ const SHIPPING_COPY: Record<Locale, {
                 heading: "3. Shipping cost",
                 icon: "💰",
                 content: [
-                    "Orders of $500 or more qualify for FREE nationwide shipping.",
-                    "For orders below $500, shipping fees are automatically calculated and clearly displayed at checkout before you confirm payment.",
+                    "Large orders may qualify for FREE shipping during special promotions.",
+                    "Shipping fees are automatically calculated and clearly displayed at checkout before you confirm payment.",
                     "Shipping costs depend on order weight, distance, and selected delivery method."
                 ],
                 highlight: [
-                    { label: "Free shipping", value: "Orders $500+" },
+                    { label: "Store Pickup", value: "100% Free" },
                     { label: "Clear pricing", value: "Shown at checkout" },
                 ],
             },
@@ -184,9 +185,10 @@ const SHIPPING_COPY: Record<Locale, {
         ],
         shippingMethodsTitle: "Shipping methods",
         shippingMethods: [
-            { name: "Standard", time: "5-7 business days", desc: "Suitable for regular orders, cost-effective", icon: "📬" },
-            { name: "Express", time: "2-3 business days", desc: "Priority delivery for urgent orders", icon: "🚚" },
-            { name: "Priority", time: "1-2 business days", desc: "Fastest delivery, guaranteed on-time", icon: "⚡" },
+            { name: "Store Pickup", time: "Immediate", desc: "100% Free, earn double reward points", icon: "🏪" },
+            { name: "Standard", time: "3-5 business days", desc: "$5.99 fee, suitable for regular orders", icon: "📬" },
+            { name: "Express", time: "1-2 business days", desc: "$12.99 fee, priority delivery", icon: "🚚" },
+            { name: "Same Day", time: "Before 12 PM same day", desc: "$24.99 fee, ultra-fast delivery", icon: "⚡" },
         ],
         commitmentTitle: "LIKEFOOD's commitments",
         commitments: [
@@ -200,7 +202,7 @@ const SHIPPING_COPY: Record<Locale, {
         backHome: "Back to home",
         gotoReturn: "Return policy",
         gotoTerms: "Terms of service",
-        freeShippingBanner: "🎉 FREE shipping on all orders of $500 or more!",
+        freeShippingBanner: "🎉 100% FREE shipping when you choose 'Store Pickup'!",
     },
 };
 

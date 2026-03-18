@@ -9,8 +9,8 @@ export const SITE_CURRENCY = "USD" as const;
 
 export const DEFAULT_SHIPPING_FEE_USD = 5.99;
 export const EXPRESS_SHIPPING_FEE_USD = 12.99;
-export const OVERNIGHT_SHIPPING_FEE_USD = 24.99;
-export const FREE_SHIPPING_THRESHOLD_USD = 500;
+export const OVERNIGHT_SHIPPING_FEE_USD = 24.99; // Same-day/Overnight
+export const FREE_SHIPPING_THRESHOLD_USD = 500; // Default global threshold
 
 // Store Pickup — default address, overridable via admin settings (contact_address)
 export const STORE_ADDRESS = "Omaha, NE 68136, United States";

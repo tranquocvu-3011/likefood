@@ -279,8 +279,8 @@ function formatProductSuggestions(products: { id: string | number; name: string;
 function getQuickReplies(intent: Intent, language: "vi" | "en"): string[] {
   const quickReplies: Partial<Record<Intent, { vi: string[]; en: string[] }>> = {
     GREETING: {
-      vi: ["Tôi muốn tìm sản phẩm", "Cho tôi xem khuyến mãi", "Tìm hiểu về giao hàng"],
-      en: ["I want to find products", "Show me promotions", "Learn about shipping"]
+      vi: ["Tìm đặc sản ngon", "Điểm thưởng & Giới thiệu", "Thời gian giao hàng"],
+      en: ["Find specialties", "Rewards & Referral", "Delivery time"]
     },
     PRODUCT_SEARCH: {
       vi: ["Xem gợi ý sản phẩm", "Tìm theo danh mục", "Sản phẩm giảm giá"],
@@ -319,8 +319,8 @@ function getQuickReplies(intent: Intent, language: "vi" | "en"): string[] {
       en: ["For family", "For gifts", "Best snacks", "Budget under $30"]
     },
     UNKNOWN: {
-      vi: ["Xem sản phẩm", "Liên hệ hỗ trợ", "Khuyến mãi hiện có"],
-      en: ["View products", "Contact support", "Current promotions"]
+      vi: ["Xem sản phẩm", "Điểm thưởng thành viên", "Phí giao hàng"],
+      en: ["View products", "Member rewards", "Shipping fees"]
     }
   };
 
@@ -552,47 +552,24 @@ async function handleEnhancedIntent(
 
   // PROMOTION_INQUIRY
   if (intent === "PROMOTION_INQUIRY") {
-    const [promotions, flashSale] = await Promise.all([getActivePromotions(), getFlashSaleProducts(3)]);
-    const couponCodes = (promotions?.coupons ?? []).map((coupon: { code?: string }) => coupon.code).filter((code): code is string => !!code).slice(0, 3);
-
-    if (!flashSale && couponCodes.length === 0) {
-      return {
-        response: language === "vi"
-          ? "Hiện tại mình chưa thấy chương trình khuyến mãi nổi bật. Bạn có thể xem trang deals hoặc cho mình biết ngân sách để mình gợi ý cách mua tối ưu nhé!"
-          : "I don't see any standout promotions right now. You can check the deals page or tell me your budget so I can suggest the best way to shop.",
-        quickReplies: getQuickReplies(intent, language)
-      };
-    }
-
-    const parts: string[] = [];
-    if (flashSale) {
-      parts.push(language === "vi"
-        ? `🔥 Flash sale "${flashSale.name}" đang diễn ra!`
-        : `🔥 ${flashSale.name} flash sale is active!`);
-    }
-    if (couponCodes.length > 0) {
-      parts.push(language === "vi"
-        ? `📦 Coupon hiện có: ${couponCodes.join(", ")}`
-        : `📦 Available coupons: ${couponCodes.join(", ")}`);
-    }
-
     return {
-      response: parts.join(" "),
-      suggestions: couponCodes.length > 0
-        ? [{ type: "action", items: couponCodes.map((code) => ({ id: code, name: `Coupon ${code}` })) }]
-        : undefined,
-      quickReplies: getQuickReplies(intent, language)
+      response: language === "vi"
+        ? "LIKEFOOD hiện có chương trình tích điểm thưởng cực hấp dẫn ($1 = 2 điểm) và thưởng khi giới thiệu bạn bè thành công. Bạn có thể dùng điểm để đổi các phần quà đặc biệt trong tài khoản của mình nhé!"
+        : "LIKEFOOD currently offers a great Reward Point program ($1 = 2 points) and rewards for successful friend referrals. You can use your points to redeem special gifts in your account!",
+      suggestions: [
+        { type: "action", items: [{ id: "points", name: language === "vi" ? "Xem điểm thưởng" : "View rewards" }] }
+      ],
+      quickReplies: ["Cách tích điểm", "Giới thiệu bạn bè", "Xem sản phẩm"]
     };
   }
 
   // SHIPPING_INQUIRY
   if (intent === "SHIPPING_INQUIRY") {
-    const shipping = await getShippingInfo();
     return {
       response: language === "vi"
-        ? `📦 Giao hàng Standard: $${shipping.standardFee.toFixed(2)} trong ${shipping.standardDays} ngày. Giao Express: $${shipping.expressFee.toFixed(2)} trong ${shipping.expressDays} ngày. Đơn từ $${shipping.freeShippingThreshold.toFixed(2)} được freeship Standard nhé!`
-        : `📦 Standard shipping: $${shipping.standardFee.toFixed(2)} in ${shipping.standardDays} days. Express: $${shipping.expressFee.toFixed(2)} in ${shipping.expressDays} days. Orders $${shipping.freeShippingThreshold.toFixed(2)}+ get free standard shipping!`,
-      quickReplies: getQuickReplies(intent, language)
+        ? `📦 Phí giao hàng tại LIKEFOOD:\n1. Đến cửa hàng nhận: Miễn phí\n2. Tiêu chuẩn (3-5 ngày): $5.99\n3. Nhanh (1-2 ngày): $12.99\n4. Trong ngày: $24.99\nChúng mình giao hàng toàn bộ 50 bang Hoa Kỳ nhé!`
+        : `📦 Shipping fees at LIKEFOOD:\n1. Store Pickup: Free\n2. Standard (3-5 days): $5.99\n3. Express (1-2 days): $12.99\n4. Same Day: $24.99\nWe ship to all 50 US states!`,
+      quickReplies: ["Thời gian giao hàng", "Nhận tại cửa hàng", "Xem sản phẩm"]
     };
   }
 
