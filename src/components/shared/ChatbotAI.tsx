@@ -631,6 +631,8 @@ export default function ChatbotAI() {
 
         // Parse SSE stream
         if (response.body) {
+          // Tắt loading indicator — stream message tự hiện content real-time
+          setIsLoading(false);
           const reader = response.body.getReader();
           const decoder = new TextDecoder();
           let fullContent = "";
