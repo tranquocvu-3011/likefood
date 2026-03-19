@@ -398,8 +398,12 @@ export function useCheckout(language: string) {
             const sessionData = await sessionRes.json();
 
             if (sessionData.url) {
-                // KHÔNG xóa cart ở đây - chỉ xóa khi thanh toán thành công
-                // Lý do: nếu user hủy hoặc không thanh toán, giỏ hàng vẫn còn
+                // Đơn hàng free ($0): xóa cart ngay vì không qua Stripe return page
+                if (sessionData.free) {
+                    clearCart();
+                }
+                // Đơn hàng paid: KHÔNG xóa cart ở đây — chỉ xóa khi thanh toán thành công
+                // trên Stripe return page. Nếu user hủy, giỏ hàng vẫn còn.
                 window.location.href = sessionData.url;
                 return;
             } else {

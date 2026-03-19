@@ -302,8 +302,164 @@ export async function POST(req: NextRequest) {
         const total = Math.max(0, subtotal + calculatedShippingFee - calculatedDiscount - pointsDiscountAmount);
         const totalDiscount = calculatedDiscount + pointsDiscountAmount;
 
-        const stripe = getStripe();
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+        // ══════════════════════════════════════════════════════════════
+        // FREE ORDER: Khi total = $0 (giảm giá 100% hoặc điểm đủ),
+        // tạo đơn hàng trực tiếp, không qua Stripe
+        // ══════════════════════════════════════════════════════════════
+        if (total <= 0) {
+            const order = await prisma.$transaction(async (tx) => {
+                // 1. Trừ tồn kho
+                for (const item of lineItemsData) {
+                    await tx.product.update({
+                        where: { id: item.productId },
+                        data: {
+                            inventory: { decrement: item.quantity },
+                            soldCount: { increment: item.quantity },
+                        },
+                    });
+                    if (item.variantId) {
+                        await tx.productvariant.update({
+                            where: { id: item.variantId },
+                            data: { stock: { decrement: item.quantity } },
+                        });
+                    }
+                }
+
+                // 2. Xử lý voucher
+                if (validatedCouponCode) {
+                    const coupon = await tx.coupon.findUnique({ where: { code: validatedCouponCode } });
+                    if (coupon) {
+                        await tx.coupon.update({
+                            where: { id: coupon.id },
+                            data: { usedCount: { increment: 1 } },
+                        });
+                        const uv = await tx.uservoucher.findFirst({
+                            where: { userId, couponId: coupon.id, status: { not: "USED" } },
+                        });
+                        if (uv) {
+                            await tx.uservoucher.update({
+                                where: { id: uv.id },
+                                data: { status: "USED", usedAt: new Date() },
+                            });
+                        }
+                    }
+                }
+
+                // 3. Trừ điểm
+                if (validatedPointsToUse > 0) {
+                    await tx.user.updateMany({
+                        where: { id: userId, points: { gte: validatedPointsToUse } },
+                        data: { points: { decrement: validatedPointsToUse } },
+                    });
+                    await tx.pointtransaction.create({
+                        data: {
+                            userId,
+                            amount: -validatedPointsToUse,
+                            type: "SPEND",
+                            description: "Sử dụng cho đơn hàng miễn phí",
+                        },
+                    });
+                }
+
+                // 4. Tạo đơn hàng
+                const newOrder = await tx.order.create({
+                    data: {
+                        userId,
+                        status: "CONFIRMED",
+                        subtotal,
+                        shippingFee: calculatedShippingFee,
+                        discount: calculatedDiscount,
+                        pointsUsed: validatedPointsToUse > 0 ? validatedPointsToUse : null,
+                        pointsDiscount: pointsDiscountAmount > 0 ? pointsDiscountAmount : null,
+                        total: 0,
+                        couponCode: validatedCouponCode || null,
+                        shippingAddress: encrypt(shippingAddress) || shippingAddress,
+                        shippingCity,
+                        shippingZipCode: shippingZipCode || "",
+                        shippingPhone: encrypt(shippingPhone) || shippingPhone,
+                        shippingMethod,
+                        paymentMethod: "FREE",
+                        paymentStatus: "PAID",
+                        paymentIntentId: `free_${Date.now()}_${userId}`,
+                        notes: notes || `Order for ${fullName}`,
+                        orderItems: {
+                            create: lineItemsData.map((item) => ({
+                                productId: item.productId,
+                                variantId: item.variantId,
+                                quantity: item.quantity,
+                                price: item.unitPrice,
+                                nameSnapshot: item.name,
+                            })),
+                        },
+                    },
+                });
+
+                // 5. Ghi sự kiện
+                await tx.orderevent.create({
+                    data: {
+                        orderId: newOrder.id,
+                        status: "CONFIRMED",
+                        note: "Đơn hàng miễn phí — được tạo trực tiếp (giảm giá 100%)",
+                    },
+                });
+
+                // 6. Tích điểm loyalty
+                const { POINTS_PER_DOLLAR } = await import("@/lib/commerce");
+                const earnedPoints = Math.floor(subtotal * POINTS_PER_DOLLAR);
+                if (earnedPoints > 0) {
+                    await tx.user.update({
+                        where: { id: userId },
+                        data: { points: { increment: earnedPoints } },
+                    });
+                    await tx.pointtransaction.create({
+                        data: {
+                            userId,
+                            orderId: newOrder.id,
+                            amount: earnedPoints,
+                            type: "EARN",
+                            description: `Tích lũy từ đơn hàng #${newOrder.id}`,
+                        },
+                    });
+                }
+
+                return newOrder;
+            });
+
+            logger.info(`Free order ${order.id} created (total=$0)`, { userId: String(userId) });
+
+            // Gửi thông báo (không blocking)
+            try {
+                const { createOrderNotification } = await import("@/lib/notifications");
+                await createOrderNotification(userId, order.id, "CONFIRMED", 0);
+            } catch { /* silent */ }
+
+            try {
+                const { sendOrderConfirmationEmail } = await import("@/lib/mail");
+                if (email) {
+                    await sendOrderConfirmationEmail({
+                        orderId: order.id,
+                        toEmail: email,
+                        total: 0,
+                        status: "CONFIRMED",
+                        createdAt: order.createdAt,
+                    });
+                }
+            } catch { /* silent */ }
+
+            // Redirect trực tiếp tới order-success
+            return NextResponse.json({
+                url: `${appUrl}/order-success?orderId=${order.id}`,
+                orderId: order.id,
+                free: true,
+            });
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        // PAID ORDER: Total > $0 → đi qua Stripe Checkout
+        // ══════════════════════════════════════════════════════════════
+        const stripe = getStripe();
 
         // Build Stripe line_items
         const line_items = lineItemsData.map((item) => {
