@@ -449,36 +449,8 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: "Message must be 2000 characters or fewer." }, { status: 400 });
         }
 
-        const [recentOrders, revenueStats, customerCount, topProducts] = await Promise.all([
-          prisma.order.count({
-            where: {
-              createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
-            },
-          }),
-          prisma.order.aggregate({
-            where: { status: { in: ["COMPLETED", "DELIVERED"] } },
-            _sum: { total: true },
-          }),
-          prisma.user.count({ where: { role: "USER" } }),
-          prisma.product.findMany({
-            orderBy: { soldCount: "desc" },
-            take: 5,
-            select: { name: true, soldCount: true, inventory: true, price: true },
-          }),
-        ]);
-
-        const liveContext = {
-          recentOrders,
-          totalCustomers: customerCount,
-          totalRevenue: revenueStats._sum.total || 0,
-          topProducts: topProducts.map((product) => `${product.name} | sold ${product.soldCount} | stock ${product.inventory} | ${product.price.toFixed(2)} USD`),
-        };
-
-        const response = await getAIChatResponse(chatMessage, {
-          ...liveContext,
-          ...(body?.data?.context ?? body?.context ?? {}),
-        });
-
+        // getAIChatResponse now auto-queries all relevant data via buildAdminAIContext
+        const response = await getAIChatResponse(chatMessage);
         return NextResponse.json({ response });
       }
 

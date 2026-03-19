@@ -167,10 +167,24 @@ const TABS: { id: TabId; label: string; icon: typeof Brain }[] = [
 ];
 
 const QUICK_PROMPTS = [
-  "Tóm tắt tình hình kinh doanh hôm nay",
-  "Sản phẩm nào cần nhập hàng ngay?",
-  "Khách hàng nào có khả năng mua cao?",
-  "Gợi ý chiến lược bán hàng tuần này",
+  // Kinh doanh
+  "📊 Tóm tắt tình hình kinh doanh hôm nay",
+  "📊 So sánh doanh thu 30 ngày gần nhất với kỳ trước",
+  // Sản phẩm
+  "📦 Sản phẩm nào cần nhập hàng gấp?",
+  "📦 Top sản phẩm bán chạy và chậm nhất",
+  // Khách hàng
+  "👥 Khách hàng nào có khả năng mua cao nhất?",
+  "👥 Phân tích churn risk — ai sắp rời bỏ?",
+  // Hành vi
+  "📈 Funnel conversion 7 ngày — drop-off ở đâu?",
+  "📈 Khách đang tìm kiếm gì nhiều nhất?",
+  // SEO
+  "🔎 Đánh giá SEO toàn diện website hiện tại",
+  "🔎 Trang nào cần tối ưu SEO gấp?",
+  // Quản trị
+  "🛠️ Website cần cải thiện gì ngay bây giờ?",
+  "🛠️ Đề xuất chiến lược tuần này",
 ];
 
 // ─── Main Component ──────────────────────────────────────────

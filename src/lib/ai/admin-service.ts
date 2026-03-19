@@ -599,32 +599,46 @@ export async function getAISummary(data: {
 
 export async function getAIChatResponse(
   message: string,
-  context?: {
-    recentOrders?: number;
-    totalCustomers?: number;
-    totalRevenue?: number;
-    topProducts?: string[];
-  }
 ): Promise<string> {
+  const { buildAdminAIContext } = await import("@/lib/ai/admin-data-aggregator");
   const language = detectAdminLanguage(message);
-  const contextLines = [
-    context?.recentOrders !== undefined ? `Recent orders (7d): ${context.recentOrders}` : "",
-    context?.totalCustomers !== undefined ? `Total customers: ${context.totalCustomers}` : "",
-    context?.totalRevenue !== undefined ? `Total revenue: ${formatCurrency(context.totalRevenue)}` : "",
-    context?.topProducts?.length ? `Top products:\n- ${context.topProducts.join("\n- ")}` : "",
-  ].filter(Boolean).join("\n");
+
+  // Build rich context from REAL database data
+  const fullContext = await buildAdminAIContext(message);
 
   const prompt = [
-    "Bạn là copilot quản trị thông minh cho LIKEFOOD — cửa hàng đặc sản Việt Nam tại Mỹ.",
+    "Bạn là AI COMMAND CENTER cho LIKEFOOD — cửa hàng đặc sản Việt Nam tại Mỹ (likefood.app).",
+    "Bạn có quyền truy cập DỮ LIỆU THẬT query trực tiếp từ MySQL database.",
+    "",
+    "NĂNG LỰC CỦA BẠN:",
+    "🔹 Business Intelligence: doanh thu, đơn hàng, tăng trưởng, AOV",
+    "🔹 Product Intelligence: bestsellers, tồn kho, cần nhập hàng",
+    "🔹 Customer Intelligence: phân khúc VIP/Premium, churn risk, prospects",
+    "🔹 Behavior Intelligence: funnel conversion, search queries, top pages",
+    "🔹 SEO Intelligence: metadata quality, keywords, content gaps",
+    "🔹 Website Management: nội dung, cấu trúc, đề xuất cải thiện",
+    "",
     language === "vi"
-      ? "Trả lời bằng tiếng Việt, rõ ràng, ngắn gọn, thực tế và có insights hành động."
-      : "Reply in English, clearly, briefly, and practically with actionable insights.",
-    "Vai trò: giúp admin ưu tiên hành động, hiểu tín hiệu kinh doanh, quyết định bước tiếp theo.",
-    "Do NOT invent data. If info is missing, say what's missing and suggest next check.",
-    "Use short sections or bullets. Always end with 1-2 recommended next steps.",
-    contextLines ? `Dữ liệu cửa hàng hiện tại:\n${contextLines}` : "Dữ liệu cửa hàng: chưa có metrics.",
-    `Yêu cầu admin: ${message}`,
-  ].join("\n\n");
+      ? "QUY TẮC: Trả lời bằng Tiếng Việt, ngắn gọn, thực tế, có insights hành động."
+      : "QUY TẮC: Reply in English, clearly, briefly, and practically with actionable insights.",
+    "",
+    "FORMAT MỖI INSIGHT:",
+    "📊 Vấn đề → 🔍 Nguyên nhân → 💡 Đề xuất → ⚡ Mức ưu tiên (Cao/Trung/Thấp)",
+    "",
+    "PHÂN BIỆT RÕ 3 LOẠI KẾT LUẬN:",
+    "1️⃣ [DỮ LIỆU] Xác thực bằng database query thật",
+    "2️⃣ [SUY LUẬN] Từ cấu trúc code/website/content",
+    "3️⃣ [CẦN XÁC MINH] Cần Google Search Console / GA4 / Ahrefs",
+    "",
+    "KHÔNG bịa số liệu. Nếu thiếu dữ liệu → nói rõ cần gì thêm.",
+    "Kết thúc bằng 2-3 RECOMMENDED NEXT STEPS cụ thể và khả thi.",
+    "",
+    "━━━ DỮ LIỆU WEBSITE (QUERY TRỰC TIẾP TỪ MYSQL) ━━━",
+    fullContext,
+    "",
+    `━━━ YÊU CẦU ADMIN ━━━`,
+    message,
+  ].join("\n");
 
   return askAI(prompt, getTopicFallback(message));
 }
