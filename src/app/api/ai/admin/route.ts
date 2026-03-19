@@ -42,17 +42,20 @@ async function requireAdminSession() {
 }
 
 export async function GET(req: NextRequest) {
-  // Rate limit: 30/min per admin to protect AI API costs
-  const identifier = getRateLimitIdentifier(req);
-  const rl = await applyRateLimit(identifier, apiRateLimit, { windowMs: 60 * 1000, maxRequests: 30 });
-  if (!rl.success) {
-    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
-  }
-
   try {
+    // Auth check FIRST — admin AI page fires 5+ parallel requests on load
     const session = await requireAdminSession();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Rate limit AFTER auth — higher limit for authenticated admins
+    // Admin dashboard loads 5 parallel requests (analytics, inventory, customers, summary, hot-leads)
+    // → need at least 60/min to avoid 429 on page load + tab switches
+    const identifier = `admin:${session.user.email || getRateLimitIdentifier(req)}`;
+    const rl = await applyRateLimit(identifier, apiRateLimit, { windowMs: 60 * 1000, maxRequests: 120 });
+    if (!rl.success) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
     }
 
     const { searchParams } = new URL(req.url);
