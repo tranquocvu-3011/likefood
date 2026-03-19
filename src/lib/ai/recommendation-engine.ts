@@ -221,6 +221,7 @@ class RecommendationEngine {
       const limit = input.limit || 10;
       const categoryPool = new Set<string>();
       const excludeIds = new Set<string>(input.currentProductId ? [input.currentProductId] : []);
+      const behaviorCategoryBoost = new Map<string, number>(); // category → view count
 
       for (const item of input.cartItems || []) {
         excludeIds.add(String(item.productId));
@@ -240,10 +241,41 @@ class RecommendationEngine {
           where: { id: { in: input.browseHistory.map(Number) } },
           select: { category: true },
         });
-        viewedProducts.forEach((productRecord) => categoryPool.add(productRecord.category));
+        viewedProducts.forEach((productRecord) => {
+          categoryPool.add(productRecord.category);
+          behaviorCategoryBoost.set(productRecord.category, (behaviorCategoryBoost.get(productRecord.category) ?? 0) + 1);
+        });
       }
 
+      // ★ Query BehaviorEvent for real-time behavioral signals (7 days)
       if (input.userId) {
+        try {
+          const behaviorEvents = await prisma.behaviorEvent.findMany({
+            where: {
+              userId: Number(input.userId),
+              eventType: { in: ["product_view", "add_to_cart", "wishlist_add"] },
+              createdAt: { gte: new Date(Date.now() - 7 * 86400000) },
+            },
+            select: { eventType: true, eventData: true },
+            take: 100,
+            orderBy: { createdAt: "desc" },
+          });
+
+          for (const ev of behaviorEvents) {
+            try {
+              const data = typeof ev.eventData === "string" ? JSON.parse(ev.eventData) : ev.eventData;
+              const cat = data?.category as string;
+              const pid = data?.productId;
+              if (cat) {
+                categoryPool.add(cat);
+                const weight = ev.eventType === "add_to_cart" ? 3 : ev.eventType === "wishlist_add" ? 2 : 1;
+                behaviorCategoryBoost.set(cat, (behaviorCategoryBoost.get(cat) ?? 0) + weight);
+              }
+              if (pid) excludeIds.add(String(pid));
+            } catch { /* skip malformed event */ }
+          }
+        } catch { /* BehaviorEvent query failed, continue without it */ }
+
         const pastItems = await prisma.orderitem.findMany({
           where: {
             order: {
@@ -283,22 +315,34 @@ class RecommendationEngine {
           productVariants: { where: { isActive: true } },
           productImages: { orderBy: { order: "asc" }, take: 1, select: { imageUrl: true } },
         },
-        take: limit * 3,
+        take: limit * 4,
         orderBy: [{ soldCount: "desc" }, { ratingAvg: "desc" }],
       });
 
-      const filtered = this.applyPreferenceFilters(candidates as ProductWithRelations[], input.preferences)
-        .slice(0, limit)
-        .map((productRecord, index) => toRecommendation(productRecord, Math.max(0.95 - index * 0.05, 0.5), "Personalized from browsing, cart, and purchase patterns"));
+      // ★ Score with behavioral boost — categories user interacted with more get higher scores
+      const maxBoost = Math.max(...Array.from(behaviorCategoryBoost.values()), 1);
+      const scored = this.applyPreferenceFilters(candidates as ProductWithRelations[], input.preferences)
+        .map((productRecord, index) => {
+          const baseScore = Math.max(0.95 - index * 0.03, 0.3);
+          const catBoost = behaviorCategoryBoost.get(productRecord.category) ?? 0;
+          const behaviorBonus = maxBoost > 0 ? (catBoost / maxBoost) * 0.2 : 0;
+          return toRecommendation(
+            productRecord,
+            baseScore + behaviorBonus,
+            catBoost > 0 ? "Matches your recent browsing interests" : "Personalized from shopping patterns"
+          );
+        })
+        .sort((a, b) => b.score - a.score)
+        .slice(0, limit);
 
-      if (filtered.length === 0) {
+      if (scored.length === 0) {
         return this.getTrendingProducts(limit, input.category);
       }
 
       return {
         type: input.userId ? "personalized" : "based_on_history",
-        products: filtered,
-        reason: "Recommendations are based on the shopper's recent context and store behavior.",
+        products: scored,
+        reason: "Recommendations are based on the shopper's recent behavior, browsing, and purchase patterns.",
       };
     } catch (error) {
       console.error("Error getting personalized recommendations:", error);
@@ -390,16 +434,20 @@ class RecommendationEngine {
 
       const maxScore = rankedIds.length > 0 ? (productScores.get(rankedIds[0]) ?? 1) : 1;
 
+      // ★ Time-seeded shuffle: rotate recommendations every hour
+      const hourSeed = Math.floor(Date.now() / (60 * 60 * 1000));
+      const shuffled = this.seededShuffle(products, hourSeed);
+
       return {
         type: "trending",
-        products: products.map((productRecord) => {
+        products: shuffled.map((productRecord) => {
           const trendScore = productScores.get(productRecord.id) ?? 0;
           const normalizedScore = maxScore > 0 ? Math.max(trendScore / maxScore, 0.3) : 0.5;
           return toRecommendation(productRecord, normalizedScore, "Trending with strong recent demand");
         }),
         reason: category
-          ? `Trending picks from ${category} (based on last 30-day orders).`
-          : "Trending picks across the store (based on last 30-day orders).",
+          ? `Trending picks from ${category} (based on last 30-day orders, refreshed hourly).`
+          : "Trending picks across the store (based on last 30-day orders, refreshed hourly).",
       };
     } catch (error) {
       console.error("Error getting trending products:", error);
@@ -551,6 +599,22 @@ class RecommendationEngine {
       products: [],
       reason: `${reason} Requested limit: ${limit}.`,
     };
+  }
+
+  /**
+   * Deterministic shuffle based on a seed (e.g., hour of the day).
+   * Same seed → same order, different seed → different order.
+   * This makes recommendations rotate hourly while staying consistent within the hour.
+   */
+  private seededShuffle<T>(array: T[], seed: number): T[] {
+    const result = [...array];
+    let s = seed;
+    for (let i = result.length - 1; i > 0; i--) {
+      s = ((s * 1103515245 + 12345) & 0x7fffffff);
+      const j = s % (i + 1);
+      [result[i], result[j]] = [result[j], result[i]];
+    }
+    return result;
   }
 }
 

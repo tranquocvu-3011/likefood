@@ -48,12 +48,29 @@ export default function PersonalizedRecommendationsSection() {
       try {
         setIsLoading(true);
 
+        // Read browse history from localStorage (recentlyViewed products)
+        let browseHistory: string[] = [];
+        try {
+          const stored = localStorage.getItem("recentlyViewed");
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            browseHistory = Array.isArray(parsed)
+              ? parsed.map((p: { id?: number; productId?: number }) => String(p.id || p.productId)).filter(Boolean).slice(0, 20)
+              : [];
+          }
+        } catch { /* ignore */ }
+
         if (session?.user?.id) {
-          // Personalized for logged-in users — limit 6
+          // Personalized for logged-in users — pass browseHistory for dynamic results
           const res = await fetch("/api/recommendations/personalized", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userId: Number(session.user.id), limit: 6 }),
+            body: JSON.stringify({
+              userId: Number(session.user.id),
+              browseHistory,
+              limit: 6,
+              _t: Date.now(), // cache-bust for fresh results
+            }),
           });
           if (res.ok) {
             const data = await res.json();
@@ -66,8 +83,8 @@ export default function PersonalizedRecommendationsSection() {
           }
         }
 
-        // Fallback: trending products — limit 6
-        const res = await fetch("/api/recommendations/products?type=trending&limit=6");
+        // Fallback: trending products with time-seed for rotation
+        const res = await fetch(`/api/recommendations/products?type=trending&limit=6&_t=${Date.now()}`);
         if (res.ok) {
           const data = await res.json();
           setProducts((data.products ?? []).slice(0, 6));
@@ -82,6 +99,10 @@ export default function PersonalizedRecommendationsSection() {
     };
 
     fetchRecommendations();
+
+    // Auto-refresh every 5 minutes for dynamic rotation
+    const interval = setInterval(fetchRecommendations, 5 * 60 * 1000);
+    return () => clearInterval(interval);
   }, [session?.user?.id, t]);
 
   if (!isLoading && products.length === 0) return null;
