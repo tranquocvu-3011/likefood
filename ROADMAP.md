@@ -8,39 +8,51 @@ Xây dựng LIKEFOOD thành nền tảng thương mại điện tử đặc sả
 
 ## Đã Hoàn Thành ✅
 
+### v1.1.0 (Q1/2026) — Mobile & AI Streaming
+
+- ✅ Admin AI Chat SSE Streaming (real-time response, 6 domains intelligence)
+- ✅ Mobile UI optimization (sidebar giảm 40%, horizontal scroll categories)
+- ✅ Touch swipe cho Featured Products trên mobile
+- ✅ Combo grid 3 cột trên mobile
+- ✅ Dynamic product recommendations (behavior-based, auto-refresh)
+- ✅ Blog improvements (single page, date-only display)
+- ✅ Admin dark theme consistency
+- ✅ Bug fixes (OrderItem, AI shipping, TypeScript errors)
+
 ### v1.0.0 (Q1/2026) — Nền tảng cốt lõi
 
 - ✅ Hệ thống e-commerce đầy đủ (sản phẩm, giỏ hàng, checkout, đơn hàng)
-- ✅ AI Chatbot GPT-4o (tư vấn, tra cứu, hỏi đáp)
+- ✅ AI Chatbot GPT-4o (tư vấn, tra cứu, hỏi đáp) — SSE streaming
 - ✅ Thanh toán Stripe + COD + chuyển khoản
-- ✅ Đa ngôn ngữ (VI/EN)
-- ✅ Flash Sale campaigns
-- ✅ Loyalty & Referral system
-- ✅ Admin Dashboard toàn diện
-- ✅ AI Command Center (Insights, Trends, Prospects)
+- ✅ Đa ngôn ngữ (VI/EN) + SEO hreflang
+- ✅ Flash Sale campaigns + countdown timer
+- ✅ Loyalty & Referral system (tích điểm, check-in, referral commission)
+- ✅ Admin Dashboard (AI Command Center, analytics, prospects)
 - ✅ Live Chat + Telegram integration
-- ✅ Email marketing automation
-- ✅ PWA support
-- ✅ Docker deployment
+- ✅ Email marketing automation (welcome, abandoned cart, re-engagement)
+- ✅ PWA support (Service Worker, Web Manifest)
+- ✅ Docker deployment + Nginx + PM2
 - ✅ 212 tests (Vitest + Playwright)
+- ✅ 600+ source files, 173 API routes, 129 components, 75 pages, 43 DB models
 
 ---
 
 ## Đang Phát Triển 🚧
 
-### v1.1.0 (Q2/2026) — Tối ưu & Mở rộng
+### v1.2.0 (Q2/2026) — Tối ưu & Mở rộng
 
 - 🚧 Thêm phương thức thanh toán (Momo, ZaloPay, VNPay)
 - 🚧 Push notifications (Web Push API)
-- 🚧 Product bundling & combo deals
 - 🚧 Advanced search (Elasticsearch/Meilisearch)
 - 🚧 A/B testing framework cho marketing campaigns
+- 🚧 Performance optimization (ISR, edge caching)
+- 🚧 Product bundling & combo deals
 
 ---
 
 ## Kế Hoạch Tương Lai 📋
 
-### v1.2.0 (Q3/2026) — AI Enhancement
+### v1.3.0 (Q3/2026) — AI Enhancement
 
 - 📋 AI-powered product photography (tự động xóa nền, tạo ảnh marketing)
 - 📋 Personalized recommendation engine (collaborative filtering)
@@ -48,7 +60,7 @@ Xây dựng LIKEFOOD thành nền tảng thương mại điện tử đặc sả
 - 📋 AI-powered pricing optimization
 - 📋 Sentiment analysis cho reviews
 
-### v1.3.0 (Q4/2026) — Social & Community
+### v1.4.0 (Q4/2026) — Social & Community
 
 - 📋 Social shopping features (share, like, follow shops)
 - 📋 User-generated content (recipes, food stories)

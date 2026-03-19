@@ -5,6 +5,31 @@ Tất cả thay đổi đáng chú ý của dự án LIKEFOOD sẽ được ghi 
 Định dạng dựa theo [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-03-19
+
+### Added
+- 🤖 **Admin AI Chat Streaming** — SSE endpoint mới (`/api/ai/admin/stream`), response real-time
+- 📱 **Mobile Touch Swipe** — Vuốt trái/phải cho Featured Products trên mobile
+- 📞 **Hotline 24/7** — Hiển thị trực tiếp trong mobile sidebar
+- 🔄 **Dynamic Product Recommendations** — Gợi ý sản phẩm thay đổi theo hành vi user, auto-refresh 5 phút
+
+### Improved
+- 📱 **Mobile Sidebar** — Giảm 40% items, bỏ trùng lặp với bottom nav (Home, Products, Wishlist)
+- 🏷️ **Categories UI** — Đổi từ grid 4 cột sang horizontal scroll chips
+- 🎁 **Combo Suggestions** — Grid 3 cột trên mobile
+- ⚡ **Flash Sale Icon** — Highlight màu đỏ nổi bật
+- 📝 **Blog Posts** — Xóa relative time, chỉ hiển thị ngày đăng
+- 📄 **Posts Page** — Hiển thị tất cả bài viết trên 1 trang (bỏ pagination)
+- 🏷️ **i18n** — Sửa "Gợi ý sản phẩm" → "Sản phẩm nổi bật"
+- 📊 **Admin AI** — Nâng cấp system prompt cho 6 domains intelligence
+
+### Fixed
+- 🐛 Fix admin input dark theme consistency
+- 🐛 Fix OrderItem model Prisma accessor
+- 🐛 Fix AI hardcoded shipping fees
+- 🐛 Fix TypeScript errors in AI chat routes
+
+
 ## [1.0.0] - 2026-03-18
 
 ### Added
@@ -138,6 +163,7 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Database schema design (43 models)
 - Authentication system (NextAuth.js)
 
+[1.1.0]: https://github.com/tranquocvu-3011/likefood/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/tranquocvu-3011/likefood/releases/tag/v1.0.0
 [0.9.0]: https://github.com/tranquocvu-3011/likefood/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/tranquocvu-3011/likefood/compare/v0.7.0...v0.8.0
