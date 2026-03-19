@@ -172,7 +172,7 @@ export default async function Home() {
 
         {/* Section 3: Product Suggestions - Streaming with Skeleton */}
         {show("featured-products") && (
-        <section aria-label="Gợi ý sản phẩm">
+        <section aria-label="Sản phẩm nổi bật">
         <Suspense fallback={
           <div className="w-full px-4 sm:px-6 lg:px-[6%] py-20">
             <div className="mb-12 text-center">

@@ -71,7 +71,7 @@ export default function PersonalizedRecommendationsSection() {
         if (res.ok) {
           const data = await res.json();
           setProducts((data.products ?? []).slice(0, 6));
-          setTitle(t("home.featuredProducts"));
+          setTitle(t("home.trendingProducts"));
           setSubtitle(t("home.mostLovedWeek"));
         }
       } catch {
