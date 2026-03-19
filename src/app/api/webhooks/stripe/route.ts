@@ -78,7 +78,7 @@ export async function POST(req: Request) {
                 const metadata = session.metadata || {};
 
                 // Check if this session has checkout data (new flow)
-                if (metadata.userId && metadata.items) {
+                if (metadata.userId && (metadata.items || metadata.itemChunks)) {
                     await handleCheckoutCompleted(session, metadata);
                 } else {
                     // Legacy flow: orderId-based (backward compatibility)
