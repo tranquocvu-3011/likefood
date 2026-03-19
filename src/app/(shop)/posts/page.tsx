@@ -41,18 +41,14 @@ export default function PostsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState(t("shop.postCatAll"));
-    const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
-    const POSTS_PER_PAGE = 9;
 
     useEffect(() => {
         const fetchPosts = async () => {
             setIsLoading(true);
             try {
-                const res = await fetch(`/api/posts?limit=${POSTS_PER_PAGE}&page=${currentPage}`);
+                const res = await fetch(`/api/posts?limit=1000`);
                 const data = await res.json();
                 setPosts(data.posts || []);
-                setTotalPages(data.pagination?.totalPages || 1);
             } catch (error) {
                 console.error("Fetch posts error:", error);
             } finally {
@@ -60,7 +56,7 @@ export default function PostsPage() {
             }
         };
         fetchPosts();
-    }, [currentPage]);
+    }, []);
 
     const filteredPosts = useMemo(() => {
         return posts.filter(post => {
@@ -236,44 +232,6 @@ export default function PostsPage() {
                             ))}
                         </AnimatePresence>
                     </div>
-
-                    {/* Pagination */}
-                    {totalPages > 1 && (
-                        <div className="flex items-center justify-center gap-2 mt-12">
-                            <button
-                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                disabled={currentPage === 1}
-                                className="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors text-sm font-medium"
-                            >
-                                {isVi ? "← Trước" : "← Previous"}
-                            </button>
-                            <div className="flex items-center gap-1">
-                                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                    const page = i + 1;
-                                    return (
-                                        <button
-                                            key={page}
-                                            onClick={() => setCurrentPage(page)}
-                                            className={`w-10 h-10 rounded-xl text-sm font-bold transition-colors ${
-                                                currentPage === page 
-                                                    ? "bg-primary text-white" 
-                                                    : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                                            }`}
-                                        >
-                                            {page}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                            <button
-                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                disabled={currentPage === totalPages}
-                                className="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors text-sm font-medium"
-                            >
-                                {isVi ? "Sau →" : "Next →"}
-                            </button>
-                        </div>
-                    )}
                     </>
                 )}
 

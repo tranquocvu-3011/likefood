@@ -10,7 +10,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Calendar, ArrowRight, Clock, BookOpen } from "lucide-react";
+import { Calendar, ArrowRight, BookOpen } from "lucide-react";
 import { motion } from "framer-motion";
 import { logger } from "@/lib/logger";
 import { useLanguage } from "@/lib/i18n/context";
@@ -152,7 +152,6 @@ export default function RecentPosts() {
 /* ── Compact Post Card (horizontal, nhỏ gọn) ── */
 function CompactPostCard({ post, language, t }: { post: Post; language: string; t: (key: string) => string }) {
     const cat = getCategoryStyle(post.category);
-    const mins = readingTime(post.content, post.summary);
 
     return (
         <Link
@@ -196,10 +195,6 @@ function CompactPostCard({ post, language, t }: { post: Post; language: string; 
                         <span className="flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
                             {new Date(post.publishedAt).toLocaleDateString(language === "vi" ? "vi-VN" : "en-US", { day: "2-digit", month: "2-digit", year: "numeric" })}
-                        </span>
-                        <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {mins} {t("shopPage.minuteShort")}
                         </span>
                     </div>
                     <span className="flex items-center gap-1 text-primary font-bold text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">

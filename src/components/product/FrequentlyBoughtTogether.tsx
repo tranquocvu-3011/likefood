@@ -156,25 +156,25 @@ export default function FrequentlyBoughtTogether({ currentProduct }: FrequentlyB
                 </div>
             </div>
 
-            <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl lg:flex items-center gap-12">
-                {/* Product List */}
-                <div className="flex-1 flex flex-wrap items-center justify-center lg:justify-start gap-6">
-                    {/* Current Product (Fixed - show full name + price) */}
-                    <div className="relative group grayscale-0 opacity-100 transition-all duration-300">
-                        <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-3xl overflow-hidden bg-slate-50 border border-slate-100 relative shadow-sm">
+            <div className="bg-white p-4 sm:p-8 rounded-[2rem] sm:rounded-[3rem] border border-slate-100 shadow-xl lg:flex items-center gap-12">
+                {/* Product List — 3-col grid on mobile, flex-wrap on desktop */}
+                <div className="flex-1 grid grid-cols-3 sm:flex sm:flex-wrap items-start sm:items-center justify-items-center sm:justify-center lg:justify-start gap-3 sm:gap-6">
+                    {/* Current Product */}
+                    <div className="relative group">
+                        <div className="w-24 h-24 sm:w-40 sm:h-40 rounded-2xl sm:rounded-3xl overflow-hidden bg-slate-50 border border-slate-100 relative shadow-sm">
                             <ImageWithFallback
                                 src={currentProduct.image}
                                 alt={currentProduct.name}
                                 fill
                                 className="object-cover"
-                                sizes="(max-width: 640px) 128px, 160px"
+                                sizes="(max-width: 640px) 96px, 160px"
                             />
-                            <div className="absolute top-2 right-2 w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center border-2 border-white shadow-lg">
-                                <Check className="w-3 h-3" />
+                            <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-5 h-5 sm:w-6 sm:h-6 bg-primary text-white rounded-full flex items-center justify-center border-2 border-white shadow-lg">
+                                <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                             </div>
                         </div>
-                        <div className="mt-3 text-center w-32 sm:w-40">
-                            <p className="text-[10px] font-black uppercase text-slate-900 truncate">{currentProduct.name}</p>
+                        <div className="mt-2 sm:mt-3 text-center w-24 sm:w-40">
+                            <p className="text-[9px] sm:text-[10px] font-black uppercase text-slate-900 truncate">{currentProduct.name}</p>
                             <PriceDisplay
                                 currentPrice={currentPrice}
                                 originalPrice={currentProduct.originalPrice && currentProduct.originalPrice > currentPrice ? currentProduct.originalPrice : undefined}
@@ -188,29 +188,30 @@ export default function FrequentlyBoughtTogether({ currentProduct }: FrequentlyB
                     </div>
 
                     {recommended.map((product) => (
-                        <div key={product.id} className="flex items-center gap-6">
-                            <div className="text-slate-200 text-3xl font-black">+</div>
+                        <div key={product.id} className="flex items-center gap-3 sm:gap-6">
+                            {/* Plus sign — hidden on mobile grid, visible on desktop flex */}
+                            <div className="hidden sm:block text-slate-200 text-3xl font-black">+</div>
                             <div
                                 className={`relative group cursor-pointer transition-all duration-500 ${selectedIds.includes(product.id) ? "grayscale-0 opacity-100" : "grayscale opacity-40 hover:opacity-70"
                                     }`}
                                 onClick={() => toggleSelection(String(product.id))}
                             >
-                                <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-3xl overflow-hidden bg-slate-50 border border-slate-100 relative shadow-md group-hover:shadow-xl transition-all">
+                                <div className="w-24 h-24 sm:w-40 sm:h-40 rounded-2xl sm:rounded-3xl overflow-hidden bg-slate-50 border border-slate-100 relative shadow-md group-hover:shadow-xl transition-all">
                                     <ImageWithFallback
                                         src={product.image}
                                         alt={product.name}
                                         fill
                                         className="object-cover"
-                                        sizes="(max-width: 640px) 128px, 160px"
+                                        sizes="(max-width: 640px) 96px, 160px"
                                     />
                                     {selectedIds.includes(product.id) && (
-                                        <div className="absolute top-2 right-2 w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center border-2 border-white shadow-lg animate-in zoom-in-50 duration-300">
-                                            <Check className="w-3 h-3" />
+                                        <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-5 h-5 sm:w-6 sm:h-6 bg-primary text-white rounded-full flex items-center justify-center border-2 border-white shadow-lg animate-in zoom-in-50 duration-300">
+                                            <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                                         </div>
                                     )}
                                 </div>
-                                <div className="mt-3 text-center w-32 sm:w-40">
-                                    <p className="text-[10px] font-black uppercase text-slate-900 truncate">{product.name}</p>
+                                <div className="mt-2 sm:mt-3 text-center w-24 sm:w-40">
+                                    <p className="text-[9px] sm:text-[10px] font-black uppercase text-slate-900 truncate">{product.name}</p>
                                     <PriceDisplay
                                         currentPrice={getEffectivePrice(product)}
                                         originalPrice={product.originalPrice && product.originalPrice > getEffectivePrice(product) ? product.originalPrice : undefined}

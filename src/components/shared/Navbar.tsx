@@ -155,10 +155,8 @@ function NavbarContent() {
     ];
 
     const mobilePrimaryLinks = [
-        { label: t("common.home"), href: "/", icon: <Home className="w-5 h-5" /> },
-        { label: t("common.products"), href: "/products", icon: <ShoppingBag className="w-5 h-5" /> },
         { label: t("common.about"), href: "/about", icon: <Info className="w-5 h-5" /> },
-        { label: t("common.flashSale"), href: "/flash-sale", icon: <Flame className="w-5 h-5" /> },
+        { label: t("common.flashSale"), href: "/flash-sale", icon: <Flame className="w-5 h-5 text-red-500" />, highlight: true },
         { label: t("navbar.voucher"), href: "/vouchers", icon: <Gift className="w-5 h-5 text-primary" /> },
         { label: t("navbar.posts"), href: "/posts", icon: <FileText className="w-5 h-5 text-emerald-500" /> },
         { label: t("common.faq"), href: "/faq", icon: <HelpCircle className="w-5 h-5 text-sky-500" /> },
@@ -167,7 +165,6 @@ function NavbarContent() {
 
     const mobileAccountLinks = [
         { label: t("navbar.orderHistory"), href: "/profile/orders", icon: <ShoppingCart className="w-5 h-5" /> },
-        { label: t("navbar.wishlist"), href: "/profile/wishlist", icon: <Heart className="w-5 h-5 text-rose-500" /> },
         { label: t("navbar.referral"), href: "/profile/referrals", icon: <UserPlus className="w-5 h-5 text-emerald-500" /> },
         { label: t("navbar.myVouchers"), href: "/profile/vouchers", icon: <Gift className="w-5 h-5 text-primary" /> },
         { label: t("navbar.accountSettings"), href: "/profile", icon: <Settings className="w-5 h-5 text-slate-600" /> },
@@ -723,29 +720,27 @@ function NavbarContent() {
                                         </form>
                                     </motion.div>
 
-                                    {/* Popular Categories Grid - Refined */}
-                                    <div className="space-y-3">
+                                    {/* Popular Categories — Horizontal scroll chips */}
+                                    <div className="space-y-2">
                                         <div className="flex items-center justify-between px-1">
                                             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{t("navbar.featuredCategories")}</h3>
                                             <Link href="/products" className="text-[10px] font-bold text-primary" onClick={() => setIsOpen(false)}>{t("common.viewAll")}</Link>
                                         </div>
-                                        <div className="grid grid-cols-4 gap-2">
+                                        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
                                             {featuredCategories.map((cat, idx) => (
                                                 <motion.div
                                                     key={cat.name}
-                                                    initial={{ opacity: 0, scale: 0.9 }}
-                                                    animate={{ opacity: 1, scale: 1 }}
+                                                    initial={{ opacity: 0, x: -10 }}
+                                                    animate={{ opacity: 1, x: 0 }}
                                                     transition={{ delay: 0.2 + idx * 0.05 }}
                                                 >
                                                     <Link
                                                         href={cat.href}
                                                         onClick={() => setIsOpen(false)}
-                                                        className="flex flex-col items-center gap-2 group"
+                                                        className={`flex items-center gap-2 px-3.5 py-2.5 ${cat.color} rounded-2xl border border-transparent hover:border-primary/20 transition-all shadow-sm whitespace-nowrap`}
                                                     >
-                                                        <div className={`w-full aspect-square flex items-center justify-center rounded-2xl ${cat.color} border border-transparent group-hover:border-primary/20 transition-all shadow-sm`}>
-                                                            <span className="text-xl">{cat.icon}</span>
-                                                        </div>
-                                                        <span className="text-[9px] font-black text-slate-600 line-clamp-1">{cat.name}</span>
+                                                        <span className="text-base">{cat.icon}</span>
+                                                        <span className="text-[11px] font-bold text-slate-700">{cat.name}</span>
                                                     </Link>
                                                 </motion.div>
                                             ))}
@@ -799,6 +794,23 @@ function NavbarContent() {
                                         <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">{t("navbar.language") || "Ngôn ngữ / Language"}</span>
                                         <LanguageToggle />
                                     </div>
+
+                                    {/* Hotline trực tiếp */}
+                                    <motion.a
+                                        href={`tel:${supportPhone}`}
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        transition={{ delay: 0.55 }}
+                                        className="flex items-center gap-3 p-3 bg-emerald-50 border border-emerald-100 rounded-2xl"
+                                    >
+                                        <div className="w-9 h-9 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-sm">
+                                            <Phone className="w-4 h-4" />
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-black uppercase tracking-wider text-emerald-600">Hotline 24/7</p>
+                                            <p className="text-[13px] font-bold text-emerald-800">{supportPhone}</p>
+                                        </div>
+                                    </motion.a>
 
                                     {/* Auth Actions for Mobile */}
                                     {!session && (

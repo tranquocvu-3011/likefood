@@ -147,6 +147,32 @@ export default function FeaturedStickyShowcase({ products: initialProducts }: Fe
         };
     }, [isMobile, prevStep, nextStep]);
 
+    // ── Touch swipe support for mobile ──
+    const touchStartX = useRef<number | null>(null);
+    const touchStartY = useRef<number | null>(null);
+
+    const handleTouchStart = useCallback((e: React.TouchEvent) => {
+        touchStartX.current = e.touches[0].clientX;
+        touchStartY.current = e.touches[0].clientY;
+    }, []);
+
+    const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+        if (touchStartX.current === null || touchStartY.current === null) return;
+        const deltaX = e.changedTouches[0].clientX - touchStartX.current;
+        const deltaY = e.changedTouches[0].clientY - touchStartY.current;
+        touchStartX.current = null;
+        touchStartY.current = null;
+
+        // Only trigger if horizontal swipe is dominant and exceeds threshold
+        if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
+            if (deltaX < 0) {
+                nextStep(); // Swipe left → next
+            } else {
+                prevStep(); // Swipe right → prev
+            }
+        }
+    }, [nextStep, prevStep]);
+
     if (initialProducts.length === 0) return null;
 
     const prevIndex = (currentIndex - 1 + initialProducts.length) % initialProducts.length;
@@ -160,6 +186,8 @@ export default function FeaturedStickyShowcase({ products: initialProducts }: Fe
                 background: 'linear-gradient(135deg, #f0fdf4 0%, #f9f7f4 30%, #fef3c7 50%, #f9f7f4 70%, #ecfdf5 100%)',
                 minHeight: 'clamp(420px, 55vh, 600px)',
             }}
+            onTouchStart={isMobile ? handleTouchStart : undefined}
+            onTouchEnd={isMobile ? handleTouchEnd : undefined}
         >
             {/* Subtle dot pattern */}
             <div className="absolute inset-0 z-0 opacity-[0.04] pointer-events-none">

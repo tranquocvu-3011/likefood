@@ -340,20 +340,80 @@ export default function AICommandCenter() {
     if (!message || isSending) return;
 
     const userMessage: Message = { id: `${Date.now()}-u`, role: "user", content: message };
+    const aiMessageId = `${Date.now()}-a`;
     setMessages((prev) => [...prev, userMessage]);
     setChatInput("");
     setIsSending(true);
 
+    // Create placeholder AI message for streaming
+    setMessages((prev) => [...prev, { id: aiMessageId, role: "assistant", content: "" }]);
+
     try {
-      const response = await fetch("/api/ai/admin", {
+      const response = await fetch("/api/ai/admin/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "chat", message }),
+        body: JSON.stringify({ message }),
       });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data?.error || "Lỗi kết nối AI.");
-      setMessages((prev) => [...prev, { id: `${Date.now()}-a`, role: "assistant", content: data.response || "Không có phản hồi." }]);
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data?.error || "Lỗi kết nối AI.");
+      }
+
+      if (response.body) {
+        const decoder = new TextDecoder();
+        const reader = response.body.getReader();
+        let fullContent = "";
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const text = decoder.decode(value);
+            const lines = text.split("\n");
+
+            for (const line of lines) {
+              const trimmedLine = line.trim();
+              if (!trimmedLine || trimmedLine === "data:") continue;
+
+              if (trimmedLine.startsWith("data: ")) {
+                try {
+                  const dataStr = trimmedLine.slice(6);
+                  const evt = JSON.parse(dataStr);
+                  const content = evt?.data?.content || evt?.content || "";
+                  if (content) {
+                    fullContent = content;
+                    setMessages((prev) =>
+                      prev.map((m) => m.id === aiMessageId ? { ...m, content: fullContent } : m)
+                    );
+                  }
+                } catch { /* skip invalid JSON */ }
+              }
+            }
+          }
+        } catch { /* stream ended */ }
+
+        // Ensure final message is set
+        if (fullContent) {
+          setMessages((prev) =>
+            prev.map((m) => m.id === aiMessageId ? { ...m, content: fullContent } : m)
+          );
+        } else {
+          // Fallback: remove empty placeholder
+          setMessages((prev) => prev.filter((m) => m.id !== aiMessageId));
+          setMessages((prev) => [...prev, { id: aiMessageId, role: "assistant", content: "Không có phản hồi." }]);
+        }
+      } else {
+        // Fallback to JSON response
+        const data = await response.json().catch(() => ({}));
+        setMessages((prev) =>
+          prev.map((m) => m.id === aiMessageId ? { ...m, content: data.response || data.content || "Không có phản hồi." } : m)
+        );
+      }
     } catch (e) {
+      // Remove empty placeholder and show error
+      setMessages((prev) => prev.filter((m) => m.id !== aiMessageId));
       toast.error(e instanceof Error ? e.message : "Lỗi kết nối AI.");
     } finally {
       setIsSending(false);
