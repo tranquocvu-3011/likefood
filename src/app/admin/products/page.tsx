@@ -6,6 +6,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { 
@@ -66,9 +67,11 @@ const STATUS_CONFIG = [
 ];
 
 export default function AdminProductsPage() {
+  const searchParams = useSearchParams();
+  const initialPage = Number(searchParams.get("page")) || 1;
   const [products, setProducts] = useState<Product[]>([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(initialPage);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
   const [stockFilter, setStockFilter] = useState("ALL");
@@ -459,7 +462,7 @@ export default function AdminProductsPage() {
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-1">
                           <Link 
-                            href={`/admin/products/${product.id}/edit`}
+                            href={`/admin/products/${product.id}/edit?returnPage=${page}`}
                             className="p-2 rounded-md text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 transition-colors"
                           >
                             <Edit className="h-4 w-4" />
@@ -486,42 +489,59 @@ export default function AdminProductsPage() {
         </div>
 
         {/* Pagination */}
-        {total > PAGE_SIZE && (
-          <div className="flex items-center justify-between border-t border-zinc-700/50 px-4 py-3">
-            <p className="text-xs text-zinc-500">
-              Showing {((page - 1) * PAGE_SIZE) + 1} to {Math.min(page * PAGE_SIZE, total)} of {total} products
-            </p>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="h-8 w-8 rounded-md border border-zinc-700 bg-zinc-900 text-zinc-500 hover:text-zinc-300 disabled:opacity-40"
-              >
-                ←
-              </button>
-              {Array.from({ length: Math.min(5, Math.ceil(total / PAGE_SIZE)) }, (_, i) => (
+        {total > PAGE_SIZE && (() => {
+          const totalPages = Math.ceil(total / PAGE_SIZE);
+          const getVisiblePages = () => {
+            const pages: number[] = [];
+            const delta = 2;
+            const start = Math.max(1, page - delta);
+            const end = Math.min(totalPages, page + delta);
+            if (start > 1) { pages.push(1); if (start > 2) pages.push(-1); }
+            for (let i = start; i <= end; i++) pages.push(i);
+            if (end < totalPages) { if (end < totalPages - 1) pages.push(-1); pages.push(totalPages); }
+            return pages;
+          };
+          return (
+            <div className="flex items-center justify-between border-t border-zinc-700/50 px-4 py-3">
+              <p className="text-xs text-zinc-500">
+                Showing {((page - 1) * PAGE_SIZE) + 1} to {Math.min(page * PAGE_SIZE, total)} of {total} products
+              </p>
+              <div className="flex items-center gap-1">
                 <button
-                  key={i}
-                  onClick={() => setPage(i + 1)}
-                  className={`h-8 w-8 rounded-md text-xs font-medium ${
-                    page === i + 1 
-                      ? 'bg-teal-600 text-white' 
-                      : 'border border-zinc-700 bg-zinc-900 text-zinc-400 hover:text-zinc-200'
-                  }`}
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="h-8 w-8 rounded-md border border-zinc-700 bg-zinc-900 text-zinc-500 hover:text-zinc-300 disabled:opacity-40"
                 >
-                  {i + 1}
+                  ←
                 </button>
-              ))}
-              <button
-                onClick={() => setPage(p => Math.min(Math.ceil(total / PAGE_SIZE), p + 1))}
-                disabled={page >= Math.ceil(total / PAGE_SIZE)}
-                className="h-8 w-8 rounded-md border border-zinc-700 bg-zinc-900 text-zinc-500 hover:text-zinc-300 disabled:opacity-40"
-              >
-                →
-              </button>
+                {getVisiblePages().map((p, idx) =>
+                  p === -1 ? (
+                    <span key={`ellipsis-${idx}`} className="h-8 w-6 flex items-center justify-center text-zinc-500 text-xs">…</span>
+                  ) : (
+                    <button
+                      key={p}
+                      onClick={() => setPage(p)}
+                      className={`h-8 w-8 rounded-md text-xs font-medium ${
+                        page === p
+                          ? 'bg-teal-600 text-white'
+                          : 'border border-zinc-700 bg-zinc-900 text-zinc-400 hover:text-zinc-200'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  )
+                )}
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages}
+                  className="h-8 w-8 rounded-md border border-zinc-700 bg-zinc-900 text-zinc-500 hover:text-zinc-300 disabled:opacity-40"
+                >
+                  →
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
     </div>
   );

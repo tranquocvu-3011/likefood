@@ -30,7 +30,7 @@ import {
   Users,
   X,
   Zap,
-  File,
+
   Shield,
   Star,
   BarChart3,
@@ -110,9 +110,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { id: "cms", label: "Trang & Nội dung", href: "/admin/cms", icon: Paintbrush },
       { id: "posts", label: "Bài viết", href: "/admin/posts", icon: FileText },
-      { id: "pages", label: "Trang động", href: "/admin/pages", icon: File },
       { id: "knowledge", label: "AI Knowledge", href: "/admin/knowledge", icon: BookOpen },
-      { id: "menu", label: "Menu", href: "/admin/menu", icon: Menu },
       { id: "homepage", label: "Trang chủ", href: "/admin/homepage", icon: Layout },
     ],
   },

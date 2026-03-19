@@ -16,8 +16,8 @@ import { notifyContactMessage } from "@/lib/telegram";
 
 export async function POST(req: Request) {
     try {
-        const identifier = getRateLimitIdentifier(req);
-        const rateLimit = await applyRateLimit(identifier, null, { windowMs: 60 * 1000, maxRequests: 5 });
+        const identifier = `contact:${getRateLimitIdentifier(req)}`;
+        const rateLimit = await applyRateLimit(identifier, null, { windowMs: 60 * 1000, maxRequests: 20 });
 
         if (!rateLimit.success && rateLimit.error) {
             return rateLimit.error;

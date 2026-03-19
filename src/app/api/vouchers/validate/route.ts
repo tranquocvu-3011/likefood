@@ -13,7 +13,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
-import { applyRateLimit, apiRateLimit, getRateLimitIdentifier } from "@/lib/ratelimit";
+import { applyRateLimit, apiRateLimit } from "@/lib/ratelimit";
 import { formatPrice } from "@/lib/currency";
 
 const roundUsd = (amount: number) => Math.round(amount * 100) / 100;
@@ -28,8 +28,9 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const identifier = getRateLimitIdentifier(request);
-        const rl = await applyRateLimit(identifier, apiRateLimit, { windowMs: 60000, maxRequests: 10 });
+        // Use user ID as identifier to avoid shared IP rate limiting behind proxy
+        const identifier = `voucher-validate:user:${session.user.id}`;
+        const rl = await applyRateLimit(identifier, apiRateLimit, { windowMs: 60000, maxRequests: 30 });
         if (!rl.success) return rl.error as unknown as NextResponse;
 
         const { code, orderTotal } = await request.json();

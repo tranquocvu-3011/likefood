@@ -8,7 +8,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import ProductEditor from "@/components/admin/ProductEditor";
@@ -51,6 +51,8 @@ export default function EditProductPage() {
   const params = useParams();
   const router = useRouter();
   const productId = params?.id as string;
+  const searchParams = useSearchParams();
+  const returnPage = searchParams.get("returnPage") || "1";
   const [isLoading, setIsLoading] = useState(true);
   const [product, setProduct] = useState(EMPTY_PRODUCT);
   const [variants, setVariants] = useState<VariantRecord[]>([]);
@@ -105,7 +107,7 @@ export default function EditProductPage() {
         }
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Không thể tải sản phẩm.");
-        router.push("/admin/products");
+        router.push(`/admin/products?page=${returnPage}`);
       } finally {
         setIsLoading(false);
       }
@@ -144,7 +146,7 @@ export default function EditProductPage() {
         }
 
         toast.success("Đã cập nhật sản phẩm.");
-        router.refresh();
+        router.push(`/admin/products?page=${returnPage}`);
       }}
       onDelete={async () => {
         const response = await fetch(`/api/products?id=${productId}`, { method: "DELETE" });
@@ -155,7 +157,7 @@ export default function EditProductPage() {
         }
 
         toast.success("Đã xóa sản phẩm.");
-        router.push("/admin/products");
+        router.push(`/admin/products?page=${returnPage}`);
       }}
     />
   );

@@ -436,45 +436,59 @@ export default function AdminOrdersPage() {
         </div>
 
         {/* Pagination */}
-        {total > PAGE_SIZE && (
-          <div className="flex items-center justify-between border-t border-zinc-700/50 px-4 py-3">
-            <p className="text-xs text-zinc-500">
-              Showing {((page - 1) * PAGE_SIZE) + 1} to {Math.min(page * PAGE_SIZE, total)} of {total} orders
-            </p>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="h-8 w-8 rounded-md border border-zinc-700 bg-zinc-900 text-zinc-500 hover:text-zinc-300 disabled:opacity-40"
-              >
-                ←
-              </button>
-              {Array.from({ length: Math.min(5, Math.ceil(total / PAGE_SIZE)) }, (_, i) => {
-                const pageNum = i + 1;
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => setPage(pageNum)}
-                    className={`h-8 w-8 rounded-md text-xs font-medium ${
-                      page === pageNum 
-                        ? 'bg-teal-600 text-white' 
-                        : 'border border-zinc-700 bg-zinc-900 text-zinc-400 hover:text-zinc-200'
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                );
-              })}
-              <button
-                onClick={() => setPage(p => Math.min(Math.ceil(total / PAGE_SIZE), p + 1))}
-                disabled={page >= Math.ceil(total / PAGE_SIZE)}
-                className="h-8 w-8 rounded-md border border-zinc-700 bg-zinc-900 text-zinc-500 hover:text-zinc-300 disabled:opacity-40"
-              >
-                →
-              </button>
+        {total > PAGE_SIZE && (() => {
+          const totalPages = Math.ceil(total / PAGE_SIZE);
+          const getVisiblePages = () => {
+            const pages: number[] = [];
+            const delta = 2;
+            const start = Math.max(1, page - delta);
+            const end = Math.min(totalPages, page + delta);
+            if (start > 1) { pages.push(1); if (start > 2) pages.push(-1); }
+            for (let i = start; i <= end; i++) pages.push(i);
+            if (end < totalPages) { if (end < totalPages - 1) pages.push(-1); pages.push(totalPages); }
+            return pages;
+          };
+          return (
+            <div className="flex items-center justify-between border-t border-zinc-700/50 px-4 py-3">
+              <p className="text-xs text-zinc-500">
+                Showing {((page - 1) * PAGE_SIZE) + 1} to {Math.min(page * PAGE_SIZE, total)} of {total} orders
+              </p>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="h-8 w-8 rounded-md border border-zinc-700 bg-zinc-900 text-zinc-500 hover:text-zinc-300 disabled:opacity-40"
+                >
+                  ←
+                </button>
+                {getVisiblePages().map((p, idx) =>
+                  p === -1 ? (
+                    <span key={`ellipsis-${idx}`} className="h-8 w-6 flex items-center justify-center text-zinc-500 text-xs">…</span>
+                  ) : (
+                    <button
+                      key={p}
+                      onClick={() => setPage(p)}
+                      className={`h-8 w-8 rounded-md text-xs font-medium ${
+                        page === p
+                          ? 'bg-teal-600 text-white'
+                          : 'border border-zinc-700 bg-zinc-900 text-zinc-400 hover:text-zinc-200'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  )
+                )}
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages}
+                  className="h-8 w-8 rounded-md border border-zinc-700 bg-zinc-900 text-zinc-500 hover:text-zinc-300 disabled:opacity-40"
+                >
+                  →
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
 
       {/* Detail Drawer */}
