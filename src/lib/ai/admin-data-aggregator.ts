@@ -404,6 +404,176 @@ async function getRecentOrdersDetail(): Promise<string> {
   return lines.join("\n");
 }
 
+// ─── 7. MARKETING INTELLIGENCE ───────────────────────────────
+
+async function getMarketingIntelligence(): Promise<string> {
+  const now = new Date();
+  const [
+    activeCoupons, totalCoupons,
+    activeFlashSales, newsletters,
+    activeBanners, emailCampaigns,
+  ] = await Promise.all([
+    prisma.coupon.count({ where: { isActive: true, endDate: { gte: now } } }),
+    prisma.coupon.count(),
+    prisma.flashsalecampaign.findMany({
+      where: { isActive: true, endAt: { gte: now } },
+      select: { name: true, startAt: true, endAt: true, _count: { select: { products: true } } },
+      take: 5,
+    }),
+    prisma.newslettersubscriber.count(),
+    prisma.banner.count({ where: { isActive: true } }),
+    prisma.emailcampaign.findMany({
+      select: { name: true, isActive: true, sentCount: true, openCount: true, clickCount: true },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    }),
+  ]);
+
+  const lines = [
+    `\n📣 MARKETING (DỮ LIỆU THẬT):`,
+    `• Coupon: ${activeCoupons} đang hoạt động / ${totalCoupons} tổng`,
+    `• Newsletter subscribers: ${newsletters}`,
+    `• Banner đang hiển thị: ${activeBanners}`,
+  ];
+
+  if (activeFlashSales.length > 0) {
+    lines.push(`\n⚡ FLASH SALE ĐANG CHẠY:`);
+    for (const fs of activeFlashSales) {
+      const end = fs.endAt.toLocaleDateString("vi-VN");
+      lines.push(`  • ${fs.name} — ${fs._count.products} SP, kết thúc ${end}`);
+    }
+  } else {
+    lines.push(`• Flash Sale: Không có chiến dịch đang chạy`);
+  }
+
+  if (emailCampaigns.length > 0) {
+    lines.push(`\n📧 EMAIL CAMPAIGNS GẦN NHẤT:`);
+    for (const ec of emailCampaigns) {
+      const openRate = ec.sentCount > 0 ? ((ec.openCount / ec.sentCount) * 100).toFixed(1) : "0";
+      const clickRate = ec.sentCount > 0 ? ((ec.clickCount / ec.sentCount) * 100).toFixed(1) : "0";
+      lines.push(`  • ${ec.name} | ${ec.isActive ? "Đang chạy" : "Tạm dừng"} | Gửi: ${ec.sentCount} | Open: ${openRate}% | Click: ${clickRate}%`);
+    }
+  }
+
+  return lines.join("\n");
+}
+
+// ─── 8. ENGAGEMENT INTELLIGENCE ──────────────────────────────
+
+async function getEngagementIntelligence(): Promise<string> {
+  const sevenDaysAgo = new Date(Date.now() - 7 * 86400000);
+
+  const [
+    totalReviews, recentReviews, avgRating,
+    totalWishlist, recentWishlist,
+    contactMessages, unreadContacts,
+    liveChats, unreadChats,
+    unreadNotifications,
+  ] = await Promise.all([
+    prisma.review.count(),
+    prisma.review.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
+    prisma.review.aggregate({ _avg: { rating: true } }),
+    prisma.wishlist.count(),
+    prisma.wishlist.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
+    prisma.contactmessage.count(),
+    prisma.contactmessage.count({ where: { status: "PENDING" } }),
+    prisma.livechat.count(),
+    prisma.livechat.count({ where: { status: "open" } }),
+    prisma.notification.count({ where: { isRead: false } }),
+  ]);
+
+  // Recent reviews detail
+  const latestReviews = await prisma.review.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 5,
+    select: {
+      rating: true, comment: true, createdAt: true,
+      user: { select: { name: true } },
+      product: { select: { name: true } },
+    },
+  });
+
+  const lines = [
+    `\n💬 TƯƠNG TÁC & ENGAGEMENT (DỮ LIỆU THẬT):`,
+    `• Reviews: ${totalReviews} tổng (7d: +${recentReviews}) — Đánh giá TB: ⭐${(avgRating._avg.rating ?? 0).toFixed(1)}`,
+    `• Wishlist: ${totalWishlist} tổng (7d: +${recentWishlist})`,
+    `• Liên hệ: ${contactMessages} tổng | Chưa đọc: ${unreadContacts}`,
+    `• Live Chat: ${liveChats} cuộc | Đang mở: ${unreadChats}`,
+    `• Thông báo chưa đọc: ${unreadNotifications}`,
+  ];
+
+  if (latestReviews.length > 0) {
+    lines.push(`\n⭐ REVIEWS GẦN NHẤT:`);
+    for (const r of latestReviews) {
+      lines.push(`  • ${"⭐".repeat(r.rating)} ${r.user?.name || "Ẩn danh"} → ${r.product?.name || "SP"}: "${(r.comment || "").slice(0, 50)}"`);
+    }
+  }
+
+  return lines.join("\n");
+}
+
+// ─── 9. WEBSITE CONTENT INTELLIGENCE ─────────────────────────
+
+async function getWebsiteContentIntelligence(): Promise<string> {
+  const [
+    dynamicPages, brands, homeSections,
+    aiKnowledgeCount,
+    totalProductImages, totalProductMedia,
+    totalQAs,
+  ] = await Promise.all([
+    prisma.dynamicPage.findMany({
+      where: { isPublished: true },
+      select: { title: true, slug: true, updatedAt: true },
+    }),
+    prisma.brand.findMany({
+      where: { isActive: true },
+      select: { name: true, _count: { select: { products: true } } },
+    }),
+    prisma.homepageSection.findMany({
+      where: { isActive: true },
+      select: { title: true, type: true, position: true },
+      orderBy: { position: "asc" },
+    }),
+    prisma.aiKnowledge.count(),
+    prisma.productimage.count(),
+    prisma.productmedia.count(),
+    prisma.productqa.count(),
+  ]);
+
+  const lines = [
+    `\n🌐 WEBSITE CONTENT (DỮ LIỆU THẬT):`,
+    `• Trang CMS động: ${dynamicPages.length}`,
+    `• Thương hiệu: ${brands.length}`,
+    `• Homepage sections: ${homeSections.length}`,
+    `• AI Knowledge base: ${aiKnowledgeCount} entries`,
+    `• Ảnh sản phẩm: ${totalProductImages} | Media: ${totalProductMedia}`,
+    `• Q&A sản phẩm: ${totalQAs}`,
+  ];
+
+  if (dynamicPages.length > 0) {
+    lines.push(`\n📄 TRANG CMS:`);
+    for (const p of dynamicPages) {
+      lines.push(`  • /${p.slug} — "${p.title}" (cập nhật: ${p.updatedAt.toLocaleDateString("vi-VN")})`);
+    }
+  }
+
+  if (brands.length > 0) {
+    lines.push(`\n🏷️ THƯƠNG HIỆU:`);
+    for (const b of brands) {
+      lines.push(`  • ${b.name} — ${b._count.products} sản phẩm`);
+    }
+  }
+
+  if (homeSections.length > 0) {
+    lines.push(`\n🏠 HOMEPAGE SECTIONS:`);
+    for (const s of homeSections) {
+      lines.push(`  • #${s.position}: ${s.title} (${s.type})`);
+    }
+  }
+
+  return lines.join("\n");
+}
+
 // ─── MAIN: Build Admin AI Context ────────────────────────────
 
 export async function buildAdminAIContext(userMessage: string): Promise<string> {
@@ -416,9 +586,13 @@ export async function buildAdminAIContext(userMessage: string): Promise<string> 
   const shouldLoadBehavior = /hành vi|behavior|funnel|tìm kiếm|search|trang|page|xem|view|chuyển đổi|conversion/.test(msg);
   const shouldLoadSEO = /seo|keyword|google|ranking|meta|title|content|nội dung|slug|sitemap|index/.test(msg);
   const shouldLoadOrders = /đơn hàng|order|gần nhất|recent|chi tiết|pending|chờ|tracking/.test(msg);
+  const shouldLoadMarketing = /coupon|voucher|flash|sale|khuyến|mãi|newsletter|email|banner|campaign|marketing/.test(msg);
+  const shouldLoadEngagement = /review|đánh giá|wishlist|yêu thích|liên hệ|contact|chat|thông báo|notification|tương tác/.test(msg);
+  const shouldLoadContent = /website|trang|cms|brand|thương hiệu|homepage|section|knowledge|ảnh|media|q&a/.test(msg);
 
   // If nothing specific matches, load everything (general question)
-  const loadAll = !shouldLoadBusiness && !shouldLoadProducts && !shouldLoadCustomers && !shouldLoadBehavior && !shouldLoadSEO && !shouldLoadOrders;
+  const anySpecific = shouldLoadBusiness || shouldLoadProducts || shouldLoadCustomers || shouldLoadBehavior || shouldLoadSEO || shouldLoadOrders || shouldLoadMarketing || shouldLoadEngagement || shouldLoadContent;
+  const loadAll = !anySpecific;
 
   const parts: string[] = [];
 
@@ -426,14 +600,16 @@ export async function buildAdminAIContext(userMessage: string): Promise<string> 
   parts.push(`🏪 LIKEFOOD — CỬA HÀNG ĐẶC SẢN VIỆT NAM TẠI MỸ (likefood.app)\n`);
 
   const promises: Promise<string>[] = [];
-  const labels: string[] = [];
 
-  if (loadAll || shouldLoadBusiness) { promises.push(cached("biz", getBusinessIntelligence)); labels.push("business"); }
-  if (loadAll || shouldLoadProducts) { promises.push(cached("prod", getProductIntelligence)); labels.push("products"); }
-  if (loadAll || shouldLoadCustomers) { promises.push(cached("cust", getCustomerIntelligence)); labels.push("customers"); }
-  if (loadAll || shouldLoadBehavior) { promises.push(cached("behavior", getBehaviorSummary)); labels.push("behavior"); }
-  if (loadAll || shouldLoadSEO) { promises.push(cached("seo", getSEOIntelligence)); labels.push("seo"); }
-  if (shouldLoadOrders) { promises.push(getRecentOrdersDetail()); labels.push("orders"); }
+  if (loadAll || shouldLoadBusiness) promises.push(cached("biz", getBusinessIntelligence));
+  if (loadAll || shouldLoadProducts) promises.push(cached("prod", getProductIntelligence));
+  if (loadAll || shouldLoadCustomers) promises.push(cached("cust", getCustomerIntelligence));
+  if (loadAll || shouldLoadBehavior) promises.push(cached("behavior", getBehaviorSummary));
+  if (loadAll || shouldLoadSEO) promises.push(cached("seo", getSEOIntelligence));
+  if (loadAll || shouldLoadMarketing) promises.push(cached("marketing", getMarketingIntelligence));
+  if (loadAll || shouldLoadEngagement) promises.push(cached("engagement", getEngagementIntelligence));
+  if (loadAll || shouldLoadContent) promises.push(cached("content", getWebsiteContentIntelligence));
+  if (shouldLoadOrders) promises.push(getRecentOrdersDetail());
 
   const results = await Promise.all(promises);
   for (const r of results) {
@@ -457,3 +633,4 @@ export async function buildAdminAIContext(userMessage: string): Promise<string> 
 
   return parts.join("\n");
 }
+
