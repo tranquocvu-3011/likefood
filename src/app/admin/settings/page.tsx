@@ -338,7 +338,7 @@ export default function AdminSettingsPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`w-full rounded-lg border px-4 py-3 text-left transition ${
                     active
-                      ? "border-teal-600 bg-teal-600/10 text-teal-400"
+                      ? "border-teal-600 bg-teal-600/10 text-blue-400"
                       : "border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-600 hover:bg-zinc-800"
                   }`}
                 >
@@ -348,7 +348,7 @@ export default function AdminSettingsPage() {
                     </div>
                     <div>
                       <p className="text-xs font-semibold uppercase">{tab.label}</p>
-                      <p className={`mt-0.5 text-xs ${active ? "text-teal-400/70" : "text-zinc-500"}`}>{tab.description}</p>
+                      <p className={`mt-0.5 text-xs ${active ? "text-blue-400/70" : "text-zinc-500"}`}>{tab.description}</p>
                     </div>
                   </div>
                 </button>
@@ -518,7 +518,7 @@ export default function AdminSettingsPage() {
                 <SectionHeader icon={CreditCard} eyebrow="Stripe" title="Thanh toán qua Stripe" description="Website sử dụng Stripe làm cổng thanh toán duy nhất." />
                 <div className="mt-6 rounded-lg border border-zinc-700/50 bg-zinc-900 p-5">
                   <p className="text-sm text-zinc-400">
-                    🔑 Cấu hình API keys Stripe tại tab <button type="button" onClick={() => setActiveTab("connections")} className="text-teal-400 font-semibold hover:underline">Kết nối</button> → mục &quot;Cổng thanh toán Stripe&quot;.
+                    🔑 Cấu hình API keys Stripe tại tab <button type="button" onClick={() => setActiveTab("connections")} className="text-blue-400 font-semibold hover:underline">Kết nối</button> → mục &quot;Cổng thanh toán Stripe&quot;.
                   </p>
                   <p className="mt-2 text-xs text-zinc-500">
                     Stripe Endpoint: <code className="bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-300">/api/webhooks/stripe</code>

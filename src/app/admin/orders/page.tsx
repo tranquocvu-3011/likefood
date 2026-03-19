@@ -299,7 +299,7 @@ export default function AdminOrdersPage() {
       {/* Bulk Actions Bar */}
       {selectedOrders.size > 0 && (
         <div className="rounded-lg border border-teal-500/30 bg-teal-500/5 px-4 py-2.5 flex items-center justify-between">
-          <span className="text-sm font-medium text-teal-400">
+          <span className="text-sm font-medium text-blue-400">
             {selectedOrders.size} selected
           </span>
           <div className="flex items-center gap-2">
@@ -316,7 +316,7 @@ export default function AdminOrdersPage() {
             <button 
               onClick={() => void applyBulkStatus()}
               disabled={!bulkStatus}
-              className="h-8 px-3 rounded-md border border-teal-600/50 bg-teal-600/20 text-xs text-teal-300 hover:bg-teal-600/30 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="h-8 px-3 rounded-md border border-blue-600/50 bg-blue-600/20 text-xs text-blue-300 hover:bg-blue-600/30 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Áp dụng
             </button>
@@ -614,7 +614,7 @@ function OrderDrawer({
                 <CreditCard className="h-4 w-4" /> Payment
               </h3>
               <p className="text-sm text-zinc-200">{order.paymentMethod || 'COD'}</p>
-              <p className="text-lg font-bold text-teal-400 mt-2">{formatPrice(order.total)}</p>
+              <p className="text-lg font-bold text-amber-400 mt-2">{formatPrice(order.total)}</p>
             </div>
 
             {/* Items */}

@@ -82,7 +82,6 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { id: "products", label: "Sản phẩm", href: "/admin/products", icon: Package },
       { id: "categories", label: "Phân loại", href: "/admin/categories", icon: FolderTree },
-      { id: "brands", label: "Thương hiệu", href: "/admin/brands", icon: Tag },
       { id: "reviews", label: "Đánh giá", href: "/admin/reviews", icon: Star },
     ],
   },

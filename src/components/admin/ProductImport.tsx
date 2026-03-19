@@ -360,7 +360,7 @@ export default function ProductImport({
                         </div>
                         
                         <div className="flex items-center justify-end gap-3 p-6 border-t border-zinc-700/40">
-                            <Button variant="outline" onClick={() => setShowPreview(false)} className="border-zinc-700">
+                            <Button variant="outline" onClick={() => setShowPreview(false)}>
                                 Cancel
                             </Button>
                             <Button onClick={handleImport} disabled={isImporting} className="bg-teal-600">

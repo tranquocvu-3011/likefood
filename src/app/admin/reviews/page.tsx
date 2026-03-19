@@ -301,7 +301,7 @@ export default function AdminReviewsPage() {
                 {/* Admin Reply */}
                 {review.adminReply && (
                   <div className="mt-3 bg-teal-500/5 rounded-md p-3 border-l-2 border-teal-500">
-                    <p className="text-xs font-semibold text-teal-400 mb-1">💬 Phản hồi từ Admin</p>
+                    <p className="text-xs font-semibold text-blue-400 mb-1">💬 Phản hồi từ Admin</p>
                     <p className="text-sm text-zinc-300">{review.adminReply}</p>
                     {review.repliedAt && (
                       <p className="text-xs text-zinc-500 mt-1">{new Date(review.repliedAt).toLocaleDateString("vi-VN")}</p>

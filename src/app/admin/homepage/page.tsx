@@ -256,7 +256,7 @@ export default function AdminHomepagePage() {
           <p className="text-zinc-400">Cấu hình các section trên trang chủ</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100" onClick={handleSaveOrder} disabled={saving}>
+          <Button variant="outline" onClick={handleSaveOrder} disabled={saving}>
             {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
             Lưu thứ tự
           </Button>
@@ -279,7 +279,7 @@ export default function AdminHomepagePage() {
             <div className="text-center py-8 text-zinc-500">
               <Layout className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>Chưa có section nào</p>
-              <Button variant="outline" className="mt-4 border-zinc-700 text-zinc-300 hover:bg-zinc-800" onClick={() => setShowAddDialog(true)}>
+              <Button variant="outline" className="mt-4" onClick={() => setShowAddDialog(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Thêm section đầu tiên
               </Button>
@@ -465,7 +465,7 @@ export default function AdminHomepagePage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" className="border-zinc-700 text-zinc-300 hover:bg-zinc-800" onClick={() => setShowAddDialog(false)}>
+            <Button variant="outline" onClick={() => setShowAddDialog(false)}>
               Hủy
             </Button>
             <Button className="bg-teal-600 hover:bg-teal-500 text-white" onClick={handleAddSection} disabled={saving}>
@@ -534,7 +534,7 @@ export default function AdminHomepagePage() {
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" className="border-zinc-700 text-zinc-300 hover:bg-zinc-800" onClick={() => setShowEditDialog(false)}>
+            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
               Hủy
             </Button>
             <Button className="bg-teal-600 hover:bg-teal-500 text-white" onClick={handleUpdateSection} disabled={saving}>

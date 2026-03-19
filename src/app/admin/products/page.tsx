@@ -254,7 +254,7 @@ export default function AdminProductsPage() {
         </div>
         <div className="rounded-lg border border-zinc-700/50 bg-[#111113] p-4">
           <p className="text-xs font-medium text-zinc-500 uppercase">Featured</p>
-          <p className="text-2xl font-bold text-teal-400 mt-1">{stats.featured}</p>
+          <p className="text-2xl font-bold text-amber-400 mt-1">{stats.featured}</p>
         </div>
       </div>
 
@@ -322,7 +322,7 @@ export default function AdminProductsPage() {
       {/* Bulk Actions */}
       {selectedProducts.size > 0 && (
         <div className="rounded-lg border border-teal-500/30 bg-teal-500/5 px-4 py-2.5 flex items-center justify-between">
-          <span className="text-sm font-medium text-teal-400">{selectedProducts.size} selected</span>
+          <span className="text-sm font-medium text-blue-400">{selectedProducts.size} selected</span>
           <div className="flex items-center gap-2">
             <button onClick={() => void handleBulkFeature()} className="h-8 px-3 rounded-md border border-zinc-700 bg-zinc-900 text-xs text-zinc-300 hover:bg-zinc-800">
               Set Featured

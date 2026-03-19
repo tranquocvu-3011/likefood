@@ -113,7 +113,7 @@ export default function AdminFeedbackPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => fetchFeedbacks()} disabled={isLoading} className="text-zinc-400">
+          <Button variant="outline" onClick={() => fetchFeedbacks()} disabled={isLoading}>
             <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
             Làm mới
           </Button>

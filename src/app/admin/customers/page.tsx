@@ -203,7 +203,7 @@ export default function CustomersPage() {
         </div>
         <div className="rounded-lg border border-zinc-700/50 bg-[#111113] p-4">
           <p className="text-xs font-medium text-zinc-500 uppercase">Tổng doanh thu</p>
-          <p className="text-2xl font-bold text-teal-400 mt-1">{formatPrice(stats.totalRevenue)}</p>
+          <p className="text-2xl font-bold text-amber-400 mt-1">{formatPrice(stats.totalRevenue)}</p>
         </div>
         <div className="rounded-lg border border-zinc-700/50 bg-[#111113] p-4">
           <p className="text-xs font-medium text-zinc-500 uppercase">Chi tiêu TB</p>
@@ -221,7 +221,7 @@ export default function CustomersPage() {
           {segments.slice(0, 4).map((seg) => (
             <div key={seg.segment} className="rounded-lg border border-zinc-700/50 bg-[#111113] p-4">
               <div className="flex items-center gap-2 mb-2">
-                <Award className="h-4 w-4 text-teal-400" />
+                <Award className="h-4 w-4 text-amber-400" />
                 <p className="text-xs font-semibold uppercase text-zinc-400">{seg.segment}</p>
               </div>
               <p className="text-xl font-bold text-zinc-100">{seg.count}</p>

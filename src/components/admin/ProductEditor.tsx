@@ -389,7 +389,7 @@ export default function ProductEditor({
 
               <div className="grid gap-5 md:grid-cols-2">
                 <Field label="🇻🇳 Tên sản phẩm" required className="md:col-span-2">
-                  <input value={formData.name} onChange={(event) => updateField("name", event.target.value)} className="w-full h-14 rounded-2xl border border-zinc-700 bg-zinc-900 px-5 text-sm font-semibold text-zinc-100 outline-none transition-colors focus:border-emerald-500/50 focus:bg-zinc-800" placeholder="Ví dụ: Khô cá lóc premium" />
+                  <input value={formData.name} onChange={(event) => updateField("name", event.target.value)} className="w-full h-14 rounded-2xl border border-zinc-700 bg-zinc-900 px-5 text-sm font-semibold text-zinc-100 outline-none transition-colors focus:border-zinc-500/50 focus:bg-zinc-800" placeholder="Ví dụ: Khô cá lóc premium" />
                 </Field>
                 <Field label="🇺🇸 Product Name (EN)" className="md:col-span-2">
                   <input value={formData.nameEn} onChange={(event) => updateField("nameEn", event.target.value)} className="w-full h-14 rounded-2xl border border-zinc-700 bg-zinc-900 px-5 text-sm font-semibold text-zinc-100 outline-none transition-colors focus:border-blue-500/50 focus:bg-zinc-800" placeholder="Example: Premium dried snakehead fish" />
@@ -427,7 +427,7 @@ export default function ProductEditor({
                   <div className="space-y-3">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <p className="text-xs font-medium text-zinc-500">Mô tả xuất xứ, hương vị, cách dùng, bảo quản và lý do nên mua.</p>
-                      <button type="button" onClick={handleGenerateDescription} disabled={isGenerating} className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60">
+                      <button type="button" onClick={handleGenerateDescription} disabled={isGenerating} className="inline-flex items-center gap-2 rounded-full bg-amber-600 px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-white transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-60">
                         {isGenerating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <WandSparkles className="h-3.5 w-3.5" />}
                         Nháp AI
                       </button>
@@ -442,16 +442,16 @@ export default function ProductEditor({
               </div>
 
               {aiInsights ? (
-                <div className="rounded-[1.75rem] border border-emerald-500/30 bg-emerald-500/10 p-5">
+                <div className="rounded-[1.75rem] border border-amber-500/30 bg-amber-500/10 p-5">
                   <div className="flex items-center justify-between gap-3">
-                    <div className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.22em] text-emerald-400"><Sparkles className="h-3.5 w-3.5" />Gợi ý từ AI</div>
+                    <div className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.22em] text-amber-400"><Sparkles className="h-3.5 w-3.5" />Gợi ý từ AI</div>
                     <button type="button" onClick={() => setAiInsights(null)} className="text-zinc-500 transition hover:text-zinc-300"><X className="h-4 w-4" /></button>
                   </div>
                   <div className="mt-4 grid gap-4 lg:grid-cols-2">
                     <InsightBlock icon={MapPin} label="Xuất xứ" value={aiInsights.origin} />
                     <InsightBlock icon={ChefHat} label="Cách dùng" value={aiInsights.howToUse} />
                   </div>
-                  {aiInsights.benefits.length > 0 ? <div className="mt-4 flex flex-wrap gap-2">{aiInsights.benefits.map((benefit) => <span key={benefit} className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-400">{benefit}</span>)}</div> : null}
+                  {aiInsights.benefits.length > 0 ? <div className="mt-4 flex flex-wrap gap-2">{aiInsights.benefits.map((benefit) => <span key={benefit} className="rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-bold text-amber-400">{benefit}</span>)}</div> : null}
                 </div>
               ) : null}
             </CardContent>
@@ -560,7 +560,7 @@ export default function ProductEditor({
                                 <VariantStat label="SKU" value={variant.sku || "-"} />
                               </div>
                               <div className="flex flex-wrap items-center gap-2">
-                                <span className={`rounded-full px-3 py-2 text-xs font-black uppercase tracking-[0.16em] ${variant.isActive ? "bg-emerald-500/20 text-emerald-400" : "bg-zinc-700 text-zinc-400"}`}>{variant.isActive ? "Hoạt động" : "Ẩn"}</span>
+                                <span className={`rounded-full px-3 py-2 text-xs font-black uppercase tracking-[0.16em] ${variant.isActive ? "bg-sky-500/20 text-sky-400" : "bg-zinc-700 text-zinc-400"}`}>{variant.isActive ? "Hoạt động" : "Ẩn"}</span>
                                 <Button type="button" size="sm" variant="outline" onClick={() => { setEditingVariantId(variant.id); setEditingVariant({ weight: variant.weight || "", flavor: variant.flavor || "", priceAdjustment: String(variant.priceAdjustment ?? 0), stock: String(variant.stock ?? 0), sku: variant.sku || "", isActive: variant.isActive }); }}>Sửa</Button>
                                 <Button type="button" size="sm" variant="outline" onClick={() => deleteVariant(String(variant.id))} disabled={busy}>{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}Xóa</Button>
                               </div>
@@ -643,7 +643,7 @@ function ToggleRow({ title, description, checked, onChange }: { title: string; d
       <button
         type="button"
         onClick={() => onChange(!checked)}
-        className={`relative inline-flex h-8 w-14 flex-shrink-0 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 ${checked ? "bg-emerald-500" : "bg-zinc-700"}`}
+        className={`relative inline-flex h-8 w-14 flex-shrink-0 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 ${checked ? "bg-blue-500" : "bg-zinc-700"}`}
       >
         <span
           className={`inline-block h-6 w-6 transform rounded-full bg-white shadow-lg transition-transform duration-200 ${checked ? "translate-x-7" : "translate-x-1"}`}
@@ -655,7 +655,7 @@ function ToggleRow({ title, description, checked, onChange }: { title: string; d
 
 function InsightBlock({ icon: Icon, label, value }: { icon: typeof MapPin; label: string; value: string }) {
   if (!value) return null;
-  return <div className="rounded-[1.35rem] border border-zinc-700/50 bg-zinc-900/50 p-4"><div className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-zinc-500"><Icon className="h-3.5 w-3.5 text-emerald-500" />{label}</div><p className="mt-2 text-sm leading-6 text-zinc-300">{value}</p></div>;
+  return <div className="rounded-[1.35rem] border border-zinc-700/50 bg-zinc-900/50 p-4"><div className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-zinc-500"><Icon className="h-3.5 w-3.5 text-amber-500" />{label}</div><p className="mt-2 text-sm leading-6 text-zinc-300">{value}</p></div>;
 }
 
 function MiniInput({ label, value, onChange, placeholder, type = "text" }: { label: string; value: string; onChange: (value: string) => void; placeholder: string; type?: string }) {
