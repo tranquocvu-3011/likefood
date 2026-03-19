@@ -6,7 +6,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { 
@@ -68,10 +68,25 @@ const STATUS_CONFIG = [
 
 export default function AdminProductsPage() {
   const searchParams = useSearchParams();
-  const initialPage = Number(searchParams.get("page")) || 1;
+  const router = useRouter();
+  const pathname = usePathname();
+  const urlPage = Number(searchParams.get("page")) || 1;
   const [products, setProducts] = useState<Product[]>([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(initialPage);
+  const [page, setPage] = useState(urlPage);
+
+  // Sync page state ← URL (khi redirect từ edit page về ?page=4)
+  useEffect(() => {
+    if (urlPage !== page) setPage(urlPage);
+  }, [urlPage]);
+
+  // Sync URL ← page state (khi click pagination)
+  const changePage = useCallback((newPage: number) => {
+    setPage(newPage);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", String(newPage));
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [searchParams, router, pathname]);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
   const [stockFilter, setStockFilter] = useState("ALL");
@@ -508,7 +523,7 @@ export default function AdminProductsPage() {
               </p>
               <div className="flex items-center gap-1">
                 <button
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  onClick={() => changePage(Math.max(1, page - 1))}
                   disabled={page === 1}
                   className="h-8 w-8 rounded-md border border-zinc-700 bg-zinc-900 text-zinc-500 hover:text-zinc-300 disabled:opacity-40"
                 >
@@ -520,7 +535,7 @@ export default function AdminProductsPage() {
                   ) : (
                     <button
                       key={p}
-                      onClick={() => setPage(p)}
+                      onClick={() => changePage(p)}
                       className={`h-8 w-8 rounded-md text-xs font-medium ${
                         page === p
                           ? 'bg-teal-600 text-white'
@@ -532,7 +547,7 @@ export default function AdminProductsPage() {
                   )
                 )}
                 <button
-                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  onClick={() => changePage(Math.min(Math.ceil(total / PAGE_SIZE), page + 1))}
                   disabled={page >= totalPages}
                   className="h-8 w-8 rounded-md border border-zinc-700 bg-zinc-900 text-zinc-500 hover:text-zinc-300 disabled:opacity-40"
                 >
